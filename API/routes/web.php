@@ -7,3 +7,21 @@ Route::get('/', function () {
 });
 
 require __DIR__.'/auth.php';
+
+
+Route::resource('countries', App\Http\Controllers\Api\v1\CountryController::class)->except('edit', 'update', 'destroy');
+
+
+Route::resource('countries', App\Http\Controllers\Api\v1\CountryController::class)->except('edit', 'update', 'destroy');
+
+
+Route::resource('countries', App\Http\Controllers\Api\v1\CountryController::class)->except('edit', 'update', 'destroy');
+
+
+Route::resource('countries', App\Http\Controllers\Api\v1\CountryController::class)->except('edit', 'update', 'destroy');
+
+
+Route::resource('countries', App\Http\Controllers\Api\v1\CountryController::class)->except('edit', 'update', 'destroy');
+
+
+Route::resource('countries', App\Http\Controllers\Api\v1\CountryController::class)->except('edit', 'update', 'destroy');

@@ -1,0 +1,173 @@
+created:
+    - app/Http/Controllers/Api/v1/CountryController.php
+    - database/factories/CountryFactory.php
+    - database/factories/DepartmentFactory.php
+    - database/factories/ProvidersTypeFactory.php
+    - database/factories/MunicipalityFactory.php
+    - database/factories/DistrictFactory.php
+    - database/factories/EconomicActivityFactory.php
+    - database/factories/ProviderFactory.php
+    - database/factories/CompanyFactory.php
+    - database/factories/WarehouseFactory.php
+    - database/factories/StablishmentTypeFactory.php
+    - database/factories/JobsTitleFactory.php
+    - database/factories/EmployeeFactory.php
+    - database/factories/CategoryFactory.php
+    - database/factories/BrandFactory.php
+    - database/factories/ProductFactory.php
+    - database/factories/InventoryFactory.php
+    - database/factories/UnitMeasurementFactory.php
+    - database/factories/PriceFactory.php
+    - database/factories/VehicleFactory.php
+    - database/factories/PlateTypeFactory.php
+    - database/factories/AplicationFactory.php
+    - database/factories/VehicleModelFactory.php
+    - database/factories/FuelTypeFactory.php
+    - database/factories/DocumentsTypesProviderFactory.php
+    - database/factories/ProviderAddressCatalogFactory.php
+    - database/factories/ProviderAddressFactory.php
+    - database/factories/EquivalentFactory.php
+    - database/factories/PurchasesHeaderFactory.php
+    - database/factories/BatchFactory.php
+    - database/factories/PurchaseItemFactory.php
+    - database/factories/InventoriesBatchFactory.php
+    - database/factories/CustomerFactory.php
+    - database/factories/CustomerDocumentsTypeFactory.php
+    - database/factories/CustomerAddressCatalogFactory.php
+    - database/factories/CustomerAddressFactory.php
+    - database/factories/SalesHeaderFactory.php
+    - database/factories/SalesDteFactory.php
+    - database/factories/SalePaymentDetailFactory.php
+    - database/factories/HistoryDteFactory.php
+    - database/factories/SaleItemFactory.php
+    - database/factories/UserFactory.php
+    - database/migrations/2025_01_17_232216_create_countries_table.php
+    - database/migrations/2025_01_17_232217_create_departments_table.php
+    - database/migrations/2025_01_17_232218_create_providers_types_table.php
+    - database/migrations/2025_01_17_232219_create_municipalities_table.php
+    - database/migrations/2025_01_17_232220_create_districts_table.php
+    - database/migrations/2025_01_17_232221_create_economic_activities_table.php
+    - database/migrations/2025_01_17_232222_create_providers_table.php
+    - database/migrations/2025_01_17_232223_create_companies_table.php
+    - database/migrations/2025_01_17_232224_create_warehouses_table.php
+    - database/migrations/2025_01_17_232225_create_stablishment_types_table.php
+    - database/migrations/2025_01_17_232226_create_jobs_titles_table.php
+    - database/migrations/2025_01_17_232227_create_employees_table.php
+    - database/migrations/2025_01_17_232228_create_categories_table.php
+    - database/migrations/2025_01_17_232229_create_brands_table.php
+    - database/migrations/2025_01_17_232230_create_products_table.php
+    - database/migrations/2025_01_17_232231_create_inventories_table.php
+    - database/migrations/2025_01_17_232232_create_unit_measurements_table.php
+    - database/migrations/2025_01_17_232233_create_prices_table.php
+    - database/migrations/2025_01_17_232234_create_vehicles_table.php
+    - database/migrations/2025_01_17_232235_create_plate_types_table.php
+    - database/migrations/2025_01_17_232236_create_aplications_table.php
+    - database/migrations/2025_01_17_232237_create_vehicle_models_table.php
+    - database/migrations/2025_01_17_232238_create_fuel_types_table.php
+    - database/migrations/2025_01_17_232239_create_documents_types_providers_table.php
+    - database/migrations/2025_01_17_232240_create_provider_address_catalogs_table.php
+    - database/migrations/2025_01_17_232241_create_provider_addresses_table.php
+    - database/migrations/2025_01_17_232242_create_equivalents_table.php
+    - database/migrations/2025_01_17_232243_create_purchases_headers_table.php
+    - database/migrations/2025_01_17_232244_create_batches_table.php
+    - database/migrations/2025_01_17_232245_create_purchase_items_table.php
+    - database/migrations/2025_01_17_232246_create_inventories_batches_table.php
+    - database/migrations/2025_01_17_232247_create_customers_table.php
+    - database/migrations/2025_01_17_232248_create_customer_documents_types_table.php
+    - database/migrations/2025_01_17_232249_create_customer_address_catalogs_table.php
+    - database/migrations/2025_01_17_232250_create_customer_addresses_table.php
+    - database/migrations/2025_01_17_232251_create_sales_headers_table.php
+    - database/migrations/2025_01_17_232252_create_sales_dtes_table.php
+    - database/migrations/2025_01_17_232253_create_sale_payment_details_table.php
+    - database/migrations/2025_01_17_232254_create_history_dtes_table.php
+    - database/migrations/2025_01_17_232255_create_sale_items_table.php
+    - database/migrations/2025_01_17_232256_create_users_table.php
+    - app/Models/Country.php
+    - app/Models/Department.php
+    - app/Models/ProvidersType.php
+    - app/Models/Municipality.php
+    - app/Models/District.php
+    - app/Models/EconomicActivity.php
+    - app/Models/Provider.php
+    - app/Models/Company.php
+    - app/Models/Warehouse.php
+    - app/Models/StablishmentType.php
+    - app/Models/JobsTitle.php
+    - app/Models/Employee.php
+    - app/Models/Category.php
+    - app/Models/Brand.php
+    - app/Models/Product.php
+    - app/Models/Inventory.php
+    - app/Models/UnitMeasurement.php
+    - app/Models/Price.php
+    - app/Models/Vehicle.php
+    - app/Models/PlateType.php
+    - app/Models/Aplication.php
+    - app/Models/VehicleModel.php
+    - app/Models/FuelType.php
+    - app/Models/DocumentsTypesProvider.php
+    - app/Models/ProviderAddressCatalog.php
+    - app/Models/ProviderAddress.php
+    - app/Models/Equivalent.php
+    - app/Models/PurchasesHeader.php
+    - app/Models/Batch.php
+    - app/Models/PurchaseItem.php
+    - app/Models/InventoriesBatch.php
+    - app/Models/Customer.php
+    - app/Models/CustomerDocumentsType.php
+    - app/Models/CustomerAddressCatalog.php
+    - app/Models/CustomerAddress.php
+    - app/Models/SalesHeader.php
+    - app/Models/SalesDte.php
+    - app/Models/SalePaymentDetail.php
+    - app/Models/HistoryDte.php
+    - app/Models/SaleItem.php
+    - app/Models/User.php
+    - tests/Feature/Http/Controllers/Api/v1/CountryControllerTest.php
+    - app/Http/Requests/Api\v1/CountryStoreRequest.php
+    - resources/views/country/create.blade.php
+    - resources/views/country/show.blade.php
+updated:
+    - routes/web.php
+models:
+    User: { id: id, name: string, email: string, employee_id: 'bigInteger unsigned foreign:employees.id', email_verifed_at: 'dateTime nullable', password: string, rememeber_tokend: string, theme: 'string nullable', teheme_color: 'string nullable' }
+    Country: { id: id, codigo: char, descripcion: string, is_active: boolean }
+    Department: { id: id, country_id: 'bigInteger unsigned foreign:countries.id', code: string, description: string, is_active: boolean }
+    ProvidersType: { id: id, code: string, description: bigInteger, is_active: boolean }
+    Municipality: { id: id, departament_id: 'bigInteger unsigned foreign:departments.id', code: string, description: string, is_active: boolean }
+    District: { id: id, municipality_id: 'bigInteger index unsigned foreign:municipalities.id', code: 'string index', description: string, is_active: boolean }
+    EconomicActivity: { id: id, code: string, description: string, is_active: boolean }
+    Provider: { id: id, legal_name: string, comercial_name: string, document_type_id: 'bigInteger unsigned foreign:documents_types_providers.id', document_number: string, economic_activity_id: 'bigInteger unsigned foreign:economic_activities.id', provider_type_id: 'bigInteger unsigned foreign:providers_types.id', payment_type_id: 'bigInteger unsigned', credit_days: integer, credit_limit: 'decimal index', debit_balance: decimal, last_purchase: date, decimal_purchase: integer }
+    Company: { id: id, district_id: 'bigInteger unsigned foreign:districts.id', economic_activity_id: 'bigInteger unsigned foreign:economic_activities.id', company_name: string, nrc: string, nit: string, phone: string, whatsapp: string, email: string, address: string, web: bigInteger, api_key_mh: bigInteger, logo: 'json nullable' }
+    Warehouse: { id: 'id foreign:company.id', company_id: 'bigInteger unsigned', stablishment_type: 'bigInteger unsigned foreign:stablishment_types.id', name: string, nrc: string, nit: string, district_id: 'bigInteger unsigned foreign:districts.id', economic_activity_id: 'bigInteger unsigned foreign:economic_activities.id', address: string, phone: string, email: string, product_prices: 'integer default:2', logo: 'json nullable' }
+    StablishmentType: { id: id, code: string, description: string, is_active: boolean }
+    JobsTitle: { id: id, code: string, description: string, is_active: boolean }
+    Employee: { id: id, warehouse_id: 'bigInteger unsigned foreign:warehouses.id', job_title_id: 'bigInteger unsigned foreign:jobs_titles.id', name: string, last_name: string, gender: 'enum:"M","F" default:"M"', dui: string, nit: string, phone: string, email: string, photo: 'json nullable', district_id: 'bigInteger unsigned foreign:districts.id', address: string, comision_porcentage: 'decimal(10,2)', is_active: boolean, marital_status: 'enum:"Soltero/a","Casado/a","Divorciado/a","Viudo" default:"Soltero/a"', marital_name: string, marital_phone: string }
+    Category: { id: id, code: string, description: string, comission_porcentage: decimal, category_parent_id: 'bigInteger unsigned foreign:categories.id' }
+    Brand: { id: id, code: string, description: string, image: json, is_active: boolean }
+    Product: { id: id, code: 'string index', original_code: string, barcode: string, description: string, brand_id: 'bigInteger unsigned foreign:brands.id', category_id: 'bigInteger unsigned foreign:categories.id', unit_measurement_id: 'bigInteger unsigned foreign:unit_measurements.id', provider_id: 'bigInteger unsigned foreign:providers.id', description_measurement_id: bigInteger, is_service: boolean, is_active: boolean, is_taxed: boolean, image: 'json nullable' }
+    Inventory: { id: id, warehouse_id: 'bigInteger unsigned foreign:warehouses.id', product_id: 'bigInteger unsigned foreign:products.id', cost_without_tax: decimal, cost_with_tax: decimal, stock_actual: 'decimal comment:"Sum quantity"', stock_min: decimal, alert_stock_min: boolean, stock_max: decimal, alert_stock_max: boolean, max_discount: decimal, last_purchase: dateTime }
+    UnitMeasurement: { id: id, code: string, description: string, is_active: boolean }
+    Price: { id: id, inventory_id: 'bigInteger unsigned foreign:inventories.id', price_wholesale: decimal, price_detail: decimal, is_active: boolean }
+    Vehicle: { id: id, brand_id: 'bigInteger unsigned foreign:brands.id', model_id: 'bigInteger index unsigned foreign:vehicle_models.id', model_two: string, year: string, chassis: string, vin: string, motor: string, displacement: string, motor_type: string, fuel_type: 'bigInteger unsigned foreign:fuel_types.id', vehicle_class: string, income_date: date, municipality_id: bigInteger, antique: string, plate_type: 'bigInteger unsigned foreign:plate_types.id', capacity: decimal, tonnage: decimal }
+    PlateType: { id: id, code: string, description: string, is_active: boolean }
+    Aplication: { id: id, product_id: 'bigInteger index unsigned foreign:products.id', vehicle_id: 'bigInteger index unsigned foreign:vehicles.id' }
+    VehicleModel: { id: id, code: string, description: string, is_active: boolean }
+    FuelType: { id: id, code: string, description: string, is_active: boolean }
+    DocumentsTypesProvider: { id: id, code: string, description: string, is_active: bigInteger }
+    ProviderAddressCatalog: { id: id, district_id: 'bigInteger unsigned', address_reference: string, is_active: boolean, email: string, phone: string, seller: string, seller_phone: string, seller_email: string }
+    ProviderAddress: { id: id, provider_id: 'bigInteger unsigned foreign:providers.id', address_id: 'bigInteger unsigned foreign:provider_address_catalog.id', is_active: boolean }
+    Equivalent: { id: id, product_id: 'bigInteger index unsigned foreign:products.id', product_id_equivalent: 'bigInteger unsigned foreign:products.id', is_active: boolean }
+    PurchasesHeader: { id: id, warehouse: 'bigInteger unsigned foreign:warehouses.id', provider_id: 'bigInteger unsigned foreign:providers.id', purchcase_date: date, serie: string, purchase_number: string, resolution: string, purchase_type: bigInteger, payment_method: 'enum:"1","2" default:"1" comment:"1=Contado, 2=Credito"', payment_status: 'enum:"1","2","3" default:"1" comment:"1=Pagada, 2=Parcial, 3=Pendiente"', net_amount: decimal, tax_amount: decimal, retention_amount: decimal, total_purchase: decimal, employee_id: 'bigInteger unsigned', status_purchase: 'enum:"1","2","3" default:"1" comment:"1 =Procesando, 2=Finzalizada,3=Anulada"' }
+    Batch: { id: id, code: string, inventory_id: 'bigInteger index unsigned', incoming_date: date, expiration_date: date, initial_quantity: decimal, available_quantity: decimal, observations: string, is_active: 'boolean default:"1"' }
+    PurchaseItem: { id: id, purchase_id: 'bigInteger unsigned foreign:purchases_header.id', batch_id: 'bigInteger unsigned foreign:batch.id', is_purched: boolean, quantity: decimal, price: decimal, discount: decimal, total: decimal }
+    InventoriesBatch: { id: id, id_inventory: 'bigInteger unsigned foreign:inventories.id', id_batch: 'bigInteger unsigned foreign:batch.id' }
+    Customer: { id: id, internal_code: string, document_type_id: 'bigInteger unsigned foreign:customer_documents_types.id', document_number: string, name: string, last_name: string, warehouse: 'bigInteger unsigned foreign:warehouses.id', nrc: string, nit: string, is_taxed: boolean, sales_type: 'enum:"1","2","3","4" default:"1" comment:"1=Mayoreo; 2=Detalle; 3=Taller;"', is_creditable: boolean, address: string, credit_limit: bigInteger, credit_amount: decimal, is_delivery: boolean }
+    CustomerDocumentsType: { id: id, code: string, description: string, is_active: boolean }
+    CustomerAddressCatalog: { id: id, district_id: 'bigInteger unsigned foreign:districts.id', address_reference: string, is_active: boolean, email: 'string nullable', phone: 'string nullable', contact: 'string nullable', contact_phone: 'bigInteger nullable', contact_email: 'bigInteger nullable' }
+    CustomerAddress: { id: id, customer_id: 'bigInteger unsigned foreign:customers.id', customer_address_id: 'bigInteger unsigned foreign:customer_address_catalog.id', is_active: bigInteger }
+    SalesHeader: { id: id, cashbox_open_id: 'bigInteger unsigned', sale_date: dateTime, warehouse_id: bigInteger, document_type_id: 'bigInteger unsigned', document_internal_number: bigInteger, seller_id: 'bigInteger unsigned foreign:employees.id', customer_id: 'bigInteger unsigned foreign:customers.id', operation_condition_id: 'bigInteger unsigned', sale_status: 'enum:"1","2","3" default:"1" comment:"1=Procesando,2=Finalizada,3=Anulada"', have_retention: boolean, net_amount: decimal, taxe: decimal, discount: decimal, retention: decimal, sale_total: decimal, payment_status: 'bigInteger default:1 comment:"1=Pagada,2=Parcial,3=Pendiente"', is_order: boolean, is_order_closed_without_invoiced: boolean, is_invoiced_order: boolean, discount_percentage: decimal, discount_money: decimal, total_order_after_discount: decimal }
+    SalesDte: { id: id, sale_id: 'bigInteger unsigned foreign:sales_header.id', is_dte: boolean, generation_code: bigInteger, billing_model: bigInteger, transmision_type: bigInteger, receipt_stamp: bigInteger, json_url: 'bigInteger nullable', pdf_url: bigInteger }
+    SalePaymentDetail: { id: id, sale_id: 'bigInteger unsigned foreign:sales_header.id', payment_method_id: bigInteger, casher_id: 'bigInteger unsigned foreign:employees.id', payment_amount: decimal, actual_balance: decimal, bank_acount_id: 'bigInteger unsigned', reference: string, is_active: boolean }
+    HistoryDte: { id: id, sale_dte_id: 'bigInteger unsigned foreign:sales_dte.id', version: string, ambiente: string, status: 'enum:"1","2" default:"1" comment:"1=RECHAZADO,2=PROCESADO"', cod_geneneration: string, receipt_stamp: string, fhProcesamiento: string, clasificaMsg: string, codigoMsg: string, descripcionMsg: string, observaciones: string, dte: string }
+    SaleItem: { id: id, sale_id: 'bigInteger unsigned foreign:sales_header.id', inventory_id: bigInteger, batch_id: 'bigInteger unsigned foreign:inventories_batches.id', saled: bigInteger, quantity: decimal, price: bigInteger, discount: bigInteger, total: decimal }

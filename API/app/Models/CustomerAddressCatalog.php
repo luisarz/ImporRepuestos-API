@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class User extends Model
+class CustomerAddressCatalog extends Model
 {
     use HasFactory;
 
@@ -16,23 +16,14 @@ class User extends Model
      * @var array
      */
     protected $fillable = [
-        'name',
+        'district_id',
+        'address_reference',
+        'is_active',
         'email',
-        'employee_id',
-        'email_verifed_at',
-        'password',
-        'rememeber_tokend',
-        'theme',
-        'teheme_color',
-    ];
-
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var array
-     */
-    protected $hidden = [
-        'password',
+        'phone',
+        'contact',
+        'contact_phone',
+        'contact_email',
     ];
 
     /**
@@ -42,12 +33,14 @@ class User extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'employee_id' => 'integer',
-        'email_verifed_at' => 'datetime',
+        'district_id' => 'integer',
+        'is_active' => 'boolean',
+        'contact_phone' => 'integer',
+        'contact_email' => 'integer',
     ];
 
-    public function employee(): BelongsTo
+    public function district(): BelongsTo
     {
-        return $this->belongsTo(Employee::class);
+        return $this->belongsTo(District::class);
     }
 }
