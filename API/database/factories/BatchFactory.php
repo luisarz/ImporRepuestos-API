@@ -5,6 +5,7 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use App\Models\Batch;
+use App\Models\BatchCodeOrigen;
 
 class BatchFactory extends Factory
 {
@@ -22,6 +23,7 @@ class BatchFactory extends Factory
     {
         return [
             'code' => $this->faker->word(),
+            'origen_code' => BatchCodeOrigen::factory(),
             'inventory_id' => $this->faker->randomNumber(),
             'incoming_date' => $this->faker->date(),
             'expiration_date' => $this->faker->date(),

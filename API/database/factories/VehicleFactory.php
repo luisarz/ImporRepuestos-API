@@ -42,6 +42,7 @@ class VehicleFactory extends Factory
             'plate_type' => PlateType::factory(),
             'capacity' => $this->faker->randomFloat(0, 0, 9999999999.),
             'tonnage' => $this->faker->randomFloat(0, 0, 9999999999.),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }

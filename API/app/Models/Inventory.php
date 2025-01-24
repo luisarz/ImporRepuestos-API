@@ -18,15 +18,15 @@ class Inventory extends Model
     protected $fillable = [
         'warehouse_id',
         'product_id',
-        'cost_without_tax',
-        'cost_with_tax',
-        'stock_actual',
+        'last_cost_without_tax',
+        'last_cost_with_tax',
+        'stock_actual_quantity',
         'stock_min',
         'alert_stock_min',
         'stock_max',
         'alert_stock_max',
-        'max_discount',
         'last_purchase',
+        'is_service',
     ];
 
     /**
@@ -38,15 +38,15 @@ class Inventory extends Model
         'id' => 'integer',
         'warehouse_id' => 'integer',
         'product_id' => 'integer',
-        'cost_without_tax' => 'decimal',
-        'cost_with_tax' => 'decimal',
-        'stock_actual' => 'decimal',
+        'last_cost_without_tax' => 'decimal',
+        'last_cost_with_tax' => 'decimal',
+        'stock_actual_quantity' => 'decimal',
         'stock_min' => 'decimal',
         'alert_stock_min' => 'boolean',
         'stock_max' => 'decimal',
         'alert_stock_max' => 'boolean',
-        'max_discount' => 'decimal',
         'last_purchase' => 'datetime',
+        'is_service' => 'boolean',
     ];
 
     public function warehouse(): BelongsTo

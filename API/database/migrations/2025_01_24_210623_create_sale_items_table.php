@@ -20,10 +20,10 @@ return new class extends Migration
             $table->bigInteger('inventory_id');
             $table->unsignedBigInteger('batch_id');
             $table->foreign('batch_id')->references('id')->on('inventories_batches');
-            $table->bigInteger('saled');
+            $table->boolean('saled');
             $table->decimal('quantity');
-            $table->bigInteger('price');
-            $table->bigInteger('discount');
+            $table->decimal('price');
+            $table->decimal('discount');
             $table->decimal('total');
             $table->timestamps();
         });

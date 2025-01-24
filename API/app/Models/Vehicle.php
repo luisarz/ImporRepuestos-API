@@ -33,6 +33,7 @@ class Vehicle extends Model
         'plate_type',
         'capacity',
         'tonnage',
+        'is_active',
     ];
 
     /**
@@ -50,6 +51,7 @@ class Vehicle extends Model
         'plate_type' => 'integer',
         'capacity' => 'decimal',
         'tonnage' => 'decimal',
+        'is_active' => 'boolean',
     ];
 
     public function brand(): BelongsTo

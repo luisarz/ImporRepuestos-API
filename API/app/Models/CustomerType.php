@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CustomerAddressCatalog extends Model
+class CustomerType extends Model
 {
     use HasFactory;
 
@@ -16,14 +15,9 @@ class CustomerAddressCatalog extends Model
      * @var array
      */
     protected $fillable = [
-        'district_id',
-        'address_reference',
+        'code',
+        'description',
         'is_active',
-        'email',
-        'phone',
-        'contact',
-        'contact_phone',
-        'contact_email',
     ];
 
     /**
@@ -33,12 +27,6 @@ class CustomerAddressCatalog extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'district_id' => 'integer',
         'is_active' => 'boolean',
     ];
-
-    public function district(): BelongsTo
-    {
-        return $this->belongsTo(District::class);
-    }
 }

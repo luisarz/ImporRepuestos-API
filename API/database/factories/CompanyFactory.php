@@ -33,7 +33,7 @@ class CompanyFactory extends Factory
             'email' => $this->faker->safeEmail(),
             'address' => $this->faker->word(),
             'web' => $this->faker->numberBetween(-100000, 100000),
-            'api_key_mh' => $this->faker->numberBetween(-100000, 100000),
+            'api_key_mh' => $this->faker->word(),
             'logo' => '{}',
         ];
     }

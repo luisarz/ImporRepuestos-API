@@ -17,12 +17,12 @@ class ProviderAddressCatalog extends Model
     protected $fillable = [
         'district_id',
         'address_reference',
-        'is_active',
         'email',
         'phone',
         'seller',
         'seller_phone',
         'seller_email',
+        'is_active',
     ];
 
     /**

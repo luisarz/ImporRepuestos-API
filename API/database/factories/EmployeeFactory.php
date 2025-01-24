@@ -36,7 +36,7 @@ class EmployeeFactory extends Factory
             'photo' => '{}',
             'district_id' => District::factory(),
             'address' => $this->faker->word(),
-            'comision_porcentage' => $this->faker->word(),
+            'comision_porcentage' => $this->faker->randomFloat(0, 0, 9999999999.),
             'is_active' => $this->faker->boolean(),
             'marital_status' => $this->faker->randomElement(["Soltero\/a","Casado\/a","Divorciado\/a","Viudo"]),
             'marital_name' => $this->faker->word(),

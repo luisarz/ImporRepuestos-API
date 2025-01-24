@@ -13,16 +13,17 @@ return new class extends Migration
     {
         Schema::disableForeignKeyConstraints();
 
-        Schema::create('provider_address_catalogs', function (Blueprint $table) {
+        Schema::create('quote_purchases', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('district_id');
-            $table->string('address_reference');
+            $table->unsignedBigInteger('payment_method');
+            $table->unsignedBigInteger('provider')->index();
+            $table->date('date');
+            $table->decimal('amount_purchase');
             $table->boolean('is_active');
-            $table->string('email');
-            $table->string('phone');
-            $table->string('seller');
-            $table->string('seller_phone');
-            $table->string('seller_email');
+            $table->boolean('is_purchaded');
+            $table->boolean('is_compared');
+            $table->unsignedBigInteger('buyer_id');
+            $table->foreign('buyer_id')->references('id')->on('employees');
             $table->timestamps();
         });
 
@@ -34,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('provider_address_catalogs');
+        Schema::dropIfExists('quote_purchases');
     }
 };

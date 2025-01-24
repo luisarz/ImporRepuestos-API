@@ -30,6 +30,7 @@ return new class extends Migration
             $table->decimal('debit_balance');
             $table->date('last_purchase');
             $table->integer('decimal_purchase');
+            $table->boolean('is_active');
             $table->timestamps();
         });
 

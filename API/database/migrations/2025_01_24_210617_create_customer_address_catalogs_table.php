@@ -22,8 +22,8 @@ return new class extends Migration
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
             $table->string('contact')->nullable();
-            $table->bigInteger('contact_phone')->nullable();
-            $table->bigInteger('contact_email')->nullable();
+            $table->string('contact_phone')->nullable();
+            $table->string('contact_email')->nullable();
             $table->timestamps();
         });
 

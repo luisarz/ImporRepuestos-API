@@ -36,6 +36,7 @@ class ProviderFactory extends Factory
             'debit_balance' => $this->faker->randomFloat(0, 0, 9999999999.),
             'last_purchase' => $this->faker->date(),
             'decimal_purchase' => $this->faker->numberBetween(-10000, 10000),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }

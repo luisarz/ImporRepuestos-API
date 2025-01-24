@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use App\Models\Provider;
 use App\Models\PurchasesHeader;
+use App\Models\QuotePurchase;
 use App\Models\Warehouse;
 
 class PurchasesHeaderFactory extends Factory
@@ -24,13 +25,14 @@ class PurchasesHeaderFactory extends Factory
     {
         return [
             'warehouse' => Warehouse::factory(),
+            'qoute_purchase_id' => QuotePurchase::factory(),
             'provider_id' => Provider::factory(),
             'purchcase_date' => $this->faker->date(),
             'serie' => $this->faker->word(),
             'purchase_number' => $this->faker->word(),
             'resolution' => $this->faker->word(),
             'purchase_type' => $this->faker->numberBetween(-100000, 100000),
-            'payment_method' => $this->faker->randomElement(["1","2"]),
+            'paymen_method' => $this->faker->randomElement(["1","2"]),
             'payment_status' => $this->faker->randomElement(["1","2","3"]),
             'net_amount' => $this->faker->randomFloat(0, 0, 9999999999.),
             'tax_amount' => $this->faker->randomFloat(0, 0, 9999999999.),

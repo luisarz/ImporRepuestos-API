@@ -16,6 +16,7 @@ class Customer extends Model
      * @var array
      */
     protected $fillable = [
+        'customer_type',
         'internal_code',
         'document_type_id',
         'document_number',
@@ -40,14 +41,20 @@ class Customer extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'customer_type' => 'integer',
         'document_type_id' => 'integer',
         'warehouse' => 'integer',
         'is_taxed' => 'boolean',
         'is_creditable' => 'boolean',
-        'credit_limit' => 'integer',
+        'credit_limit' => 'decimal',
         'credit_amount' => 'decimal',
         'is_delivery' => 'boolean',
     ];
+
+    public function internalCode(): BelongsTo
+    {
+        return $this->belongsTo(CustomerType::class);
+    }
 
     public function documentType(): BelongsTo
     {

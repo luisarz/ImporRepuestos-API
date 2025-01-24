@@ -31,13 +31,13 @@ class ProductFactory extends Factory
             'description' => $this->faker->text(),
             'brand_id' => Brand::factory(),
             'category_id' => Category::factory(),
-            'unit_measurement_id' => UnitMeasurement::factory(),
             'provider_id' => Provider::factory(),
-            'description_measurement_id' => $this->faker->numberBetween(-100000, 100000),
-            'is_service' => $this->faker->boolean(),
+            'unit_measurement_id' => UnitMeasurement::factory(),
+            'description_measurement_id' => $this->faker->word(),
+            'image' => '{}',
             'is_active' => $this->faker->boolean(),
             'is_taxed' => $this->faker->boolean(),
-            'image' => '{}',
+            'is_service' => $this->faker->boolean(),
         ];
     }
 }

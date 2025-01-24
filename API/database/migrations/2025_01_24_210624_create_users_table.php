@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreign('employee_id')->references('id')->on('employees');
             $table->dateTime('email_verifed_at')->nullable();
             $table->string('password');
-            $table->string('rememeber_tokend');
+            $table->string('rememeber_tokend')->nullable();
             $table->string('theme')->nullable();
             $table->string('teheme_color')->nullable();
             $table->timestamps();

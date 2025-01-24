@@ -18,6 +18,7 @@ class Aplication extends Model
     protected $fillable = [
         'product_id',
         'vehicle_id',
+        'is_active',
     ];
 
     /**
@@ -29,6 +30,7 @@ class Aplication extends Model
         'id' => 'integer',
         'product_id' => 'integer',
         'vehicle_id' => 'integer',
+        'is_active' => 'integer',
     ];
 
     public function product(): BelongsTo

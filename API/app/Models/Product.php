@@ -22,13 +22,13 @@ class Product extends Model
         'description',
         'brand_id',
         'category_id',
-        'unit_measurement_id',
         'provider_id',
+        'unit_measurement_id',
         'description_measurement_id',
-        'is_service',
+        'image',
         'is_active',
         'is_taxed',
-        'image',
+        'is_service',
     ];
 
     /**
@@ -40,13 +40,12 @@ class Product extends Model
         'id' => 'integer',
         'brand_id' => 'integer',
         'category_id' => 'integer',
-        'unit_measurement_id' => 'integer',
         'provider_id' => 'integer',
-        'description_measurement_id' => 'integer',
-        'is_service' => 'boolean',
+        'unit_measurement_id' => 'integer',
+        'image' => 'array',
         'is_active' => 'boolean',
         'is_taxed' => 'boolean',
-        'image' => 'array',
+        'is_service' => 'boolean',
     ];
 
     public function brand(): BelongsTo
@@ -59,13 +58,13 @@ class Product extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function unitMeasurement(): BelongsTo
-    {
-        return $this->belongsTo(UnitMeasurement::class);
-    }
-
     public function provider(): BelongsTo
     {
         return $this->belongsTo(Provider::class);
+    }
+
+    public function unitMeasurement(): BelongsTo
+    {
+        return $this->belongsTo(UnitMeasurement::class);
     }
 }

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class Price extends Model
+class QuotePurchaseItem extends Model
 {
     use HasFactory;
 
@@ -16,12 +16,15 @@ class Price extends Model
      * @var array
      */
     protected $fillable = [
+        'qoute_purchase_id',
         'inventory_id',
-        'price_description',
-        'price',
-        'max_discount',
-        'is_active',
         'quantity',
+        'price',
+        'discount',
+        'total',
+        'is_compared',
+        'is_purchaseded',
+        'description',
     ];
 
     /**
@@ -31,15 +34,23 @@ class Price extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'qoute_purchase_id' => 'integer',
         'inventory_id' => 'integer',
-        'price' => 'decimal',
-        'max_discount' => 'decimal',
-        'is_active' => 'boolean',
         'quantity' => 'decimal',
+        'price' => 'decimal',
+        'discount' => 'decimal',
+        'total' => 'decimal',
+        'is_compared' => 'integer',
+        'is_purchaseded' => 'boolean',
     ];
+
+    public function qoutePurchase(): BelongsTo
+    {
+        return $this->belongsTo(QuotePurchase::class);
+    }
 
     public function inventory(): BelongsTo
     {
-        return $this->belongsTo(Inventory::class);
+        return $this->belongsTo(Warehouse::class);
     }
 }

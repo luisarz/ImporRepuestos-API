@@ -27,7 +27,6 @@ class ProvidersType extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'description' => 'integer',
         'is_active' => 'boolean',
     ];
 }

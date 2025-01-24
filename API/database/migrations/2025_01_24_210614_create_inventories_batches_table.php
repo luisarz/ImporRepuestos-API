@@ -13,16 +13,14 @@ return new class extends Migration
     {
         Schema::disableForeignKeyConstraints();
 
-        Schema::create('batches', function (Blueprint $table) {
+        Schema::create('inventories_batches', function (Blueprint $table) {
             $table->id();
-            $table->string('code');
-            $table->unsignedBigInteger('inventory_id')->index();
-            $table->date('incoming_date');
-            $table->date('expiration_date');
-            $table->decimal('initial_quantity');
-            $table->decimal('available_quantity');
-            $table->string('observations');
-            $table->boolean('is_active')->default(1);
+            $table->unsignedBigInteger('id_inventory');
+            $table->foreign('id_inventory')->references('id')->on('inventories');
+            $table->unsignedBigInteger('id_batch');
+            $table->foreign('id_batch')->references('id')->on('batch');
+            $table->decimal('quantity');
+            $table->dateTime('operation_date');
             $table->timestamps();
         });
 
@@ -34,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('batches');
+        Schema::dropIfExists('inventories_batches');
     }
 };

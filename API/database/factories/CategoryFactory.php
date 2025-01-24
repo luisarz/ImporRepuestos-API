@@ -25,6 +25,7 @@ class CategoryFactory extends Factory
             'description' => $this->faker->text(),
             'comission_porcentage' => $this->faker->randomFloat(0, 0, 9999999999.),
             'category_parent_id' => Category::factory(),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }

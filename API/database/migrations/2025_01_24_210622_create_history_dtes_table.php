@@ -20,12 +20,12 @@ return new class extends Migration
             $table->string('version');
             $table->string('ambiente');
             $table->enum('status', ["1","2"])->default('1')->comment('1=RECHAZADO,2=PROCESADO');
-            $table->string('cod_geneneration');
+            $table->string('code_geneneration');
             $table->string('receipt_stamp');
             $table->string('fhProcesamiento');
-            $table->string('clasificaMsg');
-            $table->string('codigoMsg');
-            $table->string('descripcionMsg');
+            $table->string('clasifica_msg');
+            $table->string('code_ms');
+            $table->string('descripctionMsg');
             $table->string('observaciones');
             $table->string('dte');
             $table->timestamps();

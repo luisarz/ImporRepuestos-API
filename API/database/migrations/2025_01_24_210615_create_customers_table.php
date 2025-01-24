@@ -15,7 +15,9 @@ return new class extends Migration
 
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
+            $table->bigInteger('customer_type');
             $table->string('internal_code');
+            $table->foreign('internal_code')->references('id')->on('customer_types');
             $table->unsignedBigInteger('document_type_id');
             $table->foreign('document_type_id')->references('id')->on('customer_documents_types');
             $table->string('document_number');
@@ -29,7 +31,7 @@ return new class extends Migration
             $table->enum('sales_type', ["1","2","3","4"])->default('1')->comment('1=Mayoreo; 2=Detalle; 3=Taller;');
             $table->boolean('is_creditable');
             $table->string('address');
-            $table->bigInteger('credit_limit');
+            $table->decimal('credit_limit');
             $table->decimal('credit_amount');
             $table->boolean('is_delivery');
             $table->timestamps();

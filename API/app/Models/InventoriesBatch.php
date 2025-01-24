@@ -18,6 +18,8 @@ class InventoriesBatch extends Model
     protected $fillable = [
         'id_inventory',
         'id_batch',
+        'quantity',
+        'operation_date',
     ];
 
     /**
@@ -29,6 +31,8 @@ class InventoriesBatch extends Model
         'id' => 'integer',
         'id_inventory' => 'integer',
         'id_batch' => 'integer',
+        'quantity' => 'decimal',
+        'operation_date' => 'datetime',
     ];
 
     public function idInventory(): BelongsTo

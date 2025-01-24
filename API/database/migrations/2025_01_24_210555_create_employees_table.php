@@ -30,7 +30,7 @@ return new class extends Migration
             $table->unsignedBigInteger('district_id');
             $table->foreign('district_id')->references('id')->on('districts');
             $table->string('address');
-            $table->string('comision_porcentage');
+            $table->decimal('comision_porcentage');
             $table->boolean('is_active');
             $table->enum('marital_status', ["Soltero\/a","Casado\/a","Divorciado\/a","Viudo"])->default('Soltero/a');
             $table->string('marital_name');

@@ -4,16 +4,16 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use App\Models\Country;
+use App\Models\BatchCodeOrigen;
 
-class CountryFactory extends Factory
+class BatchCodeOrigenFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = Country::class;
+    protected $model = BatchCodeOrigen::class;
 
     /**
      * Define the model's default state.
@@ -21,9 +21,9 @@ class CountryFactory extends Factory
     public function definition(): array
     {
         return [
-            'codigo' => $this->faker->randomLetter(),
-            'description' => $this->faker->text(),
-            'is_active' => $this->faker->boolean(),
+            'code' => $this->faker->word(),
+            'descripcion' => $this->faker->word(),
+            'is_active' => $this->faker->numberBetween(-100000, 100000),
         ];
     }
 }

@@ -30,7 +30,7 @@ class CustomerAddress extends Model
         'id' => 'integer',
         'customer_id' => 'integer',
         'customer_address_id' => 'integer',
-        'is_active' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     public function customer(): BelongsTo

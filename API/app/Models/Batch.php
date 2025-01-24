@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Batch extends Model
 {
@@ -16,6 +17,7 @@ class Batch extends Model
      */
     protected $fillable = [
         'code',
+        'origen_code',
         'inventory_id',
         'incoming_date',
         'expiration_date',
@@ -32,6 +34,7 @@ class Batch extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'origen_code' => 'integer',
         'inventory_id' => 'integer',
         'incoming_date' => 'date',
         'expiration_date' => 'date',
@@ -39,4 +42,9 @@ class Batch extends Model
         'available_quantity' => 'decimal',
         'is_active' => 'boolean',
     ];
+
+    public function origenCode(): BelongsTo
+    {
+        return $this->belongsTo(BatchCodeOrigen::class);
+    }
 }

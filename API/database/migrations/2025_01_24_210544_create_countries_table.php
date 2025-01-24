@@ -11,19 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::disableForeignKeyConstraints();
-
-        Schema::create('categories', function (Blueprint $table) {
+        Schema::create('countries', function (Blueprint $table) {
             $table->id();
-            $table->string('code');
+            $table->char('codigo');
             $table->string('description');
-            $table->decimal('comission_porcentage');
-            $table->unsignedBigInteger('category_parent_id');
-            $table->foreign('category_parent_id')->references('id')->on('categories');
+            $table->boolean('is_active');
             $table->timestamps();
         });
-
-        Schema::enableForeignKeyConstraints();
     }
 
     /**
@@ -31,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('categories');
+        Schema::dropIfExists('countries');
     }
 };

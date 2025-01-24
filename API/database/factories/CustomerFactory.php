@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 use App\Models\Customer;
 use App\Models\CustomerDocumentsType;
+use App\Models\CustomerType;
 use App\Models\Warehouse;
 
 class CustomerFactory extends Factory
@@ -23,7 +24,8 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'internal_code' => $this->faker->word(),
+            'customer_type' => $this->faker->numberBetween(-100000, 100000),
+            'internal_code' => CustomerType::factory(),
             'document_type_id' => CustomerDocumentsType::factory(),
             'document_number' => $this->faker->word(),
             'name' => $this->faker->name(),
@@ -35,7 +37,7 @@ class CustomerFactory extends Factory
             'sales_type' => $this->faker->randomElement(["1","2","3","4"]),
             'is_creditable' => $this->faker->boolean(),
             'address' => $this->faker->word(),
-            'credit_limit' => $this->faker->numberBetween(-100000, 100000),
+            'credit_limit' => $this->faker->randomFloat(0, 0, 9999999999.),
             'credit_amount' => $this->faker->randomFloat(0, 0, 9999999999.),
             'is_delivery' => $this->faker->boolean(),
         ];

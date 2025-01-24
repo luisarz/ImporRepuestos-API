@@ -9,7 +9,7 @@ use Illuminate\Notifications\Notifiable;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable implements JWTSubject
+class User extends Authenticatable  implements JWTSubject
 {
     use HasFactory,Notifiable;
 
@@ -29,12 +29,20 @@ class User extends Authenticatable implements JWTSubject
         'teheme_color',
     ];
 
-
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array
+     */
     protected $hidden = [
         'password',
     ];
 
-
+    /**
+     * The attributes that should be cast to native types.
+     *
+     * @var array
+     */
     protected $casts = [
         'id' => 'integer',
         'employee_id' => 'integer',
@@ -51,9 +59,13 @@ class User extends Authenticatable implements JWTSubject
         return $this->getKey();
     }
 
-    public function getJWTCustomClaims()
+    /**
+     * Return a key value array, containing any custom claims to be added to the JWT.
+     *
+     * @return array
+     */
+    public function getJWTCustomClaims(): array
     {
         return [];
-
     }
 }

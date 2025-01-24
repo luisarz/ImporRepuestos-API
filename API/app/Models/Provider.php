@@ -28,6 +28,7 @@ class Provider extends Model
         'debit_balance',
         'last_purchase',
         'decimal_purchase',
+        'is_active',
     ];
 
     /**
@@ -44,6 +45,7 @@ class Provider extends Model
         'credit_limit' => 'decimal',
         'debit_balance' => 'decimal',
         'last_purchase' => 'date',
+        'is_active' => 'boolean',
     ];
 
     public function documentType(): BelongsTo

@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class CustomerAddressCatalog extends Model
+class QuotePurchase extends Model
 {
     use HasFactory;
 
@@ -16,14 +16,14 @@ class CustomerAddressCatalog extends Model
      * @var array
      */
     protected $fillable = [
-        'district_id',
-        'address_reference',
+        'payment_method',
+        'provider',
+        'date',
+        'amount_purchase',
         'is_active',
-        'email',
-        'phone',
-        'contact',
-        'contact_phone',
-        'contact_email',
+        'is_purchaded',
+        'is_compared',
+        'buyer_id',
     ];
 
     /**
@@ -33,12 +33,18 @@ class CustomerAddressCatalog extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'district_id' => 'integer',
+        'payment_method' => 'integer',
+        'provider' => 'integer',
+        'date' => 'date',
+        'amount_purchase' => 'decimal',
         'is_active' => 'boolean',
+        'is_purchaded' => 'boolean',
+        'is_compared' => 'boolean',
+        'buyer_id' => 'integer',
     ];
 
-    public function district(): BelongsTo
+    public function buyer(): BelongsTo
     {
-        return $this->belongsTo(District::class);
+        return $this->belongsTo(Employee::class);
     }
 }

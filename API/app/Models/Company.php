@@ -40,7 +40,6 @@ class Company extends Model
         'district_id' => 'integer',
         'economic_activity_id' => 'integer',
         'web' => 'integer',
-        'api_key_mh' => 'integer',
         'logo' => 'array',
     ];
 

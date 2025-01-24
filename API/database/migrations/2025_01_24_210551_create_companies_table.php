@@ -27,7 +27,7 @@ return new class extends Migration
             $table->string('email');
             $table->string('address');
             $table->bigInteger('web');
-            $table->bigInteger('api_key_mh');
+            $table->string('api_key_mh');
             $table->json('logo')->nullable();
             $table->timestamps();
         });

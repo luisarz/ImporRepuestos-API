@@ -17,13 +17,14 @@ class PurchasesHeader extends Model
      */
     protected $fillable = [
         'warehouse',
+        'qoute_purchase_id',
         'provider_id',
         'purchcase_date',
         'serie',
         'purchase_number',
         'resolution',
         'purchase_type',
-        'payment_method',
+        'paymen_method',
         'payment_status',
         'net_amount',
         'tax_amount',
@@ -41,6 +42,7 @@ class PurchasesHeader extends Model
     protected $casts = [
         'id' => 'integer',
         'warehouse' => 'integer',
+        'qoute_purchase_id' => 'integer',
         'provider_id' => 'integer',
         'purchcase_date' => 'date',
         'purchase_type' => 'integer',
@@ -54,6 +56,11 @@ class PurchasesHeader extends Model
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
+    }
+
+    public function qoutePurchase(): BelongsTo
+    {
+        return $this->belongsTo(QuotePurchase::class);
     }
 
     public function provider(): BelongsTo

@@ -20,6 +20,7 @@ class Category extends Model
         'description',
         'comission_porcentage',
         'category_parent_id',
+        'is_active',
     ];
 
     /**
@@ -31,6 +32,7 @@ class Category extends Model
         'id' => 'integer',
         'comission_porcentage' => 'decimal',
         'category_parent_id' => 'integer',
+        'is_active' => 'boolean',
     ];
 
     public function categoryParent(): BelongsTo

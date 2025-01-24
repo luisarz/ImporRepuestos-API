@@ -4,16 +4,16 @@ namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
-use App\Models\Country;
+use App\Models\CustomerType;
 
-class CountryFactory extends Factory
+class CustomerTypeFactory extends Factory
 {
     /**
      * The name of the factory's corresponding model.
      *
      * @var string
      */
-    protected $model = Country::class;
+    protected $model = CustomerType::class;
 
     /**
      * Define the model's default state.
@@ -21,7 +21,7 @@ class CountryFactory extends Factory
     public function definition(): array
     {
         return [
-            'codigo' => $this->faker->randomLetter(),
+            'code' => $this->faker->word(),
             'description' => $this->faker->text(),
             'is_active' => $this->faker->boolean(),
         ];

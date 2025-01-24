@@ -13,12 +13,11 @@ return new class extends Migration
     {
         Schema::disableForeignKeyConstraints();
 
-        Schema::create('aplications', function (Blueprint $table) {
+        Schema::create('customer_types', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('product_id')->index();
-            $table->foreign('product_id')->references('id')->on('products');
-            $table->unsignedBigInteger('vehicle_id')->index();
-            $table->foreign('vehicle_id')->references('id')->on('vehicles');
+            $table->string('code');
+            $table->string('description');
+            $table->boolean('is_active');
             $table->timestamps();
         });
 
@@ -30,6 +29,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('aplications');
+        Schema::dropIfExists('customer_types');
     }
 };

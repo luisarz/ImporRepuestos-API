@@ -36,6 +36,7 @@ return new class extends Migration
             $table->foreign('plate_type')->references('id')->on('plate_types');
             $table->decimal('capacity');
             $table->decimal('tonnage');
+            $table->boolean('is_active');
             $table->timestamps();
         });
 

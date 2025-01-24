@@ -1,0 +1,15 @@
+controllers:
+  Api\v1\CountryController:
+    index:
+      query: paginate:10
+      respond: response()->json($countries)
+    store:
+      validate: code,description
+      save: country
+      respond: response()->json(country)
+    show:
+      find: id
+      response: response()->json(country)
+    update:
+      validate: country
+      update: country

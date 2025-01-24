@@ -23,12 +23,12 @@ class ProviderAddressCatalogFactory extends Factory
         return [
             'district_id' => $this->faker->randomNumber(),
             'address_reference' => $this->faker->word(),
-            'is_active' => $this->faker->boolean(),
             'email' => $this->faker->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'seller' => $this->faker->word(),
             'seller_phone' => $this->faker->word(),
             'seller_email' => $this->faker->word(),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }

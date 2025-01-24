@@ -36,10 +36,10 @@ class SaleItem extends Model
         'sale_id' => 'integer',
         'inventory_id' => 'integer',
         'batch_id' => 'integer',
-        'saled' => 'integer',
+        'saled' => 'boolean',
         'quantity' => 'decimal',
-        'price' => 'integer',
-        'discount' => 'integer',
+        'price' => 'decimal',
+        'discount' => 'decimal',
         'total' => 'decimal',
     ];
 

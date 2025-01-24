@@ -28,8 +28,8 @@ class CustomerAddressCatalogFactory extends Factory
             'email' => $this->faker->safeEmail(),
             'phone' => $this->faker->phoneNumber(),
             'contact' => $this->faker->word(),
-            'contact_phone' => $this->faker->numberBetween(-100000, 100000),
-            'contact_email' => $this->faker->numberBetween(-100000, 100000),
+            'contact_phone' => $this->faker->word(),
+            'contact_email' => $this->faker->word(),
         ];
     }
 }

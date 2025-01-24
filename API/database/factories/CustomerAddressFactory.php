@@ -25,7 +25,7 @@ class CustomerAddressFactory extends Factory
         return [
             'customer_id' => Customer::factory(),
             'customer_address_id' => CustomerAddressCatalog::factory(),
-            'is_active' => $this->faker->numberBetween(-100000, 100000),
+            'is_active' => $this->faker->boolean(),
         ];
     }
 }
