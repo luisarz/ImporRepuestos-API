@@ -13,26 +13,39 @@ use Illuminate\Http\Response;
 
 class WarehouseController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $warehouses = Warehouse::all();
+        $warehouses = Warehouse::with('stablishmentType','district','economicActivity')->paginate(10);
 
-        return new WarehouseCollection($warehouses);
+        return response()->json($warehouses);
     }
 
-    public function store(WarehouseStoreRequest $request): Response
+    public function store(WarehouseStoreRequest $request): \Illuminate\Http\JsonResponse
     {
-        $warehouse = Warehouse::create($request->validated());
-
-        return new WarehouseResource($warehouse);
+        try {
+            $warehouse = Warehouse::create($request->validated());
+            return response()->json([
+                'data' => new WarehouseResource($warehouse),
+                'status' => 'success',
+                'message' => 'Warehouse created successfully',
+            ], 201); // Código de respuesta 201: Created
+        } catch (\Exception $e) {
+            // Manejo de errores relacionados con la base de datos (clave foránea, duplicados, etc.)
+            return response()->json([
+                'data'=> $e->getMessage(),
+                'status' => 'error',
+                'message' => 'Warehouse not created',
+            ]); // Código 422: Unprocessable Entity
+        }
     }
+
 
     public function show(Request $request, Warehouse $warehouse): Response
     {
         return new WarehouseResource($warehouse);
     }
 
-    public function update(WarehouseUpdateRequest $request, Warehouse $warehouse): Response
+    public function update(WarehouseUpdateRequest $request, Warehouse $warehouse): WarehouseResource
     {
         $warehouse->update($request->validated());
 

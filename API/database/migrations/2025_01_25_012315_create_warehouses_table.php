@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id()->foreign('company.id');
             $table->unsignedBigInteger('company_id');
             $table->unsignedBigInteger('stablishment_type');
-            $table->foreign('stablishment_type')->references('id')->on('stablishment_type');
+            $table->foreign('stablishment_type')->references('id')->on('stablishment_types');
             $table->string('name');
             $table->string('nrc');
             $table->string('nit');
