@@ -25,19 +25,19 @@ class ProductFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => $this->faker->word(),
-            'original_code' => $this->faker->word(),
-            'barcode' => $this->faker->word(),
-            'description' => $this->faker->text(),
+            'code' => fake()->word(),
+            'original_code' => fake()->word(),
+            'barcode' => fake()->word(),
+            'description' => fake()->text(),
             'brand_id' => Brand::factory(),
             'category_id' => Category::factory(),
             'provider_id' => Provider::factory(),
             'unit_measurement_id' => UnitMeasurement::factory(),
-            'description_measurement_id' => $this->faker->word(),
+            'description_measurement_id' => fake()->word(),
             'image' => '{}',
-            'is_active' => $this->faker->boolean(),
-            'is_taxed' => $this->faker->boolean(),
-            'is_service' => $this->faker->boolean(),
+            'is_active' => fake()->boolean(),
+            'is_taxed' => fake()->boolean(),
+            'is_service' => fake()->boolean(),
         ];
     }
 }

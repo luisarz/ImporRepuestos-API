@@ -23,11 +23,11 @@ class PriceFactory extends Factory
     {
         return [
             'inventory_id' => Inventory::factory(),
-            'price_description' => $this->faker->word(),
-            'price' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'max_discount' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'is_active' => $this->faker->boolean(),
-            'quantity' => $this->faker->randomFloat(0, 0, 9999999999.),
+            'price_description' => fake()->word(),
+            'price' => fake()->randomFloat(0, 0, 9999999999.),
+            'max_discount' => fake()->randomFloat(0, 0, 9999999999.),
+            'is_active' => fake()->boolean(),
+            'quantity' => fake()->randomFloat(0, 0, 9999999999.),
         ];
     }
 }

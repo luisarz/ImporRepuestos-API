@@ -25,10 +25,10 @@ class SalesHeader extends Model
         'customer_id',
         'operation_condition_id',
         'sale_status',
-        'have_retention',
         'net_amount',
-        'taxe',
+        'tax',
         'discount',
+        'have_retention',
         'retention',
         'sale_total',
         'payment_status',
@@ -38,6 +38,7 @@ class SalesHeader extends Model
         'discount_percentage',
         'discount_money',
         'total_order_after_discount',
+        'is_active',
     ];
 
     /**
@@ -55,10 +56,10 @@ class SalesHeader extends Model
         'seller_id' => 'integer',
         'customer_id' => 'integer',
         'operation_condition_id' => 'integer',
-        'have_retention' => 'boolean',
         'net_amount' => 'decimal',
-        'taxe' => 'decimal',
+        'tax' => 'decimal',
         'discount' => 'decimal',
+        'have_retention' => 'boolean',
         'retention' => 'decimal',
         'sale_total' => 'decimal',
         'payment_status' => 'integer',
@@ -68,6 +69,7 @@ class SalesHeader extends Model
         'discount_percentage' => 'decimal',
         'discount_money' => 'decimal',
         'total_order_after_discount' => 'decimal',
+        'is_active' => 'boolean',
     ];
 
     public function seller(): BelongsTo

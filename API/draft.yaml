@@ -1,7 +1,7 @@
 models:
   Country:
     id: id
-    codigo: char
+    code: char
     description: string
     is_active: boolean
   Department:
@@ -17,7 +17,7 @@ models:
     is_active: boolean
   Municipality:
     id: id
-    departament_id: bigInteger unsigned foreign:departments.id
+    department_id: bigInteger unsigned foreign:departments.id
     code: string
     description: string
     is_active: boolean
@@ -61,10 +61,11 @@ models:
     web: bigInteger
     api_key_mh: string
     logo: json nullable
+    is_active: boolean
   Warehouse:
     id: id foreign:company.id
     company_id: bigInteger unsigned
-    stablishment_type: bigInteger unsigned foreign:stablishment_types.id
+    stablishment_type: bigInteger unsigned foreign:stablishment_type.id
     name: string
     nrc: string
     nit: string
@@ -108,7 +109,7 @@ models:
     id: id
     code: string
     description: string
-    comission_porcentage: decimal
+    commission_percentage: decimal nullable
     category_parent_id: bigInteger unsigned foreign:categories.id
     is_active: boolean
   Brand:
@@ -183,7 +184,7 @@ models:
     code: string
     description: string
     is_active: boolean
-  Aplication:
+  Application:
     id: id
     product_id: bigInteger index unsigned foreign:products.id
     vehicle_id: bigInteger index unsigned foreign:vehicles.id
@@ -226,7 +227,7 @@ models:
   PurchasesHeader:
     id: id
     warehouse: bigInteger unsigned foreign:warehouses.id
-    qoute_purchase_id: bigInteger nullable unsigned foreign:quote_purchase.id
+    quote_purchase_id: bigInteger nullable unsigned foreign:quote_purchase.id
     provider_id: bigInteger unsigned foreign:providers.id
     purchcase_date: date
     serie: string
@@ -269,7 +270,7 @@ models:
     operation_date: dateTime
   Customer:
     id: id
-    customer_type: bigInteger
+    customer_type: bigInteger unsigned
     internal_code: string foreign:customer_types.id
     document_type_id: bigInteger unsigned foreign:customer_documents_types.id
     document_number: string
@@ -278,7 +279,7 @@ models:
     warehouse: bigInteger unsigned foreign:warehouses.id
     nrc: string
     nit: string
-    is_taxed: boolean
+    is_exempt: boolean
     sales_type: enum:"1","2","3","4" default:"1" comment:"1=Mayoreo; 2=Detalle; 3=Taller;"
     is_creditable: boolean
     address: string
@@ -316,10 +317,10 @@ models:
     customer_id: bigInteger unsigned foreign:customers.id
     operation_condition_id: bigInteger unsigned
     sale_status: enum:"1","2","3" default:"1" comment:"1=Procesando,2=Finalizada,3=Anulada"
-    have_retention: boolean
     net_amount: decimal
-    taxe: decimal
+    tax: decimal
     discount: decimal
+    have_retention: boolean
     retention: decimal
     sale_total: decimal
     payment_status: bigInteger default:1 comment:"1=Pagada,2=Parcial,3=Pendiente"
@@ -329,16 +330,17 @@ models:
     discount_percentage: decimal
     discount_money: decimal
     total_order_after_discount: decimal
+    is_active: boolean
   SalesDte:
     id: id
     sale_id: bigInteger unsigned foreign:sales_header.id
     is_dte: boolean
     generation_code: bigInteger
-    billing_model: bigInteger
-    transmision_type: bigInteger
-    receipt_stamp: bigInteger
-    json_url: bigInteger nullable
-    pdf_url: bigInteger
+    billing_model: bigInteger unsigned
+    transmition_type: bigInteger
+    receipt_stamp: string
+    json_url: string nullable
+    pdf_url: string nullable
   SalePaymentDetail:
     id: id
     sale_id: bigInteger unsigned foreign:sales_header.id
@@ -346,23 +348,23 @@ models:
     casher_id: bigInteger unsigned foreign:employees.id
     payment_amount: decimal
     actual_balance: decimal
-    bank_acount_id: bigInteger unsigned
+    bank_account_id: bigInteger unsigned
     reference: string
     is_active: boolean
   HistoryDte:
     id: id
     sale_dte_id: bigInteger unsigned foreign:sales_dte.id
-    version: string
-    ambiente: string
+    version: string nullable
+    ambiente: string nullable
     status: enum:"1","2" default:"1" comment:"1=RECHAZADO,2=PROCESADO"
-    code_geneneration: string
-    receipt_stamp: string
-    fhProcesamiento: string
-    clasifica_msg: string
-    code_ms: string
-    descripctionMsg: string
-    observaciones: string
-    dte: string
+    code_generation: string nullable
+    receipt_stamp: string nullable
+    fhProcesamiento: dateTime nullable
+    clasifica_msg: string nullable
+    code_mgs: string nullable
+    description_msg: string nullable
+    observations: string nullable
+    dte: string nullable
   SaleItem:
     id: id
     sale_id: bigInteger unsigned foreign:sales_header.id
@@ -373,6 +375,8 @@ models:
     price: decimal
     discount: decimal
     total: decimal
+    is_saled: boolean
+    is_active: boolean
   User:
     id: id
     name: string
@@ -391,7 +395,7 @@ models:
   BatchCodeOrigen:
     id: id
     code: string
-    descripcion: string
+    description: string
     is_active: bigInteger
   QuotePurchase:
     id: id
@@ -400,17 +404,17 @@ models:
     date: date
     amount_purchase: decimal
     is_active: boolean
-    is_purchaded: boolean
+    is_purchased: boolean
     is_compared: boolean
     buyer_id: bigInteger unsigned foreign:employees.id
   QuotePurchaseItem:
     id: id
-    qoute_purchase_id: bigInteger index unsigned foreign:quote_purchase.id
+    quote_purchase_id: bigInteger index unsigned foreign:quote_purchase.id
     inventory_id: bigInteger index unsigned foreign:warehouses.id
     quantity: decimal
     price: decimal
     discount: decimal
     total: decimal
     is_compared: bigInteger
-    is_purchaseded: boolean
+    is_purchased: boolean
     description: string nullable

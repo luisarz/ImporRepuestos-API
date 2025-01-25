@@ -24,13 +24,13 @@ class SalePaymentDetailFactory extends Factory
     {
         return [
             'sale_id' => SalesHeader::factory(),
-            'payment_method_id' => $this->faker->numberBetween(-100000, 100000),
+            'payment_method_id' => fake()->numberBetween(-100000, 100000),
             'casher_id' => Employee::factory(),
-            'payment_amount' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'actual_balance' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'bank_acount_id' => $this->faker->randomNumber(),
-            'reference' => $this->faker->word(),
-            'is_active' => $this->faker->boolean(),
+            'payment_amount' => fake()->randomFloat(0, 0, 9999999999.),
+            'actual_balance' => fake()->randomFloat(0, 0, 9999999999.),
+            'bank_account_id' => fake()->randomNumber(),
+            'reference' => fake()->word(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

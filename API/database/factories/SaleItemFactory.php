@@ -24,13 +24,15 @@ class SaleItemFactory extends Factory
     {
         return [
             'sale_id' => SalesHeader::factory(),
-            'inventory_id' => $this->faker->numberBetween(-100000, 100000),
+            'inventory_id' => fake()->numberBetween(-100000, 100000),
             'batch_id' => InventoriesBatch::factory(),
-            'saled' => $this->faker->boolean(),
-            'quantity' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'price' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'discount' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'total' => $this->faker->randomFloat(0, 0, 9999999999.),
+            'saled' => fake()->boolean(),
+            'quantity' => fake()->randomFloat(0, 0, 9999999999.),
+            'price' => fake()->randomFloat(0, 0, 9999999999.),
+            'discount' => fake()->randomFloat(0, 0, 9999999999.),
+            'total' => fake()->randomFloat(0, 0, 9999999999.),
+            'is_saled' => fake()->boolean(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

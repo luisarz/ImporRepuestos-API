@@ -25,16 +25,17 @@ class CompanyFactory extends Factory
         return [
             'district_id' => District::factory(),
             'economic_activity_id' => EconomicActivity::factory(),
-            'company_name' => $this->faker->word(),
-            'nrc' => $this->faker->word(),
-            'nit' => $this->faker->word(),
-            'phone' => $this->faker->phoneNumber(),
-            'whatsapp' => $this->faker->word(),
-            'email' => $this->faker->safeEmail(),
-            'address' => $this->faker->word(),
-            'web' => $this->faker->numberBetween(-100000, 100000),
-            'api_key_mh' => $this->faker->word(),
+            'company_name' => fake()->word(),
+            'nrc' => fake()->word(),
+            'nit' => fake()->word(),
+            'phone' => fake()->phoneNumber(),
+            'whatsapp' => fake()->word(),
+            'email' => fake()->safeEmail(),
+            'address' => fake()->word(),
+            'web' => fake()->numberBetween(-100000, 100000),
+            'api_key_mh' => fake()->word(),
             'logo' => '{}',
+            'is_active' => fake()->boolean(),
         ];
     }
 }

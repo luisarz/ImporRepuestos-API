@@ -24,19 +24,19 @@ class ProviderFactory extends Factory
     public function definition(): array
     {
         return [
-            'legal_name' => $this->faker->word(),
-            'comercial_name' => $this->faker->word(),
+            'legal_name' => fake()->word(),
+            'comercial_name' => fake()->word(),
             'document_type_id' => DocumentsTypesProvider::factory(),
-            'document_number' => $this->faker->word(),
+            'document_number' => fake()->word(),
             'economic_activity_id' => EconomicActivity::factory(),
             'provider_type_id' => ProvidersType::factory(),
-            'payment_type_id' => $this->faker->randomNumber(),
-            'credit_days' => $this->faker->numberBetween(-10000, 10000),
-            'credit_limit' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'debit_balance' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'last_purchase' => $this->faker->date(),
-            'decimal_purchase' => $this->faker->numberBetween(-10000, 10000),
-            'is_active' => $this->faker->boolean(),
+            'payment_type_id' => fake()->randomNumber(),
+            'credit_days' => fake()->numberBetween(-10000, 10000),
+            'credit_limit' => fake()->randomFloat(0, 0, 9999999999.),
+            'debit_balance' => fake()->randomFloat(0, 0, 9999999999.),
+            'last_purchase' => fake()->date(),
+            'decimal_purchase' => fake()->numberBetween(-10000, 10000),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

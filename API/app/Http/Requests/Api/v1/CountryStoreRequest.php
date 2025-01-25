@@ -20,11 +20,8 @@ class CountryStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'codigo' => ['required', 'string'],
-            'descripcion' => ['required', 'string'],
-            'is_active' => ['required'],
-            'codigo' => ['required', 'string'],
-            'descripcion' => ['required', 'string'],
+            'code' => ['required', 'string'],
+            'description' => ['required', 'string'],
             'is_active' => ['required'],
         ];
     }

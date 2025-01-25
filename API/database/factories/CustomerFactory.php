@@ -24,22 +24,22 @@ class CustomerFactory extends Factory
     public function definition(): array
     {
         return [
-            'customer_type' => $this->faker->numberBetween(-100000, 100000),
+            'customer_type' => fake()->randomNumber(),
             'internal_code' => CustomerType::factory(),
             'document_type_id' => CustomerDocumentsType::factory(),
-            'document_number' => $this->faker->word(),
-            'name' => $this->faker->name(),
-            'last_name' => $this->faker->lastName(),
+            'document_number' => fake()->word(),
+            'name' => fake()->name(),
+            'last_name' => fake()->lastName(),
             'warehouse' => Warehouse::factory(),
-            'nrc' => $this->faker->word(),
-            'nit' => $this->faker->word(),
-            'is_taxed' => $this->faker->boolean(),
-            'sales_type' => $this->faker->randomElement(["1","2","3","4"]),
-            'is_creditable' => $this->faker->boolean(),
-            'address' => $this->faker->word(),
-            'credit_limit' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'credit_amount' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'is_delivery' => $this->faker->boolean(),
+            'nrc' => fake()->word(),
+            'nit' => fake()->word(),
+            'is_exempt' => fake()->boolean(),
+            'sales_type' => fake()->randomElement(["1","2","3","4"]),
+            'is_creditable' => fake()->boolean(),
+            'address' => fake()->word(),
+            'credit_limit' => fake()->randomFloat(0, 0, 9999999999.),
+            'credit_amount' => fake()->randomFloat(0, 0, 9999999999.),
+            'is_delivery' => fake()->boolean(),
         ];
     }
 }

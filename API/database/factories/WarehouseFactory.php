@@ -24,17 +24,17 @@ class WarehouseFactory extends Factory
     public function definition(): array
     {
         return [
-            'company_id' => $this->faker->randomNumber(),
+            'company_id' => fake()->randomNumber(),
             'stablishment_type' => StablishmentType::factory(),
-            'name' => $this->faker->name(),
-            'nrc' => $this->faker->word(),
-            'nit' => $this->faker->word(),
+            'name' => fake()->name(),
+            'nrc' => fake()->word(),
+            'nit' => fake()->word(),
             'district_id' => District::factory(),
             'economic_activity_id' => EconomicActivity::factory(),
-            'address' => $this->faker->word(),
-            'phone' => $this->faker->phoneNumber(),
-            'email' => $this->faker->safeEmail(),
-            'product_prices' => $this->faker->numberBetween(-10000, 10000),
+            'address' => fake()->word(),
+            'phone' => fake()->phoneNumber(),
+            'email' => fake()->safeEmail(),
+            'product_prices' => fake()->numberBetween(-10000, 10000),
             'logo' => '{}',
         ];
     }

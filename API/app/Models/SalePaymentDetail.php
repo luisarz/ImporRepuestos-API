@@ -21,7 +21,7 @@ class SalePaymentDetail extends Model
         'casher_id',
         'payment_amount',
         'actual_balance',
-        'bank_acount_id',
+        'bank_account_id',
         'reference',
         'is_active',
     ];
@@ -38,7 +38,7 @@ class SalePaymentDetail extends Model
         'casher_id' => 'integer',
         'payment_amount' => 'decimal',
         'actual_balance' => 'decimal',
-        'bank_acount_id' => 'integer',
+        'bank_account_id' => 'integer',
         'is_active' => 'boolean',
     ];
 

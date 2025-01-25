@@ -20,7 +20,7 @@ class SalesDte extends Model
         'is_dte',
         'generation_code',
         'billing_model',
-        'transmision_type',
+        'transmition_type',
         'receipt_stamp',
         'json_url',
         'pdf_url',
@@ -37,10 +37,7 @@ class SalesDte extends Model
         'is_dte' => 'boolean',
         'generation_code' => 'integer',
         'billing_model' => 'integer',
-        'transmision_type' => 'integer',
-        'receipt_stamp' => 'integer',
-        'json_url' => 'integer',
-        'pdf_url' => 'integer',
+        'transmition_type' => 'integer',
     ];
 
     public function sale(): BelongsTo

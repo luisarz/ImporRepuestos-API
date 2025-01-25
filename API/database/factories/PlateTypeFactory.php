@@ -21,9 +21,9 @@ class PlateTypeFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => $this->faker->word(),
-            'description' => $this->faker->text(),
-            'is_active' => $this->faker->boolean(),
+            'code' => fake()->word(),
+            'description' => fake()->text(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

@@ -22,15 +22,15 @@ class BatchFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => $this->faker->word(),
+            'code' => fake()->word(),
             'origen_code' => BatchCodeOrigen::factory(),
-            'inventory_id' => $this->faker->randomNumber(),
-            'incoming_date' => $this->faker->date(),
-            'expiration_date' => $this->faker->date(),
-            'initial_quantity' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'available_quantity' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'observations' => $this->faker->word(),
-            'is_active' => $this->faker->boolean(),
+            'inventory_id' => fake()->randomNumber(),
+            'incoming_date' => fake()->date(),
+            'expiration_date' => fake()->date(),
+            'initial_quantity' => fake()->randomFloat(0, 0, 9999999999.),
+            'available_quantity' => fake()->randomFloat(0, 0, 9999999999.),
+            'observations' => fake()->word(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

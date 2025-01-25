@@ -21,11 +21,11 @@ class CategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => $this->faker->word(),
-            'description' => $this->faker->text(),
-            'comission_porcentage' => $this->faker->randomFloat(0, 0, 9999999999.),
+            'code' => fake()->word(),
+            'description' => fake()->text(),
+            'commission_percentage' => fake()->randomFloat(0, 0, 9999999999.),
             'category_parent_id' => Category::factory(),
-            'is_active' => $this->faker->boolean(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

@@ -23,15 +23,15 @@ class QuotePurchaseItemFactory extends Factory
     public function definition(): array
     {
         return [
-            'qoute_purchase_id' => QuotePurchase::factory(),
+            'quote_purchase_id' => QuotePurchase::factory(),
             'inventory_id' => Warehouse::factory(),
-            'quantity' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'price' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'discount' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'total' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'is_compared' => $this->faker->numberBetween(-100000, 100000),
-            'is_purchaseded' => $this->faker->boolean(),
-            'description' => $this->faker->text(),
+            'quantity' => fake()->randomFloat(0, 0, 9999999999.),
+            'price' => fake()->randomFloat(0, 0, 9999999999.),
+            'discount' => fake()->randomFloat(0, 0, 9999999999.),
+            'total' => fake()->randomFloat(0, 0, 9999999999.),
+            'is_compared' => fake()->numberBetween(-100000, 100000),
+            'is_purchased' => fake()->boolean(),
+            'description' => fake()->text(),
         ];
     }
 }

@@ -1,0 +1,91 @@
+controllers:
+  Api\v1\Country:
+    resource: api
+  Api\v1\Department:
+    resource: api
+  Api\v1\ProvidersType:
+    resource: api
+  Api\v1\Municipality:
+    resource: api
+  Api\v1\District:
+    resource: api
+  Api\v1\EconomicActivity:
+    resource: api
+  Api\v1\Provider:
+    resource: api
+  Api\v1\Company:
+    resource: api
+  Api\v1\Warehouse:
+    resource: api
+  Api\v1\StablishmentType:
+    resource: api
+  Api\v1\JobsTitle:
+    resource: api
+  Api\v1\Employee:
+    resource: api
+  Api\v1\Category:
+    resource: api
+  Api\v1\Brand:
+    resource: api
+  Api\v1\Product:
+    resource: api
+  Api\v1\Inventory:
+    resource: api
+  Api\v1\UnitMeasurement:
+    resource: api
+  Api\v1\Price:
+    resource: api
+  Api\v1\Vehicle:
+    resource: api
+  Api\v1\PlateType:
+    resource: api
+  Api\v1\Application:
+    resource: api
+  Api\v1\VehicleModel:
+    resource: api
+  Api\v1\FuelType:
+    resource: api
+  Api\v1\DocumentsTypesProvider:
+    resource: api
+  Api\v1\ProviderAddressCatalog:
+    resource: api
+  Api\v1\ProviderAddress:
+    resource: api
+  Api\v1\Equivalent:
+    resource: api
+  Api\v1\PurchasesHeader:
+    resource: api
+  Api\v1\Batch:
+    resource: api
+  Api\v1\PurchaseItem:
+    resource: api
+  Api\v1\InventoriesBatch:
+    resource: api
+  Api\v1\Customer:
+    resource: api
+  Api\v1\CustomerDocumentsType:
+    resource: api
+  Api\v1\CustomerAddressCatalog:
+    resource: api
+  Api\v1\CustomerAddress:
+    resource: api
+  Api\v1\SalesHeader:
+    resource: api
+  Api\v1\SalesDte:
+    resource: api
+  Api\v1\SalePaymentDetail:
+    resource: api
+  Api\v1\HistoryDte:
+    resource: api
+  Api\v1\SaleItem:
+    resource: api
+  Api\v1\User:
+    resource: api
+  Api\v1\CustomerType:
+    resource: api
+  Api\v1\BatchCodeOrigen:
+    resource: api
+  Api\v1\QuotePurchase:
+    resource: api
+  Api\v1\QuotePurchaseItem:
+    resource: api

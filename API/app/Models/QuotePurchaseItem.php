@@ -16,14 +16,14 @@ class QuotePurchaseItem extends Model
      * @var array
      */
     protected $fillable = [
-        'qoute_purchase_id',
+        'quote_purchase_id',
         'inventory_id',
         'quantity',
         'price',
         'discount',
         'total',
         'is_compared',
-        'is_purchaseded',
+        'is_purchased',
         'description',
     ];
 
@@ -34,17 +34,17 @@ class QuotePurchaseItem extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'qoute_purchase_id' => 'integer',
+        'quote_purchase_id' => 'integer',
         'inventory_id' => 'integer',
         'quantity' => 'decimal',
         'price' => 'decimal',
         'discount' => 'decimal',
         'total' => 'decimal',
         'is_compared' => 'integer',
-        'is_purchaseded' => 'boolean',
+        'is_purchased' => 'boolean',
     ];
 
-    public function qoutePurchase(): BelongsTo
+    public function quotePurchase(): BelongsTo
     {
         return $this->belongsTo(QuotePurchase::class);
     }

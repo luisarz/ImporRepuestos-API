@@ -22,10 +22,10 @@ class MunicipalityFactory extends Factory
     public function definition(): array
     {
         return [
-            'departament_id' => Department::factory(),
-            'code' => $this->faker->word(),
-            'description' => $this->faker->text(),
-            'is_active' => $this->faker->boolean(),
+            'department_id' => Department::factory(),
+            'code' => fake()->word(),
+            'description' => fake()->text(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

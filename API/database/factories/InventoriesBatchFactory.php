@@ -25,8 +25,8 @@ class InventoriesBatchFactory extends Factory
         return [
             'id_inventory' => Inventory::factory(),
             'id_batch' => Batch::factory(),
-            'quantity' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'operation_date' => $this->faker->dateTime(),
+            'quantity' => fake()->randomFloat(0, 0, 9999999999.),
+            'operation_date' => fake()->dateTime(),
         ];
     }
 }

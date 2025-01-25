@@ -21,10 +21,10 @@ class BrandFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => $this->faker->word(),
-            'description' => $this->faker->text(),
+            'code' => fake()->word(),
+            'description' => fake()->text(),
             'image' => '{}',
-            'is_active' => $this->faker->boolean(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

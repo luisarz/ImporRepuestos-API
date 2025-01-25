@@ -21,14 +21,14 @@ class ProviderAddressCatalogFactory extends Factory
     public function definition(): array
     {
         return [
-            'district_id' => $this->faker->randomNumber(),
-            'address_reference' => $this->faker->word(),
-            'email' => $this->faker->safeEmail(),
-            'phone' => $this->faker->phoneNumber(),
-            'seller' => $this->faker->word(),
-            'seller_phone' => $this->faker->word(),
-            'seller_email' => $this->faker->word(),
-            'is_active' => $this->faker->boolean(),
+            'district_id' => fake()->randomNumber(),
+            'address_reference' => fake()->word(),
+            'email' => fake()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            'seller' => fake()->word(),
+            'seller_phone' => fake()->word(),
+            'seller_email' => fake()->word(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

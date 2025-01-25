@@ -25,7 +25,7 @@ class AplicationFactory extends Factory
         return [
             'product_id' => Product::factory(),
             'vehicle_id' => Vehicle::factory(),
-            'is_active' => $this->faker->numberBetween(-100000, 100000),
+            'is_active' => fake()->numberBetween(-100000, 100000),
         ];
     }
 }

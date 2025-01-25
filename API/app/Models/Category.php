@@ -18,7 +18,7 @@ class Category extends Model
     protected $fillable = [
         'code',
         'description',
-        'comission_porcentage',
+        'commission_percentage',
         'category_parent_id',
         'is_active',
     ];
@@ -30,7 +30,7 @@ class Category extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'comission_porcentage' => 'decimal',
+        'commission_percentage' => 'decimal',
         'category_parent_id' => 'integer',
         'is_active' => 'boolean',
     ];

@@ -25,11 +25,11 @@ class PurchaseItemFactory extends Factory
         return [
             'purchase_id' => PurchasesHeader::factory(),
             'batch_id' => Batch::factory(),
-            'is_purched' => $this->faker->boolean(),
-            'quantity' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'price' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'discount' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'total' => $this->faker->randomFloat(0, 0, 9999999999.),
+            'is_purched' => fake()->boolean(),
+            'quantity' => fake()->randomFloat(0, 0, 9999999999.),
+            'price' => fake()->randomFloat(0, 0, 9999999999.),
+            'discount' => fake()->randomFloat(0, 0, 9999999999.),
+            'total' => fake()->randomFloat(0, 0, 9999999999.),
         ];
     }
 }

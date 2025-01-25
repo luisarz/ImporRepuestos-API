@@ -20,13 +20,13 @@ class HistoryDte extends Model
         'version',
         'ambiente',
         'status',
-        'code_geneneration',
+        'code_generation',
         'receipt_stamp',
         'fhProcesamiento',
         'clasifica_msg',
-        'code_ms',
-        'descripctionMsg',
-        'observaciones',
+        'code_mgs',
+        'description_msg',
+        'observations',
         'dte',
     ];
 
@@ -38,6 +38,7 @@ class HistoryDte extends Model
     protected $casts = [
         'id' => 'integer',
         'sale_dte_id' => 'integer',
+        'fhProcesamiento' => 'datetime',
     ];
 
     public function saleDte(): BelongsTo

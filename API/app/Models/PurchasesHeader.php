@@ -17,7 +17,7 @@ class PurchasesHeader extends Model
      */
     protected $fillable = [
         'warehouse',
-        'qoute_purchase_id',
+        'quote_purchase_id',
         'provider_id',
         'purchcase_date',
         'serie',
@@ -42,7 +42,7 @@ class PurchasesHeader extends Model
     protected $casts = [
         'id' => 'integer',
         'warehouse' => 'integer',
-        'qoute_purchase_id' => 'integer',
+        'quote_purchase_id' => 'integer',
         'provider_id' => 'integer',
         'purchcase_date' => 'date',
         'purchase_type' => 'integer',
@@ -58,7 +58,7 @@ class PurchasesHeader extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function qoutePurchase(): BelongsTo
+    public function quotePurchase(): BelongsTo
     {
         return $this->belongsTo(QuotePurchase::class);
     }

@@ -23,13 +23,13 @@ class CustomerAddressCatalogFactory extends Factory
     {
         return [
             'district_id' => District::factory(),
-            'address_reference' => $this->faker->word(),
-            'is_active' => $this->faker->boolean(),
-            'email' => $this->faker->safeEmail(),
-            'phone' => $this->faker->phoneNumber(),
-            'contact' => $this->faker->word(),
-            'contact_phone' => $this->faker->word(),
-            'contact_email' => $this->faker->word(),
+            'address_reference' => fake()->word(),
+            'is_active' => fake()->boolean(),
+            'email' => fake()->safeEmail(),
+            'phone' => fake()->phoneNumber(),
+            'contact' => fake()->word(),
+            'contact_phone' => fake()->word(),
+            'contact_email' => fake()->word(),
         ];
     }
 }

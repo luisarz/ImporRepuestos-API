@@ -24,6 +24,8 @@ class SaleItem extends Model
         'price',
         'discount',
         'total',
+        'is_saled',
+        'is_active',
     ];
 
     /**
@@ -41,6 +43,8 @@ class SaleItem extends Model
         'price' => 'decimal',
         'discount' => 'decimal',
         'total' => 'decimal',
+        'is_saled' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     public function sale(): BelongsTo

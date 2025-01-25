@@ -24,7 +24,7 @@ class EquivalentFactory extends Factory
         return [
             'product_id' => Product::factory(),
             'product_id_equivalent' => Product::factory(),
-            'is_active' => $this->faker->boolean(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

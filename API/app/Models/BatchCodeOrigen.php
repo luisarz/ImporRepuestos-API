@@ -16,7 +16,7 @@ class BatchCodeOrigen extends Model
      */
     protected $fillable = [
         'code',
-        'descripcion',
+        'description',
         'is_active',
     ];
 

@@ -23,17 +23,17 @@ class HistoryDteFactory extends Factory
     {
         return [
             'sale_dte_id' => SalesDte::factory(),
-            'version' => $this->faker->word(),
-            'ambiente' => $this->faker->word(),
-            'status' => $this->faker->randomElement(["1","2"]),
-            'code_geneneration' => $this->faker->word(),
-            'receipt_stamp' => $this->faker->word(),
-            'fhProcesamiento' => $this->faker->word(),
-            'clasifica_msg' => $this->faker->word(),
-            'code_ms' => $this->faker->word(),
-            'descripctionMsg' => $this->faker->word(),
-            'observaciones' => $this->faker->word(),
-            'dte' => $this->faker->word(),
+            'version' => fake()->word(),
+            'ambiente' => fake()->word(),
+            'status' => fake()->randomElement(["1","2"]),
+            'code_generation' => fake()->word(),
+            'receipt_stamp' => fake()->word(),
+            'fhProcesamiento' => fake()->dateTime(),
+            'clasifica_msg' => fake()->word(),
+            'code_mgs' => fake()->word(),
+            'description_msg' => fake()->word(),
+            'observations' => fake()->word(),
+            'dte' => fake()->word(),
         ];
     }
 }

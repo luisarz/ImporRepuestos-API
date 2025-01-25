@@ -23,13 +23,13 @@ class SalesDteFactory extends Factory
     {
         return [
             'sale_id' => SalesHeader::factory(),
-            'is_dte' => $this->faker->boolean(),
-            'generation_code' => $this->faker->numberBetween(-100000, 100000),
-            'billing_model' => $this->faker->numberBetween(-100000, 100000),
-            'transmision_type' => $this->faker->numberBetween(-100000, 100000),
-            'receipt_stamp' => $this->faker->numberBetween(-100000, 100000),
-            'json_url' => $this->faker->numberBetween(-100000, 100000),
-            'pdf_url' => $this->faker->numberBetween(-100000, 100000),
+            'is_dte' => fake()->boolean(),
+            'generation_code' => fake()->numberBetween(-100000, 100000),
+            'billing_model' => fake()->randomNumber(),
+            'transmition_type' => fake()->numberBetween(-100000, 100000),
+            'receipt_stamp' => fake()->word(),
+            'json_url' => fake()->word(),
+            'pdf_url' => fake()->word(),
         ];
     }
 }

@@ -21,7 +21,7 @@ class QuotePurchase extends Model
         'date',
         'amount_purchase',
         'is_active',
-        'is_purchaded',
+        'is_purchased',
         'is_compared',
         'buyer_id',
     ];
@@ -38,7 +38,7 @@ class QuotePurchase extends Model
         'date' => 'date',
         'amount_purchase' => 'decimal',
         'is_active' => 'boolean',
-        'is_purchaded' => 'boolean',
+        'is_purchased' => 'boolean',
         'is_compared' => 'boolean',
         'buyer_id' => 'integer',
     ];

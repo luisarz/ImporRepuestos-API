@@ -21,9 +21,9 @@ class CountryFactory extends Factory
     public function definition(): array
     {
         return [
-            'codigo' => $this->faker->randomLetter(),
-            'description' => $this->faker->text(),
-            'is_active' => $this->faker->boolean(),
+            'code' => fake()->randomLetter(),
+            'description' => fake()->text(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

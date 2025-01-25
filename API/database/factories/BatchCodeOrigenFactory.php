@@ -21,9 +21,9 @@ class BatchCodeOrigenFactory extends Factory
     public function definition(): array
     {
         return [
-            'code' => $this->faker->word(),
-            'descripcion' => $this->faker->word(),
-            'is_active' => $this->faker->numberBetween(-100000, 100000),
+            'code' => fake()->word(),
+            'description' => fake()->text(),
+            'is_active' => fake()->numberBetween(-100000, 100000),
         ];
     }
 }

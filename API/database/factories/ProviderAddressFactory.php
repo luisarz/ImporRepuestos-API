@@ -25,7 +25,7 @@ class ProviderAddressFactory extends Factory
         return [
             'provider_id' => Provider::factory(),
             'address_id' => ProviderAddressCatalog::factory(),
-            'is_active' => $this->faker->boolean(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

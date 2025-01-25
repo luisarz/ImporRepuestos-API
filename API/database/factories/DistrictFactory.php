@@ -23,9 +23,9 @@ class DistrictFactory extends Factory
     {
         return [
             'municipality_id' => Municipality::factory(),
-            'code' => $this->faker->word(),
-            'description' => $this->faker->text(),
-            'is_active' => $this->faker->boolean(),
+            'code' => fake()->word(),
+            'description' => fake()->text(),
+            'is_active' => fake()->boolean(),
         ];
     }
 }

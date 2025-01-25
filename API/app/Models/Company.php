@@ -28,6 +28,7 @@ class Company extends Model
         'web',
         'api_key_mh',
         'logo',
+        'is_active',
     ];
 
     /**
@@ -41,6 +42,7 @@ class Company extends Model
         'economic_activity_id' => 'integer',
         'web' => 'integer',
         'logo' => 'array',
+        'is_active' => 'boolean',
     ];
 
     public function district(): BelongsTo

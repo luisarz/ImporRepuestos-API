@@ -16,7 +16,7 @@ class Municipality extends Model
      * @var array
      */
     protected $fillable = [
-        'departament_id',
+        'department_id',
         'code',
         'description',
         'is_active',
@@ -29,11 +29,11 @@ class Municipality extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'departament_id' => 'integer',
+        'department_id' => 'integer',
         'is_active' => 'boolean',
     ];
 
-    public function departament(): BelongsTo
+    public function department(): BelongsTo
     {
         return $this->belongsTo(Department::class);
     }

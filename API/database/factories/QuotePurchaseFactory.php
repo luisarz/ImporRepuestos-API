@@ -22,13 +22,13 @@ class QuotePurchaseFactory extends Factory
     public function definition(): array
     {
         return [
-            'payment_method' => $this->faker->randomNumber(),
-            'provider' => $this->faker->randomNumber(),
-            'date' => $this->faker->date(),
-            'amount_purchase' => $this->faker->randomFloat(0, 0, 9999999999.),
-            'is_active' => $this->faker->boolean(),
-            'is_purchaded' => $this->faker->boolean(),
-            'is_compared' => $this->faker->boolean(),
+            'payment_method' => fake()->randomNumber(),
+            'provider' => fake()->randomNumber(),
+            'date' => fake()->date(),
+            'amount_purchase' => fake()->randomFloat(0, 0, 9999999999.),
+            'is_active' => fake()->boolean(),
+            'is_purchased' => fake()->boolean(),
+            'is_compared' => fake()->boolean(),
             'buyer_id' => Employee::factory(),
         ];
     }
