@@ -13,26 +13,26 @@ use Illuminate\Http\Response;
 
 class CompanyController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): CompanyCollection
     {
         $companies = Company::all();
 
         return new CompanyCollection($companies);
     }
 
-    public function store(CompanyStoreRequest $request): Response
+    public function store(CompanyStoreRequest $request): CompanyResource
     {
         $company = Company::create($request->validated());
 
         return new CompanyResource($company);
     }
 
-    public function show(Request $request, Company $company): Response
+    public function show(Request $request, Company $company): CompanyResource
     {
         return new CompanyResource($company);
     }
 
-    public function update(CompanyUpdateRequest $request, Company $company): Response
+    public function update(CompanyUpdateRequest $request, Company $company): CompanyResource
     {
         $company->update($request->validated());
 

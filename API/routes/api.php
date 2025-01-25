@@ -61,15 +61,21 @@ Route::middleware(['jwt'])->group(function () {
 
 #Done
     Route::apiResource('countries', CountryController::class);
+
     Route::apiResource('departments', DepartmentController::class);
+
     Route::apiResource('municipalities', MunicipalityController::class);
+
     Route::apiResource('districts', DistrictController::class);
 
     Route::apiResource('economic-activities', EconomicActivityController::class);
 
-
     Route::apiResource('companies', CompanyController::class);
 
+    Route::apiResource('stablishment-types', StablishmentTypeController::class);
+
+
+    Route::apiResource('warehouses', WarehouseController::class);
 
 
     Route::apiResource('providers-types', ProvidersTypeController::class);
@@ -78,9 +84,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('providers', ProviderController::class);
 
 
-    Route::apiResource('warehouses', WarehouseController::class);
 
-    Route::apiResource('stablishment-types', StablishmentTypeController::class);
 
     Route::apiResource('jobs-titles', JobsTitleController::class);
 

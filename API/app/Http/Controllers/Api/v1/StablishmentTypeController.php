@@ -13,26 +13,26 @@ use Illuminate\Http\Response;
 
 class StablishmentTypeController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): StablishmentTypeCollection
     {
-        $stablishmentTypes = StablishmentType::all();
+        $stablishmentTypes = StablishmentType::paginate(10);
 
         return new StablishmentTypeCollection($stablishmentTypes);
     }
 
-    public function store(StablishmentTypeStoreRequest $request): Response
+    public function store(StablishmentTypeStoreRequest $request): StablishmentTypeResource
     {
         $stablishmentType = StablishmentType::create($request->validated());
 
         return new StablishmentTypeResource($stablishmentType);
     }
 
-    public function show(Request $request, StablishmentType $stablishmentType): Response
+    public function show(Request $request, StablishmentType $stablishmentType): StablishmentTypeResource
     {
         return new StablishmentTypeResource($stablishmentType);
     }
 
-    public function update(StablishmentTypeUpdateRequest $request, StablishmentType $stablishmentType): Response
+    public function update(StablishmentTypeUpdateRequest $request, StablishmentType $stablishmentType): StablishmentTypeResource
     {
         $stablishmentType->update($request->validated());
 
