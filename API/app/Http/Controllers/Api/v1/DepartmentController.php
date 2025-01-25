@@ -13,26 +13,25 @@ use Illuminate\Http\Response;
 
 class DepartmentController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $departments = Department::all();
-
-        return new DepartmentCollection($departments);
+        $departments = Department::with('country')->paginate(10);
+        return response()->json($departments); //new DepartmentCollection($departments);
     }
 
-    public function store(DepartmentStoreRequest $request): Response
+    public function store(DepartmentStoreRequest $request): DepartmentResource
     {
-        $department = Department::create($request->validated());
+        $department = (new \App\Models\Department)->create($request->validated());
 
         return new DepartmentResource($department);
     }
 
-    public function show(Request $request, Department $department): Response
+    public function show(Request $request, Department $department): DepartmentResource
     {
         return new DepartmentResource($department);
     }
 
-    public function update(DepartmentUpdateRequest $request, Department $department): Response
+    public function update(DepartmentUpdateRequest $request, Department $department): DepartmentResource
     {
         $department->update($request->validated());
 

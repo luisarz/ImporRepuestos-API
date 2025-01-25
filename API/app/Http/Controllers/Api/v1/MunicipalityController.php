@@ -13,29 +13,27 @@ use Illuminate\Http\Response;
 
 class MunicipalityController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): MunicipalityCollection
     {
-        $municipalities = Municipality::all();
-
+        $municipalities = Municipality::with('department')->paginate(10);
         return new MunicipalityCollection($municipalities);
     }
 
-    public function store(MunicipalityStoreRequest $request): Response
+    public function store(MunicipalityStoreRequest $request): MunicipalityResource
     {
-        $municipality = Municipality::create($request->validated());
+        $municipality = (new \App\Models\Municipality)->create($request->validated());
 
         return new MunicipalityResource($municipality);
     }
 
-    public function show(Request $request, Municipality $municipality): Response
+    public function show(Request $request, Municipality $municipality): MunicipalityResource
     {
         return new MunicipalityResource($municipality);
     }
 
-    public function update(MunicipalityUpdateRequest $request, Municipality $municipality): Response
+    public function update(MunicipalityUpdateRequest $request, Municipality $municipality): MunicipalityResource
     {
         $municipality->update($request->validated());
-
         return new MunicipalityResource($municipality);
     }
 

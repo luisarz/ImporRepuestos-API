@@ -9,4 +9,3 @@ Route::get('/', function () {
 require __DIR__.'/auth.php';
 
 
-Route::get('countries/index', [App\Http\Controllers\CountryController::class, 'Index']);

@@ -13,26 +13,26 @@ use Illuminate\Http\Response;
 
 class DistrictController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $districts = District::all();
+        $districts = District::with('municipality')->paginate(10);
 
-        return new DistrictCollection($districts);
+        return response()->json($districts);//new DistrictCollection($districts);
     }
 
-    public function store(DistrictStoreRequest $request): Response
+    public function store(DistrictStoreRequest $request): DistrictResource
     {
         $district = District::create($request->validated());
 
         return new DistrictResource($district);
     }
 
-    public function show(Request $request, District $district): Response
+    public function show(Request $request, District $district): DistrictResource
     {
         return new DistrictResource($district);
     }
 
-    public function update(DistrictUpdateRequest $request, District $district): Response
+    public function update(DistrictUpdateRequest $request, District $district): DistrictResource
     {
         $district->update($request->validated());
 

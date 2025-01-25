@@ -13,26 +13,26 @@ use Illuminate\Http\Response;
 
 class EconomicActivityController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): EconomicActivityCollection
     {
-        $economicActivities = EconomicActivity::all();
+        $economicActivities = EconomicActivity::paginate(10);
 
         return new EconomicActivityCollection($economicActivities);
     }
 
-    public function store(EconomicActivityStoreRequest $request): Response
+    public function store(EconomicActivityStoreRequest $request): EconomicActivityResource
     {
         $economicActivity = EconomicActivity::create($request->validated());
 
         return new EconomicActivityResource($economicActivity);
     }
 
-    public function show(Request $request, EconomicActivity $economicActivity): Response
+    public function show(Request $request, EconomicActivity $economicActivity): EconomicActivityResource
     {
         return new EconomicActivityResource($economicActivity);
     }
 
-    public function update(EconomicActivityUpdateRequest $request, EconomicActivity $economicActivity): Response
+    public function update(EconomicActivityUpdateRequest $request, EconomicActivity $economicActivity): EconomicActivityResource
     {
         $economicActivity->update($request->validated());
 

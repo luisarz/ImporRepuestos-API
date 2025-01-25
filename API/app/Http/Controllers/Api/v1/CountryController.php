@@ -13,26 +13,26 @@ use Illuminate\Http\Response;
 
 class CountryController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): CountryCollection
     {
-        $countries = Country::all();
+        $countries = Country::paginate(10);
 
         return new CountryCollection($countries);
     }
 
-    public function store(CountryStoreRequest $request): Response
+    public function store(CountryStoreRequest $request): CountryResource
     {
-        $country = Country::create($request->validated());
+        $country = (new Country)->create($request->validated());
 
         return new CountryResource($country);
     }
 
-    public function show(Request $request, Country $country): Response
+    public function show(Request $request, Country $country): CountryResource
     {
         return new CountryResource($country);
     }
 
-    public function update(CountryUpdateRequest $request, Country $country): Response
+    public function update(CountryUpdateRequest $request, Country $country): CountryResource
     {
         $country->update($request->validated());
 
@@ -42,7 +42,6 @@ class CountryController extends Controller
     public function destroy(Request $request, Country $country): Response
     {
         $country->delete();
-
         return response()->noContent();
     }
 }
