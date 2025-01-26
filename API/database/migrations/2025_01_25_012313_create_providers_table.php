@@ -31,6 +31,7 @@ return new class extends Migration
             $table->date('last_purchase');
             $table->integer('decimal_purchase');
             $table->boolean('is_active');
+            $table->softDeletes();
             $table->timestamps();
         });
 

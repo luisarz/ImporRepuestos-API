@@ -72,19 +72,20 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('companies', CompanyController::class);
 
-    Route::apiResource('stablishment-types', StablishmentTypeController::class);
+    Route::apiResource('establishment-types', StablishmentTypeController::class);
 
 
     Route::apiResource('warehouses', WarehouseController::class);
 
-
     Route::apiResource('providers-types', ProvidersTypeController::class);
+    Route::apiResource('documents-types-providers', DocumentsTypesProviderController::class);
 
 
     Route::apiResource('providers', ProviderController::class);
 
+    Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
 
-
+    Route::apiResource('provider-addresses', ProviderAddressController::class);
 
     Route::apiResource('jobs-titles', JobsTitleController::class);
 
@@ -112,11 +113,7 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('fuel-types', FuelTypeController::class);
 
-    Route::apiResource('documents-types-providers', DocumentsTypesProviderController::class);
 
-    Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
-
-    Route::apiResource('provider-addresses', ProviderAddressController::class);
 
     Route::apiResource('equivalents', EquivalentController::class);
 

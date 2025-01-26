@@ -30,6 +30,8 @@ return new class extends Migration
             $table->string('email');
             $table->integer('product_prices')->default(2);
             $table->json('logo')->nullable();
+            $table->boolean('is_active');
+            $table->softDeletes();
             $table->timestamps();
         });
 

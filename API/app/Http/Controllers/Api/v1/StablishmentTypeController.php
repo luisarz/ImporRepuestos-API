@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\StablishmentTypeStoreRequest;
 use App\Http\Requests\Api\v1\StablishmentTypeUpdateRequest;
@@ -13,36 +14,61 @@ use Illuminate\Http\Response;
 
 class StablishmentTypeController extends Controller
 {
-    public function index(Request $request): StablishmentTypeCollection
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $stablishmentTypes = StablishmentType::paginate(10);
+        $establishmentTypes = StablishmentType::paginate(10);
 
-        return new StablishmentTypeCollection($stablishmentTypes);
+        return ApiResponse::success($establishmentTypes, 'Lista de tipos de establecimientos', 200);
     }
 
-    public function store(StablishmentTypeStoreRequest $request): StablishmentTypeResource
+    public function store(StablishmentTypeStoreRequest $request): \Illuminate\Http\JsonResponse
     {
-        $stablishmentType = StablishmentType::create($request->validated());
+        try {
+            $establishmentType = StablishmentType::create($request->validated());
+            return ApiResponse::success(new StablishmentTypeResource($establishmentType), 'Tipo de establecimiento creado de manera exitosa!', 201);
 
-        return new StablishmentTypeResource($stablishmentType);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Tipo de establecimiento no creado', 400);
+        }
+
     }
 
-    public function show(Request $request, StablishmentType $stablishmentType): StablishmentTypeResource
+    public function show(Request $request, StablishmentType $establishmentType): \Illuminate\Http\JsonResponse
     {
-        return new StablishmentTypeResource($stablishmentType);
+        try {
+          return ApiResponse::success($establishmentType, 'Detalle del tipo de establecimiento', 200);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Tipo de establecimiento no encontrado', 404);
+        }
     }
 
-    public function update(StablishmentTypeUpdateRequest $request, StablishmentType $stablishmentType): StablishmentTypeResource
+    public function update(StablishmentTypeUpdateRequest $request, $id): \Illuminate\Http\JsonResponse
     {
-        $stablishmentType->update($request->validated());
+        try {
+            $establishmentType=StablishmentType::find($id);
+            if(!$establishmentType){
+                return ApiResponse::error(null, 'Tipo de establecimiento no encontrado', 404);
+            }
+            $establishmentType->update($request->validated());
+            return ApiResponse::success(new StablishmentTypeResource($establishmentType), 'Tipo de establecimiento actualizado de manera exitosa', 200);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Tipo de establecimiento no actualizado', 400);
+        }
 
-        return new StablishmentTypeResource($stablishmentType);
     }
 
-    public function destroy(Request $request, StablishmentType $stablishmentType): Response
+    public function destroy(Request $request, $id): \Illuminate\Http\JsonResponse
     {
-        $stablishmentType->delete();
+        try {
+            $establishmentType=StablishmentType::find($id);
+            if(!$establishmentType){
+                return ApiResponse::error(null, 'Tipo de establecimiento no encontrado', 404);
+            }
+            $establishmentType->delete();
+            return ApiResponse::success(null, 'Tipo de establecimiento eliminado de manera exitosa', 200);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Tipo de establecimiento no eliminado', 400);
+        }
 
-        return response()->noContent();
     }
 }

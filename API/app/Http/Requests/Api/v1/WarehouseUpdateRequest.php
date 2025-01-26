@@ -32,6 +32,7 @@ class WarehouseUpdateRequest extends FormRequest
             'email' => ['required', 'email'],
             'product_prices' => ['required', 'integer'],
             'logo' => ['nullable', 'json'],
+            'is_active' => ['required', 'boolean'],
         ];
     }
 }

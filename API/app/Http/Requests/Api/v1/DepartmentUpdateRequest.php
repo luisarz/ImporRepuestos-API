@@ -20,10 +20,11 @@ class DepartmentUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'country_id' => ['required', 'integer'],
-            'code' => ['required', 'string'],
-            'description' => ['required', 'string'],
-            'is_active' => ['required'],
+            'country_id' => ['required', 'integer', 'exists:countries,id'],
+            'code' => ['required', 'string', 'max:50'], // Ejemplo de límite de caracteres
+            'description' => ['required', 'string', 'max:255'], // Evitar descripciones demasiado largas
+            'is_active' => ['required']
         ];
+
     }
 }

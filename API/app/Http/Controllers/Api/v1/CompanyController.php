@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\CompanyStoreRequest;
 use App\Http\Requests\Api\v1\CompanyUpdateRequest;
@@ -16,14 +17,12 @@ class CompanyController extends Controller
     public function index(Request $request): CompanyCollection
     {
         $companies = Company::all();
-
         return new CompanyCollection($companies);
     }
 
     public function store(CompanyStoreRequest $request): CompanyResource
     {
-        $company = Company::create($request->validated());
-
+        $company = (new Company)->create($request->validated());
         return new CompanyResource($company);
     }
 
@@ -32,17 +31,31 @@ class CompanyController extends Controller
         return new CompanyResource($company);
     }
 
-    public function update(CompanyUpdateRequest $request, Company $company): CompanyResource
+    public function update(CompanyUpdateRequest $request, $id): \Illuminate\Http\JsonResponse
     {
-        $company->update($request->validated());
+        try {
+            $company = Company::find($id);
+            if (!$company) {
+                return ApiResponse::error(null, 'Empresa no encontrada', 404);
+            }
+            $company->update($request->validated());
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Empresa no actualizada', 400);
+        }
 
-        return new CompanyResource($company);
     }
 
-    public function destroy(Request $request, Company $company): Response
+    public function destroy(Request $request, $id): \Illuminate\Http\JsonResponse
     {
-        $company->delete();
-
-        return response()->noContent();
+        try {
+            $company = Company::find($id);
+            if (!$company) {
+                return ApiResponse::error(null, 'Empresa no encontrada', 404);
+            }
+            $company->delete();
+            return ApiResponse::success(null, 'Empresa eliminada de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Empresa no eliminada', 400);
+        }
     }
 }

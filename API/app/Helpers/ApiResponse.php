@@ -11,6 +11,7 @@ class ApiResponse
             'data' => $data,
             'status' => 'success',
             'message' => $message,
+            'code' => $code,
         ], $code);
     }
 
@@ -20,6 +21,7 @@ class ApiResponse
             'data' => $data,
             'status' => 'error',
             'message' => $message,
+            'code' => $code,
         ], $code);
     }
 }

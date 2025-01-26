@@ -20,7 +20,7 @@ class DistrictStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'municipality_id' => ['required', 'integer'],
+            'municipality_id' => ['required', 'integer', 'exists:municipalities,id'],
             'code' => ['required', 'string'],
             'description' => ['required', 'string'],
             'is_active' => ['required'],
