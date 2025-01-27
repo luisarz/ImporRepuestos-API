@@ -2,47 +2,76 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\CategoryStoreRequest;
 use App\Http\Requests\Api\v1\CategoryUpdateRequest;
 use App\Http\Resources\Api\v1\CategoryCollection;
 use App\Http\Resources\Api\v1\CategoryResource;
 use App\Models\Category;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class CategoryController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
-        $categories = Category::all();
-
-        return new CategoryCollection($categories);
+        try {
+            $categories = Category::paginate(10);
+            return ApiResponse::success($categories, 'Categories retrieved successfully', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
     }
 
-    public function store(CategoryStoreRequest $request): Response
+    public function store(CategoryStoreRequest $request): JsonResponse
     {
-        $category = Category::create($request->validated());
-
-        return new CategoryResource($category);
+        try {
+            $category = (new \App\Models\Category)->create($request->validated());
+            return ApiResponse::success(new CategoryResource($category), 'Category created successfully', 201);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrio un error', 500);
+        }
     }
 
-    public function show(Request $request, Category $category): Response
+    public function show(Request $request, $id): JsonResponse
     {
-        return new CategoryResource($category);
+        try {
+            $category = (new \App\Models\Category)->findOrFail($id);
+            return ApiResponse::success(new CategoryResource($category), 'Categoría recuperada', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error($e->getMessage(), 'Categoría no encontrada', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
     }
 
-    public function update(CategoryUpdateRequest $request, Category $category): Response
+    public function update(CategoryUpdateRequest $request, $id): JsonResponse
     {
-        $category->update($request->validated());
-
-        return new CategoryResource($category);
+        try {
+            $category = (new \App\Models\Category)->findOrFail($id);
+            $category->update($request->validated());
+            return ApiResponse::success(new CategoryResource($category), 'Categoría actualizada', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error($e->getMessage(), 'Categoría no encontrada', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
     }
 
-    public function destroy(Request $request, Category $category): Response
+    public function destroy(Request $request, $id): JsonResponse
     {
-        $category->delete();
-
-        return response()->noContent();
+        try {
+            $category = (new \App\Models\Category)->findOrFail($id); // No es necesario usar "new"
+            $category->delete();
+            return ApiResponse::success(null, 'Categoría eliminada', 200); // Retornar la respuesta correcta
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error('Categoría no encontrada', 'Categoría no encontrada', 404); // Retornar el error explícitamente
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500); // Retornar el error explícitamente
+        }
     }
+
 }

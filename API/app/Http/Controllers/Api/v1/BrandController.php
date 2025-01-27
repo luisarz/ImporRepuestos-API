@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\BrandStoreRequest;
 use App\Http\Requests\Api\v1\BrandUpdateRequest;
@@ -13,18 +14,24 @@ use Illuminate\Http\Response;
 
 class BrandController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $brands = Brand::all();
-
-        return new BrandCollection($brands);
+        try {
+            $brands = Brand::paginate(10);
+            return ApiResponse::success($brands, 'Marcas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
     }
 
-    public function store(BrandStoreRequest $request): Response
+    public function store(BrandStoreRequest $request): \Illuminate\Http\JsonResponse
     {
-        $brand = Brand::create($request->validated());
-
-        return new BrandResource($brand);
+        try {
+            $brand = (new \App\Models\Brand)->create($request->validated());
+            return ApiResponse::success($brand, 'Marca creada de manera exitosa', 201);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
     }
 
     public function show(Request $request, Brand $brand): Response

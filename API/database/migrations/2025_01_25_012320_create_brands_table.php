@@ -17,7 +17,7 @@ return new class extends Migration
             $table->id();
             $table->string('code');
             $table->string('description');
-            $table->json('image');
+            $table->json('image')->nullable();
             $table->boolean('is_active');
             $table->timestamps();
         });

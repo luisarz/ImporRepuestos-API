@@ -30,7 +30,7 @@ class Category extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'commission_percentage' => 'decimal',
+        'commission_percentage' => 'float',
         'category_parent_id' => 'integer',
         'is_active' => 'boolean',
     ];

@@ -23,7 +23,6 @@ class CategoryStoreRequest extends FormRequest
             'code' => ['required', 'string'],
             'description' => ['required', 'string'],
             'commission_percentage' => ['nullable', 'numeric'],
-            'category_parent_id' => ['required', 'integer'],
             'is_active' => ['required'],
         ];
     }
