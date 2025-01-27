@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Inventory extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -36,14 +38,14 @@ class Inventory extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'warehouse_id' => 'integer',
         'product_id' => 'integer',
-        'last_cost_without_tax' => 'decimal',
-        'last_cost_with_tax' => 'decimal',
-        'stock_actual_quantity' => 'decimal',
-        'stock_min' => 'decimal',
+        'warehouse_id' => 'integer',
+        'last_cost_without_tax' => 'float',
+        'last_cost_with_tax' => 'float',
+        'stock_actual_quantity' => 'float',
+        'stock_min' => 'float',
         'alert_stock_min' => 'boolean',
-        'stock_max' => 'decimal',
+        'stock_max' => 'float',
         'alert_stock_max' => 'boolean',
         'last_purchase' => 'datetime',
         'is_service' => 'boolean',
@@ -54,8 +56,14 @@ class Inventory extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function product(): BelongsTo
+  public function product(): BelongsTo
+  {
+      return $this->belongsTo(Product::class, 'product_id', 'id');
+
+  }
+    public function prices(): HasMany
     {
-        return $this->belongsTo(Product::class);
+        return $this->hasMany(Price::class);
+
     }
 }

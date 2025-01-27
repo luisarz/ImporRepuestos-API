@@ -28,7 +28,10 @@ return new class extends Migration
             $table->boolean('alert_stock_max');
             $table->dateTime('last_purchase');
             $table->boolean('is_service');
+            $table->softDeletes();
             $table->timestamps();
+            $table->unique(['warehouse_id', 'product_id'], 'unique_warehouse_product');
+
         });
 
         Schema::enableForeignKeyConstraints();
@@ -39,6 +42,9 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::table('inventories', function (Blueprint $table) {
+            $table->dropUnique('unique_warehouse_product');
+        });
         Schema::dropIfExists('inventories');
     }
 };

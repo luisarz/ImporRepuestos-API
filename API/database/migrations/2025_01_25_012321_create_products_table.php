@@ -32,6 +32,7 @@ return new class extends Migration
             $table->boolean('is_active');
             $table->boolean('is_taxed');
             $table->boolean('is_service');
+            $table->softDeletes();
             $table->timestamps();
         });
 

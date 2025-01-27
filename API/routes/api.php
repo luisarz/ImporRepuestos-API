@@ -57,7 +57,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout']);
 
 
-    #Directions (Países, Departamentos, Municipios, Distritos)
+    #Hacienda Catalogs (Países, Departamentos, Municipios, Distritos)
 
     Route::apiResource('countries', CountryController::class);
     Route::apiResource('departments', DepartmentController::class);
@@ -65,7 +65,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('districts', DistrictController::class);
 
 
-    #Empresa sucursales y almacenes (Actividades Económicas, Empresas, Tipos de Establecimientos, Almacenes)
+    #Empresa sucursal y almacenes (Actividades Económicas, Empresas, Tipos de Establecimientos, Almacenes)
 
     Route::apiResource('economic-activities', EconomicActivityController::class);
     Route::apiResource('companies', CompanyController::class);

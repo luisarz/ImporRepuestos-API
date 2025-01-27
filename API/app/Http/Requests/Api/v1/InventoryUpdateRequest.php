@@ -20,8 +20,8 @@ class InventoryUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'warehouse_id' => ['required', 'integer'],
-            'product_id' => ['required', 'integer'],
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
+            'product_id' => ['required', 'integer', 'exists:products,id'],
             'last_cost_without_tax' => ['required', 'numeric'],
             'last_cost_with_tax' => ['required', 'numeric'],
             'stock_actual_quantity' => ['required', 'numeric'],
