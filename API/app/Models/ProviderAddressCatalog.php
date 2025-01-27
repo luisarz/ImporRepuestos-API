@@ -15,6 +15,7 @@ class ProviderAddressCatalog extends Model
      * @var array
      */
     protected $fillable = [
+        'provider_id',
         'district_id',
         'address_reference',
         'email',
@@ -32,6 +33,7 @@ class ProviderAddressCatalog extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'provider_id'=> 'integer',
         'district_id' => 'integer',
         'is_active' => 'boolean',
     ];

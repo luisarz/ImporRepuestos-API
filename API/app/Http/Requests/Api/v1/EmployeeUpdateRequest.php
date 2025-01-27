@@ -20,17 +20,17 @@ class EmployeeUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'warehouse_id' => ['required', 'integer'],
-            'job_title_id' => ['required', 'integer'],
+            'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
+            'job_title_id' => ['required', 'integer', 'exists:job_titles,id'],
             'name' => ['required', 'string'],
             'last_name' => ['required', 'string'],
             'gender' => ['required', 'in:M,F'],
-            'dui' => ['required', 'string'],
-            'nit' => ['required', 'string'],
-            'phone' => ['required', 'string'],
+            'dui' => ['required', 'string','max:10'],
+            'nit' => ['required', 'string','max:17'],
+            'phone' => ['required', 'string','max:9'],
             'email' => ['required', 'email'],
             'photo' => ['nullable', 'json'],
-            'district_id' => ['required', 'integer'],
+            'district_id' => ['required', 'integer', 'exists:districts,id'],
             'address' => ['required', 'string'],
             'comision_porcentage' => ['required', 'numeric'],
             'is_active' => ['required'],

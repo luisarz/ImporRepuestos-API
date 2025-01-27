@@ -22,7 +22,7 @@ class ProviderStoreRequest extends FormRequest
         return [
             'legal_name' => ['required', 'string'],
             'comercial_name' => ['required', 'string'],
-            'document_type_id' => ['required', 'integer'],
+            'document_type_id' => ['required', 'integer',],
             'document_number' => ['required', 'string'],
             'economic_activity_id' => ['required', 'integer'],
             'provider_type_id' => ['required', 'integer'],

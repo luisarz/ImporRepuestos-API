@@ -49,8 +49,6 @@ controllers:
     resource: api
   Api\v1\ProviderAddressCatalog:
     resource: api
-  Api\v1\ProviderAddress:
-    resource: api
   Api\v1\Equivalent:
     resource: api
   Api\v1\PurchasesHeader:

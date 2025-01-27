@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Provider extends Model
 {
-    use HasFactory;
+    use HasFactory,softDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -16,19 +17,10 @@ class Provider extends Model
      * @var array
      */
     protected $fillable = [
-        'legal_name',
-        'comercial_name',
-        'document_type_id',
-        'document_number',
-        'economic_activity_id',
-        'provider_type_id',
-        'payment_type_id',
-        'credit_days',
-        'credit_limit',
-        'debit_balance',
-        'last_purchase',
-        'decimal_purchase',
-        'is_active',
+        'legal_name', 'comercial_name', 'document_type_id', 'document_number',
+        'economic_activity_id', 'provider_type_id', 'payment_type_id',
+        'credit_days', 'credit_limit', 'debit_balance', 'last_purchase',
+        'decimal_purchase', 'is_active'
     ];
 
     /**
@@ -42,8 +34,8 @@ class Provider extends Model
         'economic_activity_id' => 'integer',
         'provider_type_id' => 'integer',
         'payment_type_id' => 'integer',
-        'credit_limit' => 'decimal',
-        'debit_balance' => 'decimal',
+        'credit_limit' => 'float',
+        'debit_balance' => 'float',
         'last_purchase' => 'date',
         'is_active' => 'boolean',
     ];

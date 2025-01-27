@@ -20,7 +20,8 @@ class ProviderAddressCatalogStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'district_id' => ['required', 'integer'],
+            'provider_id' => ['required', 'integer', 'exists:providers,id'],
+            'district_id' => ['required', 'integer','exists:districts,id'],
             'address_reference' => ['required', 'string'],
             'email' => ['nullable', 'email'],
             'phone' => ['nullable', 'string'],

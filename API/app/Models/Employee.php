@@ -46,7 +46,7 @@ class Employee extends Model
         'job_title_id' => 'integer',
         'photo' => 'array',
         'district_id' => 'integer',
-        'comision_porcentage' => 'decimal',
+        'comision_porcentage' => 'float',
         'is_active' => 'boolean',
     ];
 

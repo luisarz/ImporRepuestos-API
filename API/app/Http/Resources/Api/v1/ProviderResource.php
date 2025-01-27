@@ -4,14 +4,18 @@ namespace App\Http\Resources\Api\v1;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Log;
 
 class ProviderResource extends JsonResource
 {
+
     /**
      * Transform the resource into an array.
      */
     public function toArray(Request $request): array
     {
+
+
         return [
             'id' => $this->id,
             'legal_name' => $this->legal_name,
@@ -22,11 +26,13 @@ class ProviderResource extends JsonResource
             'provider_type_id' => $this->provider_type_id,
             'payment_type_id' => $this->payment_type_id,
             'credit_days' => $this->credit_days,
-            'credit_limit' => $this->credit_limit,
+            'credit_limit' =>  $this->credit_limit,
             'debit_balance' => $this->debit_balance,
             'last_purchase' => $this->last_purchase,
             'decimal_purchase' => $this->decimal_purchase,
-            'is_active' => $this->is_active,
+            'is_active' => $this->is_active
         ];
     }
+
+
 }

@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\v1\{ApplicationController,BatchCodeOrigenController};
+use App\Http\Controllers\Api\v1\{ApplicationController, BatchCodeOrigenController};
 use App\Http\Controllers\Api\v1\BatchController;
 use App\Http\Controllers\Api\v1\BrandController;
 use App\Http\Controllers\Api\v1\CategoryController;
@@ -50,7 +50,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-
 Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware(['jwt'])->group(function () {
@@ -58,35 +57,28 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout']);
 
 
+    #Directions (Países, Departamentos, Municipios, Distritos)
 
-#Done
     Route::apiResource('countries', CountryController::class);
-
     Route::apiResource('departments', DepartmentController::class);
-
     Route::apiResource('municipalities', MunicipalityController::class);
-
     Route::apiResource('districts', DistrictController::class);
 
+
+    #Empresa sucursales y almacenes (Actividades Económicas, Empresas, Tipos de Establecimientos, Almacenes)
+
     Route::apiResource('economic-activities', EconomicActivityController::class);
-
     Route::apiResource('companies', CompanyController::class);
-
     Route::apiResource('establishment-types', StablishmentTypeController::class);
-
-
     Route::apiResource('warehouses', WarehouseController::class);
 
+    #Proveedores
     Route::apiResource('providers-types', ProvidersTypeController::class);
     Route::apiResource('documents-types-providers', DocumentsTypesProviderController::class);
-
-
     Route::apiResource('providers', ProviderController::class);
-
     Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
 
-    Route::apiResource('provider-addresses', ProviderAddressController::class);
-
+    #Empleados
     Route::apiResource('jobs-titles', JobsTitleController::class);
 
     Route::apiResource('employees', EmployeeController::class);
@@ -112,7 +104,6 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('vehicle-models', VehicleModelController::class);
 
     Route::apiResource('fuel-types', FuelTypeController::class);
-
 
 
     Route::apiResource('equivalents', EquivalentController::class);

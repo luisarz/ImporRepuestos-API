@@ -15,7 +15,10 @@ return new class extends Migration
 
         Schema::create('provider_address_catalogs', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('district_id');
+           $table->unsignedBigInteger('provider_id');
+            $table->foreign('provider_id')->references('id')->on('providers');
+           $table->unsignedBigInteger('district_id');
+            $table->foreign('district_id')->references('id')->on('districts')->onDelete('cascade');
             $table->string('address_reference');
             $table->string('email')->nullable();
             $table->string('phone')->nullable();
@@ -23,6 +26,7 @@ return new class extends Migration
             $table->string('seller_phone')->nullable();
             $table->string('seller_email')->nullable();
             $table->boolean('is_active');
+            $table->softDeletes();
             $table->timestamps();
         });
 

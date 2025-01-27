@@ -26,8 +26,8 @@ return new class extends Migration
             $table->foreign('provider_type_id')->references('id')->on('providers_types');
             $table->unsignedBigInteger('payment_type_id');
             $table->integer('credit_days');
-            $table->decimal('credit_limit')->index();
-            $table->decimal('debit_balance');
+            $table->decimal('credit_limit',8,2)->index();
+            $table->decimal('debit_balance',8,2);
             $table->date('last_purchase');
             $table->integer('decimal_purchase');
             $table->boolean('is_active');

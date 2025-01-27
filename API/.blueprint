@@ -139,8 +139,6 @@ created:
     - app/Http/Requests/Api\v1/DocumentsTypesProviderUpdateRequest.php
     - app/Http/Requests/Api\v1/ProviderAddressCatalogStoreRequest.php
     - app/Http/Requests/Api\v1/ProviderAddressCatalogUpdateRequest.php
-    - app/Http/Requests/Api\v1/ProviderAddressStoreRequest.php
-    - app/Http/Requests/Api\v1/ProviderAddressUpdateRequest.php
     - app/Http/Requests/Api\v1/EquivalentStoreRequest.php
     - app/Http/Requests/Api\v1/EquivalentUpdateRequest.php
     - app/Http/Requests/Api\v1/PurchasesHeaderStoreRequest.php
