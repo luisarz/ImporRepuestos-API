@@ -9,6 +9,7 @@ use App\Http\Requests\Api\v1\BrandUpdateRequest;
 use App\Http\Resources\Api\v1\BrandCollection;
 use App\Http\Resources\Api\v1\BrandResource;
 use App\Models\Brand;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
@@ -34,22 +35,45 @@ class BrandController extends Controller
         }
     }
 
-    public function show(Request $request, Brand $brand): Response
+    public function show(Request $request, $id): \Illuminate\Http\JsonResponse
     {
-        return new BrandResource($brand);
+        try {
+            $brand = (new \App\Models\Brand)->findOrFail($id);
+           return ApiResponse::success(new BrandResource($brand), 'Marca recuperada de manera exitosa', 200);
+        }catch (ModelNotFoundException $e) {
+            return ApiResponse::error($e->getMessage(),'Marca no encontrada', 404);
+        }
+        catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
     }
 
-    public function update(BrandUpdateRequest $request, Brand $brand): Response
+    public function update(BrandUpdateRequest $request, $id): \Illuminate\Http\JsonResponse
     {
-        $brand->update($request->validated());
+        try {
+            $brand = (new \App\Models\Brand)->findOrFail($id);
+            $brand->update($request->validated());
+            return ApiResponse::success(new BrandResource($brand), 'Marca actualizada de manera exitosa', 200);
+        }catch (ModelNotFoundException $e) {
+            return ApiResponse::error($e->getMessage(),'Marca no encontrada', 404);
+        }
+        catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
 
-        return new BrandResource($brand);
     }
 
-    public function destroy(Request $request, Brand $brand): Response
+    public function destroy(Request $request, $id): \Illuminate\Http\JsonResponse
     {
-        $brand->delete();
-
-        return response()->noContent();
+        try {
+            $brand = (new \App\Models\Brand)->findOrFail($id);
+            $brand->delete();
+            return ApiResponse::success(null, 'Marca eliminada de manera exitosa', 200);
+        } catch (ModelNotFoundException $e) {
+        return ApiResponse::error($e->getMessage(),'Marca no encontrada', 404);
+        }
+        catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
     }
 }

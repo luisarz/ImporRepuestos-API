@@ -85,12 +85,13 @@ Route::middleware(['jwt'])->group(function () {
     #Productos
     Route::apiResource('categories', CategoryController::class);
     Route::apiResource('brands', BrandController::class);
+    Route::apiResource('unit-measurements', UnitMeasurementController::class);
 
+    #Inventarios
     Route::apiResource('products', ProductController::class);
 
     Route::apiResource('inventories', InventoryController::class);
 
-    Route::apiResource('unit-measurements', UnitMeasurementController::class);
 
     Route::apiResource('prices', PriceController::class);
 
