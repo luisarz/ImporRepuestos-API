@@ -10,11 +10,7 @@ class Price extends Model
 {
     use HasFactory;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array
-     */
+
     protected $fillable = [
         'inventory_id',
         'price_description',
@@ -24,18 +20,14 @@ class Price extends Model
         'quantity',
     ];
 
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
+
     protected $casts = [
         'id' => 'integer',
         'inventory_id' => 'integer',
-        'price' => 'decimal',
-        'max_discount' => 'decimal',
+        'price' => 'float',
+        'max_discount' => 'float',
         'is_active' => 'boolean',
-        'quantity' => 'decimal',
+        'quantity' => 'float',
     ];
 
     public function inventory(): BelongsTo

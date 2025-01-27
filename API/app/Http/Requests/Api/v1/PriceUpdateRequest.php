@@ -21,6 +21,11 @@ class PriceUpdateRequest extends FormRequest
     {
         return [
             'price' => ['required', 'numeric'],
+            'inventory_id' => ['required', 'integer', 'exists:inventories,id'],
+            'price_description' => ['required', 'string'],
+            'max_discount' => ['required', 'numeric'],
+            'is_active' => ['required', 'boolean'],
+            'quantity' => ['required', 'numeric'],
         ];
     }
 }
