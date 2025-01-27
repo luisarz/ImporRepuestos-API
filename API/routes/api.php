@@ -66,7 +66,6 @@ Route::middleware(['jwt'])->group(function () {
 
 
     #Empresa sucursal y almacenes (Actividades Económicas, Empresas, Tipos de Establecimientos, Almacenes)
-
     Route::apiResource('economic-activities', EconomicActivityController::class);
     Route::apiResource('companies', CompanyController::class);
     Route::apiResource('establishment-types', StablishmentTypeController::class);
@@ -90,18 +89,19 @@ Route::middleware(['jwt'])->group(function () {
     #Inventarios
     Route::apiResource('products', ProductController::class);
     Route::apiResource('inventories', InventoryController::class);
-
     Route::apiResource('prices', PriceController::class);
 
+    #vehiculos
+    Route::apiResource('plate-types', PlateTypeController::class);
+    Route::apiResource('vehicle-models', VehicleModelController::class);
+    Route::apiResource('fuel-types', FuelTypeController::class);
     Route::apiResource('vehicles', VehicleController::class);
 
-    Route::apiResource('plate-types', PlateTypeController::class);
+
 
     Route::apiResource('applications', ApplicationController::class);
 
-    Route::apiResource('vehicle-models', VehicleModelController::class);
 
-    Route::apiResource('fuel-types', FuelTypeController::class);
 
 
     Route::apiResource('equivalents', EquivalentController::class);
