@@ -21,7 +21,7 @@ class EmployeeUpdateRequest extends FormRequest
     {
         return [
             'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
-            'job_title_id' => ['required', 'integer', 'exists:job_titles,id'],
+            'job_title_id' => ['required', 'integer', 'exists:jobs_titles,id'],
             'name' => ['required', 'string'],
             'last_name' => ['required', 'string'],
             'gender' => ['required', 'in:M,F'],

@@ -19,10 +19,10 @@ class EmployeeController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $employees = Employee::paginate(10);
-            return ApiResponse::success(new EmployeeCollection($employees), 'Empleados recuperados exitosamente', 200);
+            $employees = Employee::with('warehouse:id,name,phone,email', 'district:id,code,description')->paginate(10);
+            return ApiResponse::success($employees, 'Empleados recuperados exitosamente', 200);
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
 
     }
@@ -32,28 +32,48 @@ class EmployeeController extends Controller
         try {
             $employee = (new \App\Models\Employee)->create($request->validated());
             return ApiResponse::success(new EmployeeResource($employee), 'Empleado creado exitosamente', 201);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
-        catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+    }
+
+    public function show(Request $request, $id): JsonResponse
+    {
+        try {
+            $employee = Employee::with('warehouse:id,name,phone,email', 'district:id,code,description')->findOrFail($id);
+            return ApiResponse::success($employee, 'Empleado recuperado exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error($e->getMessage(), 'Empleado no encontrado', 404);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 
-    public function show(Request $request, Employee $employee): Response
+    public function update(EmployeeUpdateRequest $request, $id): JsonResponse
     {
-        return new EmployeeResource($employee);
+        try {
+            $employee = (new Employee)->findOrFail($id);
+            $employee->update($request->validated());
+            return ApiResponse::success(new EmployeeResource($employee), 'Empleado actualizado exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error($e->getMessage(), 'Empleado no encontrado', 404);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+
     }
 
-    public function update(EmployeeUpdateRequest $request, Employee $employee): Response
+    public function destroy(Request $request,$id): JsonResponse
     {
-        $employee->update($request->validated());
+        try {
+            $employee = (new Employee)->findOrFail($id);
+            $employee->delete();
+            return ApiResponse::success(null, 'Empleado eliminado exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+           return ApiResponse::error(null, 'Empleado no encontrado', 404);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
 
-        return new EmployeeResource($employee);
-    }
-
-    public function destroy(Request $request, Employee $employee): Response
-    {
-        $employee->delete();
-
-        return response()->noContent();
     }
 }

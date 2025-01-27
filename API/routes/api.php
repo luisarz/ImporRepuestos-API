@@ -78,11 +78,11 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('providers', ProviderController::class);
     Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
 
-    #Empleados
+    #Empleados (Cargos, Empleados)
     Route::apiResource('jobs-titles', JobsTitleController::class);
-
     Route::apiResource('employees', EmployeeController::class);
 
+    #Productos
     Route::apiResource('categories', CategoryController::class);
 
     Route::apiResource('brands', BrandController::class);
