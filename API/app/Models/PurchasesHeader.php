@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PurchasesHeader extends Model
 {
@@ -19,12 +20,12 @@ class PurchasesHeader extends Model
         'warehouse',
         'quote_purchase_id',
         'provider_id',
-        'purchcase_date',
+        'purchase_date',
         'serie',
         'purchase_number',
         'resolution',
         'purchase_type',
-        'paymen_method',
+        'payment_method',
         'payment_status',
         'net_amount',
         'tax_amount',
@@ -44,18 +45,18 @@ class PurchasesHeader extends Model
         'warehouse' => 'integer',
         'quote_purchase_id' => 'integer',
         'provider_id' => 'integer',
-        'purchcase_date' => 'date',
+        'purchase_date' => 'date',
         'purchase_type' => 'integer',
-        'net_amount' => 'decimal',
-        'tax_amount' => 'decimal',
-        'retention_amount' => 'decimal',
-        'total_purchase' => 'decimal',
+        'net_amount' => 'float',
+        'tax_amount' => 'float',
+        'retention_amount' => 'float',
+        'total_purchase' => 'float',
         'employee_id' => 'integer',
     ];
 
     public function warehouse(): BelongsTo
     {
-        return $this->belongsTo(Warehouse::class);
+        return $this->belongsTo(Warehouse::class,'warehouse','id');
     }
 
     public function quotePurchase(): BelongsTo
@@ -66,5 +67,9 @@ class PurchasesHeader extends Model
     public function provider(): BelongsTo
     {
         return $this->belongsTo(Provider::class);
+    }
+    public function purchaseItems(): HasMany
+    {
+        return $this->hasMany(PurchaseItem::class);
     }
 }

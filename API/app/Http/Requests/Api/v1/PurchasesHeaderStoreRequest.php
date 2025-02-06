@@ -20,15 +20,15 @@ class PurchasesHeaderStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'warehouse' => ['required', 'integer'],
+            'warehouse' => ['required', 'integer','exists:warehouses,id'],
             'quote_purchase_id' => ['nullable', 'integer'],
-            'provider_id' => ['required', 'integer'],
-            'purchcase_date' => ['required', 'date'],
+            'provider_id' => ['required', 'integer','exists:providers,id'],
+            'purchase_date' => ['required', 'date'],
             'serie' => ['required', 'string'],
             'purchase_number' => ['required', 'string'],
             'resolution' => ['required', 'string'],
             'purchase_type' => ['required', 'integer'],
-            'paymen_method' => ['required', 'in:1,2'],
+            'payment_method' => ['required', 'in:1,2'],
             'payment_status' => ['required', 'in:1,2,3'],
             'net_amount' => ['required', 'numeric'],
             'tax_amount' => ['required', 'numeric'],

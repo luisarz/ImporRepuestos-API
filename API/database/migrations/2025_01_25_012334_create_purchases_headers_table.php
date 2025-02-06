@@ -21,12 +21,12 @@ return new class extends Migration
             $table->foreign('quote_purchase_id')->references('id')->on('quote_purchase');
             $table->unsignedBigInteger('provider_id');
             $table->foreign('provider_id')->references('id')->on('providers');
-            $table->date('purchcase_date');
+            $table->date('purchase_date');
             $table->string('serie');
             $table->string('purchase_number');
             $table->string('resolution');
             $table->bigInteger('purchase_type');
-            $table->enum('paymen_method', ["1","2"])->default('1')->comment('1=Contado, 2=Credito');
+            $table->enum('payment_method', ["1","2"])->default('1')->comment('1=Contado, 2=Credito');
             $table->enum('payment_status', ["1","2","3"])->default('1')->comment('1=Pagada, 2=Parcial, 3=Pendiente');
             $table->decimal('net_amount');
             $table->decimal('tax_amount');
