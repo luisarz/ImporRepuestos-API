@@ -68,4 +68,7 @@ class Vehicle extends Model
     {
         return $this->belongsTo(PlateType::class);
     }
+
+
+
 }

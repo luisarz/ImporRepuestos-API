@@ -73,5 +73,13 @@ class Product extends Model
     {
         return $this->hasMany(Inventory::class, 'product_id', 'id');
     }
+    public function applications(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Application::class,'product_id','id');
+    }
+    public function equivalents(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Equivalent::class,'product_id','id');
+    }
 
 }

@@ -97,8 +97,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('fuel-types', FuelTypeController::class);
     Route::apiResource('vehicles', VehicleController::class);
 
-
-
+    #Aplicaciones y equivalencias
     Route::apiResource('applications', ApplicationController::class);
 
 
