@@ -20,8 +20,8 @@ class EquivalentStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'product_id' => ['required', 'integer'],
-            'product_id_equivalent' => ['required', 'integer'],
+            'product_id' => ['required', 'integer','exists:products,id'],
+            'product_id_equivalent' => ['required', 'integer','exists:products,id'],
             'is_active' => ['required'],
         ];
     }

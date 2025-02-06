@@ -33,9 +33,13 @@ class Equivalent extends Model
         'is_active' => 'boolean',
     ];
 
-    public function product(): BelongsTo
+    public function productOriginal(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class,'product_id','id');
+    }
+    public function productEquivalent(): BelongsTo
+    {
+        return $this->belongsTo(Product::class,'product_id_equivalent','id');
     }
 
 

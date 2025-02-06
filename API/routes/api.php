@@ -99,10 +99,6 @@ Route::middleware(['jwt'])->group(function () {
 
     #Aplicaciones y equivalencias
     Route::apiResource('applications', ApplicationController::class);
-
-
-
-
     Route::apiResource('equivalents', EquivalentController::class);
 
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);
