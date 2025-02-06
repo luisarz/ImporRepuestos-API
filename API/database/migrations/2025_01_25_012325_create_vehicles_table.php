@@ -15,18 +15,16 @@ return new class extends Migration
 
         Schema::create('vehicles', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('brand_id');
-            $table->foreign('brand_id')->references('id')->on('brands');
-            $table->unsignedBigInteger('model_id')->index();
+            $table->unsignedBigInteger('model_id');
             $table->foreign('model_id')->references('id')->on('vehicle_models');
-            $table->string('model_two');
-            $table->string('year');
-            $table->string('chassis');
-            $table->string('vin');
-            $table->string('motor');
-            $table->string('displacement');
-            $table->string('motor_type');
-            $table->unsignedBigInteger('fuel_type');
+            $table->string('model_two')->nullable();
+            $table->string('year')->nullable();
+            $table->string('chassis')->nullable();
+            $table->string('vin')->nullable();
+            $table->string('motor')->nullable();
+            $table->string('displacement')->nullable();
+            $table->string('motor_type')->nullable();
+            $table->unsignedBigInteger('fuel_type')->nullable();
             $table->foreign('fuel_type')->references('id')->on('fuel_types');
             $table->string('vehicle_class');
             $table->date('income_date');

@@ -15,6 +15,7 @@ class VehicleModel extends Model
      * @var array
      */
     protected $fillable = [
+        'brand_id',
         'code',
         'description',
         'is_active',
@@ -27,6 +28,7 @@ class VehicleModel extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'brand_id'=>'integer',
         'is_active' => 'boolean',
     ];
 }

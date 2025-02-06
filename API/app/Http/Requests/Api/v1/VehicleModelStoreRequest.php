@@ -20,6 +20,7 @@ class VehicleModelStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'brand_id' => ['required'],
             'code' => ['required', 'string'],
             'description' => ['required', 'string'],
             'is_active' => ['required'],

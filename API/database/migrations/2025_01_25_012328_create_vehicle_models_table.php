@@ -15,6 +15,7 @@ return new class extends Migration
 
         Schema::create('vehicle_models', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('brand_id')->references('id')->on('brands');
             $table->string('code');
             $table->string('description');
             $table->boolean('is_active');

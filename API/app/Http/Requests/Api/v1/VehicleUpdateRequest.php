@@ -20,9 +20,7 @@ class VehicleUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'brand_id' => ['required', 'integer'],
-            'model_id' => ['required', 'integer'],
-            'model_two' => ['required', 'string'],
+            'model_id' => ['required', 'integer','exists:vehicle_models,id'],
             'year' => ['required', 'string'],
             'chassis' => ['required', 'string'],
             'vin' => ['required', 'string'],
@@ -32,9 +30,9 @@ class VehicleUpdateRequest extends FormRequest
             'fuel_type' => ['required', 'integer'],
             'vehicle_class' => ['required', 'string'],
             'income_date' => ['required', 'date'],
-            'municipality_id' => ['required', 'integer'],
+            'municipality_id' => ['required', 'integer','exists:municipalities,id'],
             'antique' => ['required', 'string'],
-            'plate_type' => ['required', 'integer'],
+            'plate_type' => ['required', 'integer','exists:plate_types,id'],
             'capacity' => ['required', 'numeric'],
             'tonnage' => ['required', 'numeric'],
             'is_active' => ['required'],

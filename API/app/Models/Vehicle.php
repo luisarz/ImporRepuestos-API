@@ -43,21 +43,16 @@ class Vehicle extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'brand_id' => 'integer',
         'model_id' => 'integer',
         'fuel_type' => 'integer',
         'income_date' => 'date',
         'municipality_id' => 'integer',
         'plate_type' => 'integer',
-        'capacity' => 'decimal',
-        'tonnage' => 'decimal',
+        'capacity' => 'float',
+        'tonnage' => 'float',
         'is_active' => 'boolean',
     ];
 
-    public function brand(): BelongsTo
-    {
-        return $this->belongsTo(Brand::class);
-    }
 
     public function model(): BelongsTo
     {

@@ -21,7 +21,7 @@ class VehicleModelController extends Controller
     {
         try {
             $vehicleModels = VehicleModel::paginate(10);
-            return ApiResponse::success($vehicleModels,'Modelos de vehiculos recuperados',200);
+            return ApiResponse::success($vehicleModels,'Modelos de vehículos recuperados',200);
         }catch (\Exception $e){
             return ApiResponse::error(null,$e->getMessage(),500);
         }
@@ -32,7 +32,7 @@ class VehicleModelController extends Controller
     {
         try {
             $vehicleModel = (new VehicleModel)->create($request->validated());
-            return ApiResponse::success($vehicleModel,'Modelo de vehiculo creado con éxito',200);
+            return ApiResponse::success($vehicleModel,'Modelo de vehículo creado con éxito',200);
         }catch (\Exception $e){
             return ApiResponse::error(null,'Error al crear el modelo',500);
         }
@@ -43,11 +43,11 @@ class VehicleModelController extends Controller
     {
         try {
             $vehicleModel= (new VehicleModel)->findOrFail($id);
-            return ApiResponse::success($vehicleModel,'Modelo de vehiculo recuperado',200);
+            return ApiResponse::success($vehicleModel,'Modelo de vehículos recuperado',200);
         }catch (ModelNotFoundException $exception){
-            return ApiResponse::error(null,'No se encontro el modelo que buscas',400);
+            return ApiResponse::error(null,'No se encontró el modelo que buscas',400);
         }catch (\Exception $e){
-            return ApiResponse::error($e->getMessage(),'Ocurrio un error',500);
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error',500);
         }
     }
 
@@ -59,9 +59,9 @@ class VehicleModelController extends Controller
             return ApiResponse::success($vehicleModel,'Modelo actualizado correctamente',200);
 
         }catch (ModelNotFoundException $exception){
-            return ApiResponse::error(null,'No se encontro el modelo que buscas',400);
+            return ApiResponse::error(null,'No se encontró el modelo que buscas',400);
         }catch (\Exception $e){
-            return ApiResponse::error($e->getMessage(),'Ocurrio un error',500);
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error',500);
         }
 
     }
@@ -74,9 +74,9 @@ class VehicleModelController extends Controller
             return ApiResponse::success(null,'Modelo Eliminado correctamente',200);
 
         }catch (ModelNotFoundException $exception){
-            return ApiResponse::error(null,'No se encontro el modelo que buscas',400);
+            return ApiResponse::error(null,'No se encontró el modelo que buscas',400);
         }catch (\Exception $e){
-            return ApiResponse::error($e->getMessage(),'Ocurrio un error',500);
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error',500);
         }
 
     }
