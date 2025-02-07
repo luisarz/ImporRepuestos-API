@@ -20,8 +20,7 @@ class PurchaseItemStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'purchase_id' => ['required', 'integer'],
-            'batch_id' => ['required', 'integer'],
+            'purchase_id' => ['required', 'integer','exists:purchases_headers,id'],
             'is_purched' => ['required'],
             'quantity' => ['required', 'numeric'],
             'price' => ['required', 'numeric'],

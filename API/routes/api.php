@@ -101,11 +101,12 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('applications', ApplicationController::class);
     Route::apiResource('equivalents', EquivalentController::class);
 
-
+    #Purchase Header, Items adn Batches
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);
+    Route::apiResource('purchase-items', PurchaseItemController::class);
+
     Route::apiResource('batches', BatchController::class);
 
-    Route::apiResource('purchase-items', PurchaseItemController::class);
 
     Route::apiResource('inventories-batches', InventoriesBatchController::class);
 

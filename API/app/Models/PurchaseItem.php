@@ -17,7 +17,6 @@ class PurchaseItem extends Model
      */
     protected $fillable = [
         'purchase_id',
-        'batch_id',
         'is_purched',
         'quantity',
         'price',
@@ -33,12 +32,11 @@ class PurchaseItem extends Model
     protected $casts = [
         'id' => 'integer',
         'purchase_id' => 'integer',
-        'batch_id' => 'integer',
         'is_purched' => 'boolean',
-        'quantity' => 'decimal',
-        'price' => 'decimal',
-        'discount' => 'decimal',
-        'total' => 'decimal',
+        'quantity' => 'float',
+        'price' => 'float',
+        'discount' => 'float',
+        'total' => 'float',
     ];
 
     public function purchase(): BelongsTo

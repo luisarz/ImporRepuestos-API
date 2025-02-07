@@ -16,8 +16,8 @@ return new class extends Migration
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
             $table->string('code');
-            $table->bigInteger('origen_code');
-            $table->foreign('origen_code')->references('id')->on('batch_code_origen');
+            $table->unsignedBigInteger('origen_code');
+            $table->foreign('origen_code')->references('id')->on('batch_code_origens');
             $table->unsignedBigInteger('inventory_id')->index();
             $table->date('incoming_date');
             $table->date('expiration_date');

@@ -38,8 +38,8 @@ class Batch extends Model
         'inventory_id' => 'integer',
         'incoming_date' => 'date',
         'expiration_date' => 'date',
-        'initial_quantity' => 'decimal',
-        'available_quantity' => 'decimal',
+        'initial_quantity' => 'float',
+        'available_quantity' => 'float',
         'is_active' => 'boolean',
     ];
 

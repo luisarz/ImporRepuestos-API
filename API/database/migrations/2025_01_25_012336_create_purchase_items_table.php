@@ -16,9 +16,7 @@ return new class extends Migration
         Schema::create('purchase_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('purchase_id');
-            $table->foreign('purchase_id')->references('id')->on('purchases_header');
-            $table->unsignedBigInteger('batch_id');
-            $table->foreign('batch_id')->references('id')->on('batch');
+            $table->foreign('purchase_id')->references('id')->on('purchases_headers');
             $table->boolean('is_purched');
             $table->decimal('quantity');
             $table->decimal('price');

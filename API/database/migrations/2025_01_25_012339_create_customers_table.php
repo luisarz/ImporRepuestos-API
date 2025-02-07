@@ -16,8 +16,7 @@ return new class extends Migration
         Schema::create('customers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('customer_type');
-            $table->string('internal_code');
-            $table->foreign('internal_code')->references('id')->on('customer_types');
+            $table->foreign('customer_type')->references('id')->on('customer_types');
             $table->unsignedBigInteger('document_type_id');
             $table->foreign('document_type_id')->references('id')->on('customer_documents_types');
             $table->string('document_number');

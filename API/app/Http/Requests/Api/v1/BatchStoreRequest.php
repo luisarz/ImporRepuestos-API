@@ -21,8 +21,8 @@ class BatchStoreRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string'],
-            'origen_code' => ['required', 'integer'],
-            'inventory_id' => ['required', 'integer'],
+            'origen_code' => ['required', 'numeric','exists:batch_code_origens,id'],
+            'inventory_id' => ['required', 'integer','exists:inventories,id'],
             'incoming_date' => ['required', 'date'],
             'expiration_date' => ['required', 'date'],
             'initial_quantity' => ['required', 'numeric'],
