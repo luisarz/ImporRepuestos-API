@@ -44,8 +44,8 @@ class PurchaseItem extends Model
         return $this->belongsTo(PurchasesHeader::class);
     }
 
-    public function batch(): BelongsTo
+    public function batch(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsTo(Batch::class);
+        return $this->hasMany(Batch::class,'purchase_item_id','purchase_id');
     }
 }

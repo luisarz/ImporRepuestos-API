@@ -17,6 +17,7 @@ class Batch extends Model
      */
     protected $fillable = [
         'code',
+        'purchase_item_id',
         'origen_code',
         'inventory_id',
         'incoming_date',
@@ -34,6 +35,7 @@ class Batch extends Model
      */
     protected $casts = [
         'id' => 'integer',
+        'purchase_item_id'=>'integer',
         'origen_code' => 'integer',
         'inventory_id' => 'integer',
         'incoming_date' => 'date',
@@ -46,5 +48,9 @@ class Batch extends Model
     public function origenCode(): BelongsTo
     {
         return $this->belongsTo(BatchCodeOrigen::class);
+    }
+    public function purchaseItem(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseItem::class,'purchase_item_id','id');
     }
 }

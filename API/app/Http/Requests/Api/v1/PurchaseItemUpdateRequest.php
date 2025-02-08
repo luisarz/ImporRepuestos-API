@@ -21,7 +21,6 @@ class PurchaseItemUpdateRequest extends FormRequest
     {
         return [
             'purchase_id' => ['required', 'integer'],
-            'batch_id' => ['required', 'integer'],
             'is_purched' => ['required'],
             'quantity' => ['required', 'numeric'],
             'price' => ['required', 'numeric'],

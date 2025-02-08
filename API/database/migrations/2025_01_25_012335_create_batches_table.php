@@ -15,6 +15,9 @@ return new class extends Migration
 
         Schema::create('batches', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('purchase_item_id')->nullable();
+            $table->foreign('purchase_item_id')->references('id')->on('purchase_items')->onDelete('CASCADE');
+
             $table->string('code');
             $table->unsignedBigInteger('origen_code');
             $table->foreign('origen_code')->references('id')->on('batch_code_origens');

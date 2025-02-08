@@ -21,6 +21,7 @@ class BatchUpdateRequest extends FormRequest
     {
         return [
             'code' => ['required', 'string'],
+            'purchase_item_id'=>['exists:purchase_items,id'],
             'origen_code' => ['required', 'integer'],
             'inventory_id' => ['required', 'integer'],
             'incoming_date' => ['required', 'date'],
