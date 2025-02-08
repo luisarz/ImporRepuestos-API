@@ -106,16 +106,18 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('purchase-items', PurchaseItemController::class);
     Route::apiResource('batches', BatchController::class);
 
-
+    #Se EJECUTARÁ el registro al momento de finalizar el registro de un lote en compras o realizar una venta o traslado
     Route::apiResource('inventories-batches', InventoriesBatchController::class);
 
-    Route::apiResource('customers', CustomerController::class);
+
 
     Route::apiResource('customer-documents-types', CustomerDocumentsTypeController::class);
-
+    Route::apiResource('customers', CustomerController::class);
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
-
     Route::apiResource('customer-addresses', CustomerAddressController::class);
+
+
+
 
     Route::apiResource('sales-headers', SalesHeaderController::class);
 

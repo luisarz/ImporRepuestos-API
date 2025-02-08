@@ -31,17 +31,17 @@ class InventoriesBatch extends Model
         'id' => 'integer',
         'id_inventory' => 'integer',
         'id_batch' => 'integer',
-        'quantity' => 'decimal',
+        'quantity' => 'float',
         'operation_date' => 'datetime',
     ];
 
-    public function idInventory(): BelongsTo
+    public function inventory(): BelongsTo
     {
-        return $this->belongsTo(Inventory::class);
+        return $this->belongsTo(Inventory::class,'id_inventory','id');
     }
 
-    public function idBatch(): BelongsTo
+    public function batch(): BelongsTo
     {
-        return $this->belongsTo(Batch::class);
+        return $this->belongsTo(Batch::class,'id_batch','id');
     }
 }

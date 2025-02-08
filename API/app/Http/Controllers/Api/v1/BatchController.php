@@ -71,7 +71,7 @@ class BatchController extends Controller
             $batch->delete();
             return ApiResponse::success(null, 'Lote Eliminado exitosamente', 200);
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error(null, 'Lote no encontrad', 404);
+            return ApiResponse::error(null, 'Lote no encontrado', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un erro', 500);
         }

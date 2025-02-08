@@ -20,8 +20,8 @@ class InventoriesBatchStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'id_inventory' => ['required', 'integer'],
-            'id_batch' => ['required', 'integer'],
+            'id_inventory' => ['required', 'integer','exists:inventories,id'],
+            'id_batch' => ['required', 'integer','exists:batches,id'],
             'quantity' => ['required', 'numeric'],
             'operation_date' => ['required'],
         ];

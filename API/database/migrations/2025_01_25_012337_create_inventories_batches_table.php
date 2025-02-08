@@ -18,7 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('id_inventory');
             $table->foreign('id_inventory')->references('id')->on('inventories');
             $table->unsignedBigInteger('id_batch');
-            $table->foreign('id_batch')->references('id')->on('batch');
+            $table->foreign('id_batch')->references('id')->on('batches')->onDelete('CASCADE');
             $table->decimal('quantity');
             $table->dateTime('operation_date');
             $table->timestamps();
