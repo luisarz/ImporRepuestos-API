@@ -44,6 +44,10 @@ class Batch extends Model
         'available_quantity' => 'float',
         'is_active' => 'boolean',
     ];
+    public function inventory()
+    {
+        return $this->belongsTo(Inventory::class);
+    }
 
     public function origenCode(): BelongsTo
     {
