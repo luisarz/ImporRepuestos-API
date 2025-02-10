@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -11,7 +12,7 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class LoginController extends Controller
 {
-    public function register(Request $request)
+    public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -23,7 +24,7 @@ class LoginController extends Controller
             return response()->json($validator->errors()->toJson(), 400);
         }
 
-        $user = User::create([
+        $user = (new User)->create([
             'name' => $request->get('name'),
             'email' => $request->get('email'),
             'password' => Hash::make($request->get('password')),
