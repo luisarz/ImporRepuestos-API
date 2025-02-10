@@ -19,7 +19,13 @@ class InventoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $inventories = Inventory::with('warehouse:id,name','product:id,code,original_code,description','prices')->paginate(10);
+            $inventories = Inventory::with('warehouse:id,name','product:id,code,original_code,description','prices')
+                ->withSum('inventoryBatches', 'quantity')
+                ->paginate(10);
+            $inventories->getCollection()->transform(function ($inventory) {
+                $inventory->actual_stock = $inventory->inventoryBatches->sum('quantity');
+                return $inventory;
+            });
             return ApiResponse::success($inventories, 'Inventarios recuperados exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);

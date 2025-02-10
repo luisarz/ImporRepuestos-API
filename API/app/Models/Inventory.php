@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Inventory extends Model
 {
-    use HasFactory,SoftDeletes;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -56,14 +56,21 @@ class Inventory extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
-  public function product(): BelongsTo
-  {
-      return $this->belongsTo(Product::class, 'product_id', 'id');
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'id');
 
-  }
+    }
+
     public function prices(): HasMany
     {
         return $this->hasMany(Price::class);
 
     }
+
+        public function inventoryBatches(): HasMany
+    {
+        return $this->hasMany(InventoriesBatch::class, 'id_inventory');
+    }
+
 }
