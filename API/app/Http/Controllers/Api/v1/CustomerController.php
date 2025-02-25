@@ -19,7 +19,7 @@ class CustomerController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $customers = Customer::paginate(10);
+            $customers = Customer::with('address')->paginate(10);
             return ApiResponse::success($customers, 'Clientes recuperados cone éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
@@ -40,7 +40,7 @@ class CustomerController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         try {
-            $customer = Customer::findOrFail($id);
+            $customer = Customer::with('address')->findOrFail($id);
             return ApiResponse::success($customer, 'Cliente recuperado con éxito', 200);
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'No existe el cliente', 404);

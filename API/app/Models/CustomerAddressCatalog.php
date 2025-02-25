@@ -17,6 +17,7 @@ class CustomerAddressCatalog extends Model
      */
     protected $fillable = [
         'district_id',
+        'customer_id',
         'address_reference',
         'is_active',
         'email',
@@ -34,6 +35,7 @@ class CustomerAddressCatalog extends Model
     protected $casts = [
         'id' => 'integer',
         'district_id' => 'integer',
+
         'is_active' => 'boolean',
     ];
 

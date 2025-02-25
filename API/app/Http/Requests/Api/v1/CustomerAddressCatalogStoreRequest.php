@@ -21,6 +21,7 @@ class CustomerAddressCatalogStoreRequest extends FormRequest
     {
         return [
             'district_id' => ['required', 'integer'],
+            'customer_id' => ['required', 'integer','exists:customers,id'],
             'address_reference' => ['required', 'string'],
             'is_active' => ['required'],
             'email' => ['nullable', 'email'],

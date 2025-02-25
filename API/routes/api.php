@@ -118,7 +118,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('customers', CustomerController::class);
 
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
-    Route::apiResource('customer-addresses', CustomerAddressController::class);
+//    Route::apiResource('customer-addresses', CustomerAddressController::class);
 
     Route::apiResource('sales-headers', SalesHeaderController::class);
 

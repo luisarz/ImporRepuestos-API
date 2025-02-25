@@ -20,7 +20,8 @@ class CustomerAddressCatalogUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'district_id' => ['required', 'integer'],
+            'district_id' => ['required', 'integer','exists:districts,id'],
+            'customer_id' => ['required', 'integer','exists:customers,id'],
             'address_reference' => ['required', 'string'],
             'is_active' => ['required'],
             'email' => ['nullable', 'email'],

@@ -17,6 +17,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('district_id');
             $table->foreign('district_id')->references('id')->on('districts');
+            $table->unsignedBigInteger('customer_id');
+            $table->foreign('customer_id')->references('id')->on('customers');
             $table->string('address_reference');
             $table->boolean('is_active');
             $table->string('email')->nullable();
