@@ -115,10 +115,11 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('customer-documents-types', CustomerDocumentsTypeController::class);
     Route::apiResource('customer-types', CustomerTypeController::class);
     Route::apiResource('customers', CustomerController::class);
-
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
 
-    Route::apiResource('sales-headers', SalesHeaderController::class);
+    #Sales, Items, DTE, Payment Details
+    Route::apiResource('sales', SalesHeaderController::class);
+    Route::apiResource('sale-items', SaleItemController::class);
 
     Route::apiResource('sales-dtes', SalesDteController::class);
 
@@ -126,7 +127,6 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('history-dtes', HistoryDteController::class);
 
-    Route::apiResource('sale-items', SaleItemController::class);
 
     Route::apiResource('users', UserController::class);
 

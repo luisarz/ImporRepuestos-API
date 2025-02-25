@@ -81,4 +81,9 @@ class SalesHeader extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class);
+
+    }
 }
