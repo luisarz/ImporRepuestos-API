@@ -7,7 +7,6 @@ use App\Http\Controllers\Api\v1\CategoryController;
 use App\Http\Controllers\Api\v1\CompanyController;
 use App\Http\Controllers\Api\v1\CountryController;
 use App\Http\Controllers\Api\v1\CustomerAddressCatalogController;
-use App\Http\Controllers\Api\v1\CustomerAddressController;
 use App\Http\Controllers\Api\v1\CustomerController;
 use App\Http\Controllers\Api\v1\CustomerDocumentsTypeController;
 use App\Http\Controllers\Api\v1\CustomerTypeController;
@@ -27,7 +26,7 @@ use App\Http\Controllers\Api\v1\PlateTypeController;
 use App\Http\Controllers\Api\v1\PriceController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\ProviderAddressCatalogController;
-use App\Http\Controllers\Api\v1\ProviderAddressController;
+//use App\Http\Controllers\Api\v1\ProviderAddressController;
 use App\Http\Controllers\Api\v1\ProviderController;
 use App\Http\Controllers\Api\v1\ProvidersTypeController;
 use App\Http\Controllers\Api\v1\PurchaseItemController;
@@ -118,7 +117,6 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('customers', CustomerController::class);
 
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
-//    Route::apiResource('customer-addresses', CustomerAddressController::class);
 
     Route::apiResource('sales-headers', SalesHeaderController::class);
 
