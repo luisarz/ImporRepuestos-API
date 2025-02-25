@@ -21,12 +21,11 @@ class CustomerUpdateRequest extends FormRequest
     {
         return [
             'customer_type' => ['required', 'integer'],
-            'internal_code' => ['required', 'string'],
             'document_type_id' => ['required', 'integer'],
             'document_number' => ['required', 'string'],
             'name' => ['required', 'string'],
             'last_name' => ['required', 'string'],
-            'warehouse' => ['required', 'integer'],
+            'warehouse' => ['required', 'integer','exists:warehouses,id'],
             'nrc' => ['required', 'string'],
             'nit' => ['required', 'string'],
             'is_exempt' => ['required'],

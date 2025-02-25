@@ -46,8 +46,8 @@ class Customer extends Model
         'warehouse' => 'integer',
         'is_exempt' => 'boolean',
         'is_creditable' => 'boolean',
-        'credit_limit' => 'decimal',
-        'credit_amount' => 'decimal',
+        'credit_limit' => 'float',
+        'credit_amount' => 'float',
         'is_delivery' => 'boolean',
     ];
 

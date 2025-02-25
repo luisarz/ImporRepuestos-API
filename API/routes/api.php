@@ -101,23 +101,24 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('applications', ApplicationController::class);
     Route::apiResource('equivalents', EquivalentController::class);
 
-    #Purchase Header, Items and batches, adn Batches individual
+    #Purchase Header, Items and batches,
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);
     Route::apiResource('purchase-items', PurchaseItemController::class);
+    # Batches individual and batch CODE Cp,CL, J
+    Route::apiResource('batch-code-origens', BatchCodeOrigenController::class);
     Route::apiResource('batches', BatchController::class);
 
     #Se EJECUTARÁ el registro al momento de finalizar el registro de un lote en compras o realizar una venta o traslado
     Route::apiResource('inventories-batches', InventoriesBatchController::class);
 
 
-
+    #Customer documents types, customer
     Route::apiResource('customer-documents-types', CustomerDocumentsTypeController::class);
+    Route::apiResource('customer-types', CustomerTypeController::class);
     Route::apiResource('customers', CustomerController::class);
+
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
     Route::apiResource('customer-addresses', CustomerAddressController::class);
-
-
-
 
     Route::apiResource('sales-headers', SalesHeaderController::class);
 
@@ -131,16 +132,10 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('users', UserController::class);
 
-    Route::apiResource('customer-types', CustomerTypeController::class);
 
-    Route::apiResource('batch-code-origens', BatchCodeOrigenController::class);
 
     Route::apiResource('quote-purchases', QuotePurchaseController::class);
     Route::apiResource('quote-purchase-items', QuotePurchaseItemController::class);
 
 
 });
-
-
-
-

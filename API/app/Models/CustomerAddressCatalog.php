@@ -37,6 +37,8 @@ class CustomerAddressCatalog extends Model
         'is_active' => 'boolean',
     ];
 
+
+
     public function district(): BelongsTo
     {
         return $this->belongsTo(District::class);
