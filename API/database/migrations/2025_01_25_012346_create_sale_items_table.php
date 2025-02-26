@@ -16,8 +16,9 @@ return new class extends Migration
         Schema::create('sale_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('sale_id');
-            $table->foreign('sale_id')->references('id')->on('sales_header');
-            $table->bigInteger('inventory_id');
+            $table->foreign('sale_id')->references('id')->on('sales_headers');
+            $table->unsignedBigInteger('inventory_id');
+            $table->foreign('inventory_id')->references('id')->on('inventories');
             $table->unsignedBigInteger('batch_id');
             $table->foreign('batch_id')->references('id')->on('inventories_batches');
             $table->boolean('saled');

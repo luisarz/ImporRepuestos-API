@@ -39,10 +39,10 @@ class SaleItem extends Model
         'inventory_id' => 'integer',
         'batch_id' => 'integer',
         'saled' => 'boolean',
-        'quantity' => 'decimal',
-        'price' => 'decimal',
-        'discount' => 'decimal',
-        'total' => 'decimal',
+        'quantity' => 'float',
+        'price' => 'float',
+        'discount' => 'float',
+        'total' => 'float',
         'is_saled' => 'boolean',
         'is_active' => 'boolean',
     ];
@@ -55,5 +55,9 @@ class SaleItem extends Model
     public function batch(): BelongsTo
     {
         return $this->belongsTo(InventoriesBatch::class);
+    }
+    public function inventory(): BelongsTo
+    {
+        return $this->belongsTo(Inventory::class);
     }
 }
