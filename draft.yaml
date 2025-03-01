@@ -1,0 +1,420 @@
+models:
+  Country:
+    id: id
+    code: char
+    description: string
+    is_active: boolean
+  Department:
+    id: id
+    country_id: bigInteger unsigned foreign:countries.id
+    code: string
+    description: string
+    is_active: boolean
+  ProvidersType:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  Municipality:
+    id: id
+    department_id: bigInteger unsigned foreign:departments.id
+    code: string
+    description: string
+    is_active: boolean
+  District:
+    id: id
+    municipality_id: bigInteger index unsigned foreign:municipalities.id
+    code: string index
+    description: string
+    is_active: boolean
+  EconomicActivity:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  Provider:
+    id: id
+    legal_name: string
+    comercial_name: string
+    document_type_id: bigInteger unsigned foreign:documents_types_providers.id
+    document_number: string
+    economic_activity_id: bigInteger unsigned foreign:economic_activities.id
+    provider_type_id: bigInteger unsigned foreign:providers_types.id
+    payment_type_id: bigInteger unsigned
+    credit_days: integer
+    credit_limit: decimal index
+    debit_balance: decimal
+    last_purchase: date
+    decimal_purchase: integer
+    is_active: boolean
+  Company:
+    id: id
+    district_id: bigInteger unsigned foreign:districts.id
+    economic_activity_id: bigInteger unsigned foreign:economic_activities.id
+    company_name: string
+    nrc: string
+    nit: string
+    phone: string
+    whatsapp: string
+    email: string
+    address: string
+    web: bigInteger
+    api_key_mh: string
+    logo: json nullable
+    is_active: boolean
+  Warehouse:
+    id: id foreign:company.id
+    company_id: bigInteger unsigned
+    stablishment_type: bigInteger unsigned foreign:stablishment_type.id
+    name: string
+    nrc: string
+    nit: string
+    district_id: bigInteger unsigned foreign:districts.id
+    economic_activity_id: bigInteger unsigned foreign:economic_activities.id
+    address: string
+    phone: string
+    email: string
+    product_prices: integer default:2
+    logo: json nullable
+  StablishmentType:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  JobsTitle:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  Employee:
+    id: id
+    warehouse_id: bigInteger unsigned foreign:warehouses.id
+    job_title_id: bigInteger unsigned foreign:jobs_titles.id
+    name: string
+    last_name: string
+    gender: enum:"M","F" default:"M"
+    dui: string
+    nit: string
+    phone: string
+    email: string
+    photo: json nullable
+    district_id: bigInteger unsigned foreign:districts.id
+    address: string
+    comision_porcentage: decimal
+    is_active: boolean
+    marital_status: enum:"Soltero/a","Casado/a","Divorciado/a","Viudo" default:"Soltero/a"
+    marital_name: string
+    marital_phone: string
+  Category:
+    id: id
+    code: string
+    description: string
+    commission_percentage: decimal nullable
+    category_parent_id: bigInteger unsigned foreign:categories.id
+    is_active: boolean
+  Brand:
+    id: id
+    code: string
+    description: string
+    image: json
+    is_active: boolean
+  Product:
+    id: id
+    code: string index
+    original_code: string
+    barcode: string nullable
+    description: string nullable
+    brand_id: bigInteger unsigned foreign:brands.id
+    category_id: bigInteger unsigned foreign:categories.id
+    provider_id: bigInteger nullable unsigned foreign:providers.id
+    unit_measurement_id: bigInteger nullable unsigned foreign:unit_measurements.id
+    description_measurement_id: string
+    image: json nullable
+    is_active: boolean
+    is_taxed: boolean
+    is_service: boolean
+  Inventory:
+    id: id
+    warehouse_id: bigInteger unsigned foreign:warehouses.id
+    product_id: bigInteger unsigned foreign:products.id
+    last_cost_without_tax: decimal
+    last_cost_with_tax: decimal
+    stock_actual_quantity: decimal comment:"Sum quantity"
+    stock_min: decimal
+    alert_stock_min: boolean
+    stock_max: decimal
+    alert_stock_max: boolean
+    last_purchase: dateTime
+    is_service: boolean
+  UnitMeasurement:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  Price:
+    id: id
+    inventory_id: bigInteger unsigned foreign:inventories.id
+    price_description: string
+    price: decimal
+    max_discount: decimal
+    is_active: boolean
+    quantity: decimal
+  Vehicle:
+    id: id
+    brand_id: bigInteger unsigned foreign:brands.id
+    model_id: bigInteger index unsigned foreign:vehicle_models.id
+    model_two: string
+    year: string
+    chassis: string
+    vin: string
+    motor: string
+    displacement: string
+    motor_type: string
+    fuel_type: bigInteger unsigned foreign:fuel_types.id
+    vehicle_class: string
+    income_date: date
+    municipality_id: bigInteger
+    antique: string
+    plate_type: bigInteger unsigned foreign:plate_types.id
+    capacity: decimal
+    tonnage: decimal
+    is_active: boolean
+  PlateType:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  Application:
+    id: id
+    product_id: bigInteger index unsigned foreign:products.id
+    vehicle_id: bigInteger index unsigned foreign:vehicles.id
+    is_active: bigInteger
+  VehicleModel:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  FuelType:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  DocumentsTypesProvider:
+    id: id
+    code: string
+    description: string
+    is_active: bigInteger
+  ProviderAddressCatalog:
+    id: id
+    district_id: bigInteger unsigned
+    address_reference: string
+    email: string nullable
+    phone: string nullable
+    seller: string nullable
+    seller_phone: string nullable
+    seller_email: string nullable
+    is_active: boolean
+  ProviderAddress:
+    id: id
+    provider_id: bigInteger unsigned foreign:providers.id
+    address_id: bigInteger unsigned foreign:provider_address_catalog.id
+    is_active: boolean
+  Equivalent:
+    id: id
+    product_id: bigInteger index unsigned foreign:products.id
+    product_id_equivalent: bigInteger unsigned foreign:products.id
+    is_active: boolean
+  PurchasesHeader:
+    id: id
+    warehouse: bigInteger unsigned foreign:warehouses.id
+    quote_purchase_id: bigInteger nullable unsigned foreign:quote_purchase.id
+    provider_id: bigInteger unsigned foreign:providers.id
+    purchcase_date: date
+    serie: string
+    purchase_number: string
+    resolution: string
+    purchase_type: bigInteger
+    paymen_method: enum:"1","2" default:"1" comment:"1=Contado, 2=Credito"
+    payment_status: enum:"1","2","3" default:"1" comment:"1=Pagada, 2=Parcial, 3=Pendiente"
+    net_amount: decimal
+    tax_amount: decimal
+    retention_amount: decimal
+    total_purchase: decimal
+    employee_id: bigInteger unsigned
+    status_purchase: enum:"1","2","3" default:"1" comment:"1 =Procesando, 2=Finzalizada,3=Anulada"
+  Batch:
+    id: id
+    code: string
+    origen_code: bigInteger foreign:batch_code_origen.id
+    inventory_id: bigInteger index unsigned
+    incoming_date: date
+    expiration_date: date
+    initial_quantity: decimal
+    available_quantity: decimal
+    observations: string
+    is_active: boolean default:"1"
+  PurchaseItem:
+    id: id
+    purchase_id: bigInteger unsigned foreign:purchases_header.id
+    batch_id: bigInteger unsigned foreign:batch.id
+    is_purched: boolean
+    quantity: decimal
+    price: decimal
+    discount: decimal
+    total: decimal
+  InventoriesBatch:
+    id: id
+    id_inventory: bigInteger unsigned foreign:inventories.id
+    id_batch: bigInteger unsigned foreign:batch.id
+    quantity: decimal
+    operation_date: dateTime
+  Customer:
+    id: id
+    customer_type: bigInteger unsigned
+    internal_code: string foreign:customer_types.id
+    document_type_id: bigInteger unsigned foreign:customer_documents_types.id
+    document_number: string
+    name: string
+    last_name: string
+    warehouse: bigInteger unsigned foreign:warehouses.id
+    nrc: string
+    nit: string
+    is_exempt: boolean
+    sales_type: enum:"1","2","3","4" default:"1" comment:"1=Mayoreo; 2=Detalle; 3=Taller;"
+    is_creditable: boolean
+    address: string
+    credit_limit: decimal
+    credit_amount: decimal
+    is_delivery: boolean
+  CustomerDocumentsType:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  CustomerAddressCatalog:
+    id: id
+    district_id: bigInteger unsigned foreign:districts.id
+    address_reference: string
+    is_active: boolean
+    email: string nullable
+    phone: string nullable
+    contact: string nullable
+    contact_phone: string nullable
+    contact_email: string nullable
+  CustomerAddress:
+    id: id
+    customer_id: bigInteger unsigned foreign:customers.id
+    customer_address_id: bigInteger unsigned foreign:customer_address_catalog.id
+    is_active: boolean
+  SalesHeader:
+    id: id
+    cashbox_open_id: bigInteger unsigned
+    sale_date: dateTime
+    warehouse_id: bigInteger
+    document_type_id: bigInteger unsigned
+    document_internal_number: bigInteger
+    seller_id: bigInteger unsigned foreign:employees.id
+    customer_id: bigInteger unsigned foreign:customers.id
+    operation_condition_id: bigInteger unsigned
+    sale_status: enum:"1","2","3" default:"1" comment:"1=Procesando,2=Finalizada,3=Anulada"
+    net_amount: decimal
+    tax: decimal
+    discount: decimal
+    have_retention: boolean
+    retention: decimal
+    sale_total: decimal
+    payment_status: bigInteger default:1 comment:"1=Pagada,2=Parcial,3=Pendiente"
+    is_order: boolean
+    is_order_closed_without_invoiced: boolean
+    is_invoiced_order: boolean
+    discount_percentage: decimal
+    discount_money: decimal
+    total_order_after_discount: decimal
+    is_active: boolean
+  SalesDte:
+    id: id
+    sale_id: bigInteger unsigned foreign:sales_header.id
+    is_dte: boolean
+    generation_code: bigInteger
+    billing_model: bigInteger unsigned
+    transmition_type: bigInteger
+    receipt_stamp: string
+    json_url: string nullable
+    pdf_url: string nullable
+  SalePaymentDetail:
+    id: id
+    sale_id: bigInteger unsigned foreign:sales_header.id
+    payment_method_id: bigInteger
+    casher_id: bigInteger unsigned foreign:employees.id
+    payment_amount: decimal
+    actual_balance: decimal
+    bank_account_id: bigInteger unsigned
+    reference: string
+    is_active: boolean
+  HistoryDte:
+    id: id
+    sale_dte_id: bigInteger unsigned foreign:sales_dte.id
+    version: string nullable
+    ambiente: string nullable
+    status: enum:"1","2" default:"1" comment:"1=RECHAZADO,2=PROCESADO"
+    code_generation: string nullable
+    receipt_stamp: string nullable
+    fhProcesamiento: dateTime nullable
+    clasifica_msg: string nullable
+    code_mgs: string nullable
+    description_msg: string nullable
+    observations: string nullable
+    dte: string nullable
+  SaleItem:
+    id: id
+    sale_id: bigInteger unsigned foreign:sales_header.id
+    inventory_id: bigInteger
+    batch_id: bigInteger unsigned foreign:inventories_batches.id
+    saled: boolean
+    quantity: decimal
+    price: decimal
+    discount: decimal
+    total: decimal
+    is_saled: boolean
+    is_active: boolean
+  User:
+    id: id
+    name: string
+    email: string
+    employee_id: bigInteger unsigned foreign:employees.id
+    email_verifed_at: dateTime nullable
+    password: string
+    rememeber_tokend: string nullable
+    theme: string nullable
+    teheme_color: string nullable
+  CustomerType:
+    id: id
+    code: string
+    description: string
+    is_active: boolean
+  BatchCodeOrigen:
+    id: id
+    code: string
+    description: string
+    is_active: bigInteger
+  QuotePurchase:
+    id: id
+    payment_method: bigInteger unsigned
+    provider: bigInteger index unsigned
+    date: date
+    amount_purchase: decimal
+    is_active: boolean
+    is_purchased: boolean
+    is_compared: boolean
+    buyer_id: bigInteger unsigned foreign:employees.id
+  QuotePurchaseItem:
+    id: id
+    quote_purchase_id: bigInteger index unsigned foreign:quote_purchase.id
+    inventory_id: bigInteger index unsigned foreign:warehouses.id
+    quantity: decimal
+    price: decimal
+    discount: decimal
+    total: decimal
+    is_compared: bigInteger
+    is_purchased: boolean
+    description: string nullable
