@@ -77,7 +77,7 @@ return [
      * ```
      */
     'servers' =>[
-        'live'=>'api',
+        'live'=>env('APP_DOMAIN').'/api',
         'prod'=>env('APP_DOMAIN').'/api',
     ],
 
