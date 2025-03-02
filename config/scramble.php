@@ -78,7 +78,7 @@ return [
      */
     'servers' =>[
         'live'=>'api',
-        'prod'=>'https://impor-api.laravel.cloud/api/',
+        'prod'=>env('APP_DOMAIN').'/api',
     ],
 
     'middleware' => [
