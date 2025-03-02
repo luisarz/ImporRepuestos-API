@@ -10,7 +10,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 /**
- * @see \App\Http\Controllers\api\v1\AplicationController
+ * @see \App\Http\Controllers\Api\v1\AplicationController
  */
 final class AplicationControllerTest extends TestCase
 {
