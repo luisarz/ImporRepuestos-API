@@ -39,7 +39,7 @@ return [
         /*
          * Define the title of the documentation's website. App name is used when this config is `null`.
          */
-        'title' => "Documentacion API Import Repuesto",
+        'title' => "Documentación API Import Repuesto",
 
         /*
          * Define the theme of the documentation. Available options are `light` and `dark`.
@@ -76,7 +76,10 @@ return [
      * ],
      * ```
      */
-    'servers' => null,
+    'servers' =>[
+        'live'=>'http://localhost:8000/api',
+        'prod'=>'https://impor-api.laravel.cloud/api',
+    ],
 
     'middleware' => [
         'web',
