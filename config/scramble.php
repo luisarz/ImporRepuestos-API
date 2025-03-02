@@ -77,8 +77,8 @@ return [
      * ```
      */
     'servers' =>[
-        'live'=>'http://localhost:8000/api',
-        'prod'=>'https://impor-api.laravel.cloud/api',
+        'live'=>'api',
+        'prod'=>'https://impor-api.laravel.cloud/api/',
     ],
 
     'middleware' => [
