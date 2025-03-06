@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\v1\{ApplicationController, BatchCodeOrigenController};
+use App\Http\Controllers\Api\v1\{ApplicationController, BatchCodeOrigenController, RolesController};
 use App\Http\Controllers\Api\v1\BatchController;
 use App\Http\Controllers\Api\v1\BrandController;
 use App\Http\Controllers\Api\v1\CategoryController;
@@ -55,6 +55,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('getuser', [LoginController::class, 'getUser']);
     Route::post('logout', [LoginController::class, 'logout']);
 
+    Route::apiResource('roles', RolesController::class);
 
     #Hacienda Catalogs (Países, Departamentos, Municipios, Distritos)
 
@@ -140,3 +141,7 @@ Route::middleware(['jwt'])->group(function () {
 
 
 });
+
+
+
+
