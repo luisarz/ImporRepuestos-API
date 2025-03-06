@@ -76,10 +76,7 @@ return [
      * ],
      * ```
      */
-    'servers' =>[
-        'live'=>env('APP_DOMAIN').'/api',
-        'prod'=>env('APP_DOMAIN').'/api',
-    ],
+    'servers' => null,
 
     'middleware' => [
         'web',
