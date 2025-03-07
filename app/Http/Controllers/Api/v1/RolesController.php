@@ -11,7 +11,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 class RolesController extends Controller
 {
     public function index(Request $request): JsonResponse
@@ -27,7 +28,9 @@ class RolesController extends Controller
     public function store(RoleStoreRequest $request): JsonResponse
     {
         try {
-            $role = Rol::create($request->validated());
+//            $rol = Rol::create($request->validated());
+            $role = Role::create(['name'=>$request->name,'guard_name'=>$request->guard_name]);
+            $role->syncPermissions($request->permission);
             return ApiResponse::success($role, 'Role creado exitosamente',201);
         }catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);

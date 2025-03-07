@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 
 class Modulo extends Model
 {
-    protected $table = 'modulo';
     use HasFactory;
 
-
+    protected $table = 'modulo';
+    public $timestamps = false;
     protected $fillable = [
         'id',
         'nombre',
@@ -21,6 +21,6 @@ class Modulo extends Model
         'orden',
         'is_minimazed',
         'target',
-        'is_active'
+        'is_active',
     ];
 }

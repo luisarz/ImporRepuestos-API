@@ -1,6 +1,10 @@
 <?php
 
-use App\Http\Controllers\Api\v1\{ApplicationController, BatchCodeOrigenController, RolesController};
+use App\Http\Controllers\Api\v1\{ApplicationController,
+    BatchCodeOrigenController,
+    ModuloController,
+    RolesController,
+    UserController};
 use App\Http\Controllers\Api\v1\BatchController;
 use App\Http\Controllers\Api\v1\BrandController;
 use App\Http\Controllers\Api\v1\CategoryController;
@@ -43,7 +47,6 @@ use App\Http\Controllers\Api\v1\VehicleController;
 use App\Http\Controllers\Api\v1\VehicleModelController;
 use App\Http\Controllers\Api\v1\WarehouseController;
 use App\Http\Controllers\LoginController;
-use App\Http\Controllers\UserController;
 use App\Http\Middleware\JwtMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -56,6 +59,8 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout']);
 
     Route::apiResource('roles', RolesController::class);
+    Route::apiResource('modulos', ModuloController::class);
+    Route::apiResource('users', UserController::class);
 
     #Hacienda Catalogs (Países, Departamentos, Municipios, Distritos)
 
@@ -132,7 +137,6 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('history-dtes', HistoryDteController::class);
 
 
-    Route::apiResource('users', UserController::class);
 
 
 
@@ -141,6 +145,11 @@ Route::middleware(['jwt'])->group(function () {
 
 
 });
+
+
+
+
+
 
 
 

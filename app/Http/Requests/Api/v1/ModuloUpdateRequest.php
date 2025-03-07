@@ -4,7 +4,7 @@ namespace App\Http\Requests\Api\v1;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class RoleStoreRequest extends FormRequest
+class ModuloUpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,9 +20,7 @@ class RoleStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required'],
-            'guard_name' => ['required'],
-            'permission'=>['array'],
+            'modulo' => ['required'],
         ];
     }
 }

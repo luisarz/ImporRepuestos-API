@@ -1,5 +1,5 @@
 controllers:
-  Api\v1\Modulo:
+  Api\v1\User:
     resource: api
 #  Api\v1\Country:
 #    resource: api

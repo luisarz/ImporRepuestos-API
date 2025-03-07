@@ -22,12 +22,10 @@ class UserStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string'],
             'email' => ['required', 'email'],
-            'employee_id' => ['required', 'integer'],
-            'email_verifed_at' => ['nullable'],
-            'password' => ['required', 'password'],
-            'rememeber_tokend' => ['nullable', 'string'],
-            'theme' => ['nullable', 'string'],
-            'teheme_color' => ['nullable', 'string'],
+            'employee_id' => ['required', 'exists:employees,id'],
+            'password' => ['required', 'string'],
+            'rememeber_token' => ['nullable', 'string'],
+            'roles' => ['required', 'array'],
         ];
     }
 }
