@@ -21,13 +21,22 @@ class MenuAllowedController extends Controller
         try {
             $empleados = Employee::findOrFail($request->id_employee);
 
-            $user=User::where('employee_id',$empleados->id)->first();
+            $user = User::where('employee_id', $empleados->id)->first();
 
-            $Access = ModuleRol::Where("id_rol",$user->id_rol)
+            $modules = ModuleRol::where("id_rol", $user->id_rol)
+                ->join('modulo', 'modulo.id', '=', 'modulo_rol.id_module')
+                ->select('modulo.*')
+                ->orderBy('modulo.orden', 'ASC')
+                ->get();
+            $access = ModuleRol::Where("id_rol",$user->id_rol)
                 ->join('modulo','modulo.id', '=', 'modulo_rol.id_module')
                 ->orderBy('modulo.orden', 'ASC')->get();
 
-            return ApiResponse::success($Access, 'Empleado recuperado exitosamente', 200);
+
+
+
+
+            return ApiResponse::success($access, 'Empleado recuperado exitosamente', 200);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(), 500);
         }
