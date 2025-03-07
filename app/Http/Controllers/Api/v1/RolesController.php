@@ -13,12 +13,13 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+
 class RolesController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
         try {
-            $roles = Rol::all();
+            $roles = Rol::paginate(10);
             return ApiResponse::success($roles, 'Roles recuperados exitosamente',200);
         }catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
@@ -28,7 +29,6 @@ class RolesController extends Controller
     public function store(RoleStoreRequest $request): JsonResponse
     {
         try {
-//            $rol = Rol::create($request->validated());
             $role = Role::create(['name'=>$request->name,'guard_name'=>$request->guard_name]);
             $role->syncPermissions($request->permission);
             return ApiResponse::success($role, 'Role creado exitosamente',201);
@@ -65,9 +65,17 @@ class RolesController extends Controller
 
     }
 
-    public function destroy(Request $request, Role $role): Response
+    public function destroy(Request $request,$id): JsonResponse
     {
-        $role->delete();
+        try {
+            $rol=Rol::findOrFail($id);
+            $rol->delete();
+            return ApiResponse::success(null,'Role eliminado exitosamente',200);
+        }catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null,'Rol no encontrado',404);
+        }catch(\Exception $e){
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
 
         return response()->noContent();
     }

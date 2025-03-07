@@ -28,7 +28,8 @@ class ModuloStoreRequest extends FormRequest
             'orden' => ['required', 'integer'],
             'is_minimazed' => ['required', 'boolean'],
             'target' => ['required', 'string'],
-            'is_active' => ['required', 'boolean']
+            'is_active' => ['required', 'boolean'],
+            'module_id' => ['required', 'integer']
         ];
     }
 }

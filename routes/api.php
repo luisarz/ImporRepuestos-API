@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Requests\MenuAllowedRequest;
 use App\Http\Controllers\Api\v1\{ApplicationController,
     BatchCodeOrigenController,
+    MenuAllowedController,
+    ModuleRolController,
     ModuloController,
     RolesController,
     UserController};
@@ -55,12 +58,16 @@ use Illuminate\Support\Facades\Route;
 Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware(['jwt'])->group(function () {
-    Route::get('getuser', [LoginController::class, 'getUser']);
     Route::post('logout', [LoginController::class, 'logout']);
+
+    Route::get('menu',[MenuAllowedController::class,'index']);
 
     Route::apiResource('roles', RolesController::class);
     Route::apiResource('modulos', ModuloController::class);
     Route::apiResource('users', UserController::class);
+    Route::apiResource('permissions', ModuleRolController::class);
+//    Route::post('permissions/allow-access', [ModuleRolController::class, 'allowAccess']);
+
 
     #Hacienda Catalogs (Países, Departamentos, Municipios, Distritos)
 
@@ -145,6 +152,10 @@ Route::middleware(['jwt'])->group(function () {
 
 
 });
+
+
+
+
 
 
 

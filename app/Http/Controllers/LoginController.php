@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\MenuAllowedRequest;
+use App\Models\ModuleRol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -12,31 +15,31 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 
 class LoginController extends Controller
 {
-    public function register(Request $request): JsonResponse
-    {
-        $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:6|confirmed',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors()->toJson(), 400);
-        }
-
-        $user = (new User)->create([
-            'name' => $request->get('name'),
-            'email' => $request->get('email'),
-            'password' => Hash::make($request->get('password')),
-        ]);
-
-        $token = JWTAuth::fromUser($user);
-
-        return response()->json(compact('user', 'token'), 201);
-    }
+//    public function register(LoginRequest $request): JsonResponse
+//    {
+//        $validator = Validator::make($request->all(), [
+//            'name' => 'required|string|max:255',
+//            'email' => 'required|string|email|max:255|unique:users',
+//            'password' => 'required|string|min:6|confirmed',
+//        ]);
+//
+//        if ($validator->fails()) {
+//            return response()->json($validator->errors()->toJson(), 400);
+//        }
+//
+//        $user = (new User)->create([
+//            'name' => $request->get('name'),
+//            'email' => $request->get('email'),
+//            'password' => Hash::make($request->get('password')),
+//        ]);
+//
+//        $token = JWTAuth::fromUser($user);
+//
+//        return response()->json(compact('user', 'token'), 201);
+//    }
 
     // User login
-    public function login(Request $request)
+    public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->only('email', 'password');
         try {
@@ -52,18 +55,7 @@ class LoginController extends Controller
     }
 
     // Get authenticated user
-    public function getUser()
-    {
-        try {
-            if (!$user = JWTAuth::parseToken()->authenticate()) {
-                return response()->json(['error' => 'User not found'], 404);
-            }
-        } catch (JWTException $e) {
-            return response()->json(['error' => 'Invalid token'], 400);
-        }
 
-        return response()->json(compact('user'));
-    }
 
     // User logout
     public function logout()
@@ -79,5 +71,24 @@ class LoginController extends Controller
             'token_type' => 'bearer',
             'expires_in' => auth()->factory()->getTTL() * 720
         ]);
+    }
+    private function getMenu(MenuAllowedRequest $request){
+        $empleados = Empleados::findOrFail($user->id_empleado_usuario);
+        $session = session();
+        $session->put('id', $user->id);
+        $session->put('id_empleado_usuario', $user->id_empleado_usuario);
+        $session->put('email', $user->email);
+        $session->put('name', $empleados->nombre_empleado);
+        $session->put('id_rol', $user->id_rol);
+
+
+
+        $Access = ModuleRol::Where("id_rol",$user->id_rol)
+            ->join('modulo','modulo.id_modulo', '=', 'modulo_rol.id_modulo')
+            ->orderBy('modulo.orden', 'ASC')->get();
+
+        $session->put("access",$Access);
+
+        \Illuminate\Support\Facades\Auth::login($user, true);
     }
 }

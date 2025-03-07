@@ -1,6 +1,6 @@
 controllers:
-  Api\v1\User:
-    resource: api
+#  Api\v1\ModuleRol:
+#    resource: api
 #  Api\v1\Country:
 #    resource: api
 #  Api\v1\Department:
