@@ -23,11 +23,7 @@ class MenuAllowedController extends Controller
 
             $user = User::where('employee_id', $empleados->id)->first();
 
-            $modules = ModuleRol::where("id_rol", $user->id_rol)
-                ->join('modulo', 'modulo.id', '=', 'modulo_rol.id_module')
-                ->select('modulo.*')
-                ->orderBy('modulo.orden', 'ASC')
-                ->get();
+        
             $access = ModuleRol::Where("id_rol",$user->id_rol)
                 ->join('modulo','modulo.id', '=', 'modulo_rol.id_module')
                 ->orderBy('modulo.orden', 'ASC')->get();
