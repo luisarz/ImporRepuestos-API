@@ -18,8 +18,10 @@ class CategoryController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+
         try {
-            $categories = Category::paginate(10);
+            $categories = Category::paginate($perPage);
             return ApiResponse::success($categories, 'Categories retrieved successfully', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

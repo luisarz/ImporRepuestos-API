@@ -23,7 +23,6 @@ class MenuAllowedController extends Controller
 
             $user = User::where('employee_id', $empleados->id)->first();
 
-        
             $access = ModuleRol::Where("id_rol",$user->id_rol)
                 ->join('modulo','modulo.id', '=', 'modulo_rol.id_module')
                 ->orderBy('modulo.orden', 'ASC')->get();
@@ -36,6 +35,8 @@ class MenuAllowedController extends Controller
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(), 500);
         }
+
+
 
     }
 }
