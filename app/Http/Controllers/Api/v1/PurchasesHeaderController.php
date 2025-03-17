@@ -19,13 +19,15 @@ class PurchasesHeaderController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $perPage = $request->input('per_page', 10);
+
             $purchasesHeaders = PurchasesHeader::with(
                 [
                     'warehouse:id,name,address,phone,email',
                     'quotePurchase',
                     'provider:id,comercial_name,document_number,payment_type_id'
                 ]
-            )->paginate(10);
+            )->paginate($perPage);
             return ApiResponse::success($purchasesHeaders, 'Compras cargadas', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

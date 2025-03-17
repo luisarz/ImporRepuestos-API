@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\QuotePurchaseItemStoreRequest;
 use App\Http\Requests\Api\v1\QuotePurchaseItemUpdateRequest;
@@ -13,11 +14,16 @@ use Illuminate\Http\Response;
 
 class QuotePurchaseItemController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $quotePurchaseItems = QuotePurchaseItem::all();
+        try {
+            $perPage = $request->input('per_page', 10);
+            $quotePurchaseItems = QuotePurchaseItem::all();
+            return ApiResponse::success($quotePurchaseItems, 'Detalle de ventas', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
+        }
 
-        return new QuotePurchaseItemCollection($quotePurchaseItems);
     }
 
     public function store(QuotePurchaseItemStoreRequest $request): Response

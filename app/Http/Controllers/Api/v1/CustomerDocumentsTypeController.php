@@ -19,7 +19,9 @@ class CustomerDocumentsTypeController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $customerDocumentsTypes = CustomerDocumentsType::paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $customerDocumentsTypes = CustomerDocumentsType::paginate($perPage);
             return ApiResponse::success($customerDocumentsTypes, 'Tipos de documento de cliente recuperados', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

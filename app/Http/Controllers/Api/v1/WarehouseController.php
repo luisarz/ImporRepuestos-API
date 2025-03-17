@@ -19,9 +19,14 @@ class WarehouseController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $warehouses = Warehouse::with('stablishmentType', 'district', 'economicActivity')->paginate(10);
+        try {
+            $perPage = $request->input('per_page', 10);
+            $warehouses = Warehouse::with('stablishmentType', 'district', 'economicActivity')->paginate(10);
+            return ApiResponse::success($warehouses, 'Lista de sucursales', 200);
+        }catch (\Exception $e){
+            return ApiResponse::error(null,$e->getMessage(),500);
+        }
 
-        return ApiResponse::success($warehouses, 'Lista de sucursales', 200);
     }
 
     public function store(WarehouseStoreRequest $request): JsonResponse

@@ -14,10 +14,16 @@ use Illuminate\Http\Response;
 
 class CompanyController extends Controller
 {
-    public function index(Request $request): CompanyCollection
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $companies = Company::all();
-        return new CompanyCollection($companies);
+        try {
+            $perPage = $request->input('per_page', 10);
+            $companies = Company::paginate($perPage);
+            return ApiResponse::success($companies,'Configuración de empresa recuperada',200);
+        }catch (\Exception $e){
+            return ApiResponse::error(null,$e->getMessage(),500);
+        }
+
     }
 
     public function store(CompanyStoreRequest $request): CompanyResource

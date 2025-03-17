@@ -18,7 +18,9 @@ class ModuloController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $modulos =Modulo::paginate(10);
+            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+
+            $modulos =Modulo::paginate($perPage);
             return ApiResponse::success($modulos, 'Módulos recuperados exitosamente',200);
 
         }catch (\Exception $e){

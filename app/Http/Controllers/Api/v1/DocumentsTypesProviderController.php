@@ -18,7 +18,9 @@ class DocumentsTypesProviderController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $documentsTypesProviders = (new DocumentsTypesProvider)->paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $documentsTypesProviders = (new DocumentsTypesProvider)->paginate($perPage);
             return ApiResponse::success(new DocumentsTypesProviderCollection($documentsTypesProviders), 'Tipos de documentos de proveedores obtenidos exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

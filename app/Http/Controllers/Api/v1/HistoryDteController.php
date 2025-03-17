@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\HistoryDteStoreRequest;
 use App\Http\Requests\Api\v1\HistoryDteUpdateRequest;
@@ -13,11 +14,16 @@ use Illuminate\Http\Response;
 
 class HistoryDteController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $historyDtes = HistoryDte::all();
+        try {
+            $perPage = $request->input('per_page', 10);
+            $historyDtes = HistoryDte::paginate($perPage);
+           return ApiResponse::success($historyDtes,'Detalle de ventas', 200);
 
-        return new HistoryDteCollection($historyDtes);
+        }catch (\Exception $e){
+            return ApiResponse::success(null,$e->getMessage(),500);
+        }
     }
 
     public function store(HistoryDteStoreRequest $request): Response

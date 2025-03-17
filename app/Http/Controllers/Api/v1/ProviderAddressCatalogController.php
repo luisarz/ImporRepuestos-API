@@ -19,7 +19,9 @@ class ProviderAddressCatalogController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $providerAddressCatalogs = ProviderAddressCatalog::paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $providerAddressCatalogs = ProviderAddressCatalog::paginate($perPage);
             return ApiResponse::success($providerAddressCatalogs, 'Direcciones de proveedor listados correctamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

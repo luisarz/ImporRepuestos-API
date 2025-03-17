@@ -20,10 +20,12 @@ class EquivalentController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $perPage = $request->input('per_page', 10);
+
             $application = Equivalent::with([
                 'productOriginal:id,code,barcode,description',
                 'productEquivalent:id,code,barcode,description',
-            ])->select('product_id', 'product_id_equivalent')->paginate(10);
+            ])->select('product_id', 'product_id_equivalent')->paginate($perPage);
             return ApiResponse::success($application, 'Equivalentes recuperada exitosamente', 200);
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'No se encontró el equivalente buscada', 404);

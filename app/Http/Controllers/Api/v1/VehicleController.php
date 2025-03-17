@@ -20,7 +20,9 @@ class VehicleController extends Controller
     {
 
         try {
-            $vehicles=Vehicle::with('model','fuelType','plateType')->paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $vehicles=Vehicle::with('model','fuelType','plateType')->paginate($perPage);
             return ApiResponse::success($vehicles,'Vehiculos recuperados',200);
         }catch (\Exception $e){
             return ApiResponse::error(null,'Ocurrió un error',500);

@@ -19,7 +19,9 @@ class CustomerAddressCatalogController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $customerAddressCatalogs = CustomerAddressCatalog::paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $customerAddressCatalogs = CustomerAddressCatalog::paginate($perPage);
             return ApiResponse::success($customerAddressCatalogs, 'Registros obtenidos correctamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

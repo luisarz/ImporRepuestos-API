@@ -18,7 +18,9 @@ class ProvidersTypeController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $providersTypes = (new ProvidersType)->paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $providersTypes = (new ProvidersType)->paginate($perPage);
             return ApiResponse::success(new ProvidersTypeCollection($providersTypes), 'Tipos de proveedores obtenidos exitosamente',200);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);

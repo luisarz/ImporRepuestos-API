@@ -16,9 +16,14 @@ class StablishmentTypeController extends Controller
 {
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $establishmentTypes = StablishmentType::paginate(10);
+        try {
+            $perPage = $request->input('per_page', 10);
+            $establishmentTypes = StablishmentType::paginate($perPage);
+            return ApiResponse::success($establishmentTypes, 'Lista de tipos de establecimientos', 200);
+        }catch (\Exception $e){
+            return ApiResponse::error(null,$e->getMessage(),500);
+        }
 
-        return ApiResponse::success($establishmentTypes, 'Lista de tipos de establecimientos', 200);
     }
 
     public function store(StablishmentTypeStoreRequest $request): \Illuminate\Http\JsonResponse

@@ -20,7 +20,9 @@ class DepartmentController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $departments = Department::with('country')->paginate(10);
+            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+
+            $departments = Department::with('country')->paginate($perPage);
             return ApiResponse::success($departments, 'Departamentos recuperados exitosamente', 200);
         }catch (\Exception $e){
            return ApiResponse::error($e->getMessage(),'Ocurrió un error al recuperar la información', 500);

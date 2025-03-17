@@ -22,7 +22,9 @@ class ProviderController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $providers = Provider::with('documentType:id,code,description','economicActivity:id,code,description','providerType:id,code:description')->paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $providers = Provider::with('documentType:id,code,description','economicActivity:id,code,description','providerType:id,code:description')->paginate($perPage);
           return ApiResponse::success($providers, 'Proveedores listados correctamente');
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);

@@ -19,7 +19,9 @@ class MunicipalityController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $municipalities = Municipality::with('department')->paginate(10);
+            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+
+            $municipalities = Municipality::with('department')->paginate($perPage);
             return ApiResponse::success($municipalities, 'Municipios recuperados con éxito', 200);
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 500);

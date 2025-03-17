@@ -18,7 +18,9 @@ class JobsTitleController extends Controller
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $jobsTitles = JobsTitle::paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $jobsTitles = JobsTitle::paginate($perPage);
             return ApiResponse::success(new JobsTitleCollection($jobsTitles), 'Cargos laborales recuperados', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

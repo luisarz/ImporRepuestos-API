@@ -19,7 +19,9 @@ class CustomerTypeController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $customerTypes = CustomerType::paginate();
+            $perPage = $request->input('per_page', 10);
+
+            $customerTypes = CustomerType::paginate($perPage);
             return ApiResponse::success($customerTypes, 'Tipos de clientes, recuperados de manera exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

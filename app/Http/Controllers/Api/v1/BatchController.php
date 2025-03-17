@@ -19,7 +19,9 @@ class BatchController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $batches = Batch::with(['inventory:id,warehouse_id,product_id', 'inventory.product:id,code,original_code,description'])->paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $batches = Batch::with(['inventory:id,warehouse_id,product_id', 'inventory.product:id,code,original_code,description'])->paginate($perPage);
             return ApiResponse::success($batches, 'Lotes recuperados', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

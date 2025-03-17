@@ -19,7 +19,9 @@ class ProductController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $products = Product::with('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description','applications')->paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $products = Product::with('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description','applications')->paginate($perPage);
             return ApiResponse::success($products, 'Productos recuperados exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

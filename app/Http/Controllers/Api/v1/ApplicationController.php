@@ -19,12 +19,13 @@ class ApplicationController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $perPage = $request->input('per_page', 10);
 
             $applications = Application::with([
                 'product:id,code,barcode,description',
                 'vehicle:id,year,chassis', // Asegura que 'vehicle' incluya 'model_id'
 //                'vehicle.model:id,model' // Carga 'model' dentro de 'vehicle'
-            ])->select('product_id', 'vehicle_id')->paginate(10);
+            ])->select('product_id', 'vehicle_id')->paginate($perPage);
 
             return ApiResponse::success($applications,'Aplicaciones recuperadas',200);
         }catch (\Exception $e){

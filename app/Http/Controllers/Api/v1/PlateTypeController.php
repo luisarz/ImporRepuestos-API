@@ -18,7 +18,9 @@ class PlateTypeController extends Controller
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $plateTypes = PlateType::all();
+            $perPage = $request->input('per_page', 10);
+
+            $plateTypes = PlateType::paginate($perPage);
             return ApiResponse::success($plateTypes, 'Tipos de placas recuperados', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

@@ -21,6 +21,7 @@ class PriceController extends Controller
     public function store(PriceStoreRequest $request): JsonResponse
     {
         try {
+
             $price = (new \App\Models\Price)->create($request->validated());
            return ApiResponse::success($price, 'Precio creado', 201);
         } catch (\Exception $e) {

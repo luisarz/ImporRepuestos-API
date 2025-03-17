@@ -17,8 +17,8 @@ class EconomicActivityController extends Controller
     public function index(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
-            $economicActivities = EconomicActivity::all();
-
+            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+            $economicActivities = EconomicActivity::paginate($perPage);
             return ApiResponse::success(new EconomicActivityCollection($economicActivities),'Economic Activities retrieved successfully', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(),'error al recuperar datos', 500);

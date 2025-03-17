@@ -19,7 +19,9 @@ class EmployeeController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $employees = Employee::with('warehouse:id,name,phone,email', 'district:id,code,description')->paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $employees = Employee::with('warehouse:id,name,phone,email', 'district:id,code,description')->paginate($perPage);
             return ApiResponse::success($employees, 'Empleados recuperados exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

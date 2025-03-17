@@ -19,7 +19,9 @@ class FuelTypeController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $fuelTypes = FuelType::paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $fuelTypes = FuelType::paginate($perPage);
             return ApiResponse::success($fuelTypes, 'Tipos de combustibles recuperados', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

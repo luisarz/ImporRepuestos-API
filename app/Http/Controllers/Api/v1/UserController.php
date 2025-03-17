@@ -20,7 +20,9 @@ class UserController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $users = User::select('id','name','email')->paginate();
+            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+
+            $users = User::select('id','name','email')->paginate($perPage);
             return ApiResponse::success($users, 'Users recuperados existosamente', 200);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(),'Ocurrrió un error', 500);

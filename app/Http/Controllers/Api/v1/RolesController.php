@@ -18,8 +18,10 @@ class RolesController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+
         try {
-            $roles = Rol::paginate(10);
+            $roles = Rol::paginate($perPage);
             return ApiResponse::success($roles, 'Roles recuperados exitosamente',200);
         }catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);

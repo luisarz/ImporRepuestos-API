@@ -19,7 +19,9 @@ class BatchCodeOrigenController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $batchCodeOrigens = BatchCodeOrigen::paginate(10);
+            $perPage = $request->input('per_page', 10);
+
+            $batchCodeOrigens = BatchCodeOrigen::paginate($perPage);
             return ApiResponse::success($batchCodeOrigens, 'Código recuperados', 200);
 
         } catch (\Exception $e) {

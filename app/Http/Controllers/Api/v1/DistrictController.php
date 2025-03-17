@@ -15,10 +15,16 @@ use Illuminate\Http\Response;
 
 class DistrictController extends Controller
 {
-    public function index(Request $request)
+    public function index(Request $request): JsonResponse
     {
-        $districts = District::with('municipality')->paginate(10);
-        return ApiResponse::success($districts, 'Districts retrieved successfully.', 200);
+        try {
+            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+            $districts = District::with('municipality')->paginate($perPage);
+            return ApiResponse::success($districts, 'Districts retrieved successfully.', 200);
+        }catch (\Exception $e) {
+            return ApiResponse::error(null, 'Ocurrió un error,500');
+        }
+
 
     }
 

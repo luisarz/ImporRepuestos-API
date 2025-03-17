@@ -2,22 +2,29 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\SalePaymentDetailStoreRequest;
 use App\Http\Requests\Api\v1\SalePaymentDetailUpdateRequest;
 use App\Http\Resources\Api\v1\SalePaymentDetailCollection;
 use App\Http\Resources\Api\v1\SalePaymentDetailResource;
 use App\Models\SalePaymentDetail;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class SalePaymentDetailController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
-        $salePaymentDetails = SalePaymentDetail::all();
+        try {
+            $perPage = $request->input('per_page', 10);
+            $salePaymentDetails = SalePaymentDetail::paginate($perPage);
+            return ApiResponse::success($salePaymentDetails,'Detalle de ventas', 200);
 
-        return new SalePaymentDetailCollection($salePaymentDetails);
+        }catch (\Exception $exception){
+            return ApiResponse::error(null,$exception->getMessage(),500);
+        }
     }
 
     public function store(SalePaymentDetailStoreRequest $request): Response

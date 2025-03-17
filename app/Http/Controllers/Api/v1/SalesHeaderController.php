@@ -19,10 +19,12 @@ class SalesHeaderController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $perPage = $request->input('per_page', 10);
+
             $salesHeaders = SalesHeader::with(['customer:id,document_number,name,last_name,sales_type',
                 'warehouse:id,name',
                 'seller:id,name,last_name,dui',
-            ])->paginate(10);
+            ])->paginate($perPage);
             return ApiResponse::success($salesHeaders, 'Venta recuperada con éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

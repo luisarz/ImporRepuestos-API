@@ -19,9 +19,11 @@ class InventoryController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            $perPage = $request->input('per_page', 10);
+
             $inventories = Inventory::with('warehouse:id,name','product:id,code,original_code,description','prices')
                 ->withSum('inventoryBatches', 'quantity')
-                ->paginate(10);
+                ->paginate($perPage);
             $inventories->getCollection()->transform(function ($inventory) {
                 $inventory->actual_stock = $inventory->inventoryBatches->sum('quantity');
                 return $inventory;

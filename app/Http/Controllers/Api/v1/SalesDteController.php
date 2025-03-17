@@ -2,22 +2,31 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\SalesDteStoreRequest;
 use App\Http\Requests\Api\v1\SalesDteUpdateRequest;
 use App\Http\Resources\Api\v1\SalesDteCollection;
 use App\Http\Resources\Api\v1\SalesDteResource;
 use App\Models\SalesDte;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class SalesDteController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
-        $salesDtes = SalesDte::all();
+        try {
+            $perPage = $request->input('per_page', 10);
+            $salesDtes = SalesDte::paginate($perPage);
+            return ApiResponse::success($salesDtes,'Detalle de ventas', 200);
 
-        return new SalesDteCollection($salesDtes);
+        }catch (ModelNotFoundException $exception){
+            return ApiResponse::error(null,'Ocurrió un error', 500);
+        }
+
     }
 
     public function store(SalesDteStoreRequest $request): Response
