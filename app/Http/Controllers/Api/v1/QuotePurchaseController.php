@@ -21,7 +21,7 @@ class QuotePurchaseController extends Controller
             $quotePurchases = QuotePurchase::paginate($perPage);
             return ApiResponse::success($quotePurchases,'Detalle de ventas', 200);
         }catch (\Exception $e){
-            return ApiResponse::error(null,'Ocurrió un error',500)
+            return ApiResponse::error(null,'Ocurrió un error',500);
         }
     }
 
