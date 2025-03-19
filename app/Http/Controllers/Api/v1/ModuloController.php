@@ -140,7 +140,7 @@ class ModuloController extends Controller
         try {
             $modulo=Modulo::findOrFail($id);
             $modulo->delete();
-            ApiResponse::success(null,'Modulo eliminado exitosamente',200);
+           return ApiResponse::success(null,'Modulo eliminado exitosamente',200);
 
         }catch (ModelNotFoundException $e){
             return ApiResponse::error(null,'Modulo no encontrado',404);
