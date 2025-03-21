@@ -29,8 +29,6 @@ class MenuAllowedController extends Controller
 
 
 
-
-
             return ApiResponse::success($access, 'Empleado recuperado exitosamente', 200);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(), 500);

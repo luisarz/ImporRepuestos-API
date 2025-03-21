@@ -27,4 +27,9 @@ class Modulo extends Model
     public function permission(){
         return $this->hasMany(Permission::class,'module_id','id');
     }
+    public function padre()
+    {
+        return $this->belongsTo(Modulo::class,'id_padre','id');
+
+    }
 }
