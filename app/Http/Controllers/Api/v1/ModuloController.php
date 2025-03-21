@@ -19,7 +19,7 @@ class ModuloController extends Controller
     {
         try {
 //            $modulos =Modulo::all('padre')->paginate($perPage);
-            $modulos =Modulo::all('padre');
+            $modulos =Modulo::with('padre')->get();
             return ApiResponse::success($modulos, 'Módulos recuperados exitosamente',200);
 
         }catch (\Exception $e){
