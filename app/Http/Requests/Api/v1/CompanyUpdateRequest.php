@@ -29,9 +29,9 @@ class CompanyUpdateRequest extends FormRequest
             'whatsapp' => ['required', 'string'],
             'email' => ['required', 'email'],
             'address' => ['required', 'string'],
-            'web' => ['required', 'integer'],
+            'web' => ['required', 'string'],
             'api_key_mh' => ['required', 'string'],
-            'logo' => ['nullable', 'json'],
+            'logo' => ['nullable'],
             'is_active' => ['required'],
         ];
     }

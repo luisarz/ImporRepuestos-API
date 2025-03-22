@@ -53,7 +53,7 @@ class Warehouse extends Model
 
     public function stablishmentType(): BelongsTo
     {
-        return $this->belongsTo(StablishmentType::class);
+        return $this->belongsTo(StablishmentType::class,'stablishment_type','id');
     }
 
     public function district(): BelongsTo

@@ -79,9 +79,9 @@ Route::middleware(['jwt'])->group(function () {
 
     #Empresa sucursal y almacenes (Actividades Económicas, Empresas, Tipos de Establecimientos, Almacenes)
     Route::apiResource('economic-activities', EconomicActivityController::class);
-    Route::apiResource('companies', CompanyController::class);
+    Route::apiResource('company', CompanyController::class);
     Route::apiResource('establishment-types', StablishmentTypeController::class);
-    Route::apiResource('warehouses', WarehouseController::class);
+    Route::apiResource('warehouse', WarehouseController::class);
 
     #Proveedores
     Route::apiResource('providers-types', ProvidersTypeController::class);

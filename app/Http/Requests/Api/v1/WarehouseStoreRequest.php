@@ -31,7 +31,7 @@ class WarehouseStoreRequest extends FormRequest
             'phone' => ['required', 'string'],
             'email' => ['required', 'email'],
             'product_prices' => ['required', 'integer'],
-            'logo' => ['nullable', 'json'],
+            'logo' => ['nullable'],
             'is_active' => ['required', 'boolean'],
         ];
     }

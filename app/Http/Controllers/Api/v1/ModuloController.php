@@ -15,23 +15,12 @@ use Spatie\Permission\Models\Permission;
 
 class ModuloController extends Controller
 {
-    public function menu(): JsonResponse
-    {
-        try {
-//            $modulos =Modulo::all('padre')->paginate($perPage);
-            $modulos =Modulo::with('padre')->get();
-            return ApiResponse::success($modulos, 'Módulos recuperados exitosamente',200);
-
-        }catch (\Exception $e){
-            return ApiResponse::error(null,$e->getMessage(), 500);
-        }
-    }
     public function index(Request $request): JsonResponse
     {
         try {
-            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+            $perPage = $request->input('per_page', 100); // Si no envía per_page, usa 10 por defecto
 
-            $modulos =Modulo::all('padre')->paginate($perPage);
+            $modulos =Modulo::with('padre')->paginate($perPage);
             return ApiResponse::success($modulos, 'Módulos recuperados exitosamente',200);
 
         }catch (\Exception $e){
