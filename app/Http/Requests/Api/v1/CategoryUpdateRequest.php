@@ -23,6 +23,7 @@ class CategoryUpdateRequest extends FormRequest
             'code' => ['required', 'string'],
             'description' => ['required', 'string'],
             'commission_percentage' => ['nullable', 'numeric'],
+            'category_parent_id' => ['nullable'],
             'is_active' => ['required'],
         ];
     }

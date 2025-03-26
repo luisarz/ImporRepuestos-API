@@ -18,7 +18,7 @@ class Warehouse extends Model
      */
     protected $fillable = [
         'company_id',
-        'stablishment_type',
+        'stablishment_type_id',
         'name',
         'nrc',
         'nit',
@@ -43,7 +43,7 @@ class Warehouse extends Model
         'stablishment_type' => 'integer',
         'district_id' => 'integer',
         'economic_activity_id' => 'integer',
-        'logo' => 'array',
+//        'logo' => 'array',
     ];
 
     public function id(): BelongsTo
@@ -53,7 +53,7 @@ class Warehouse extends Model
 
     public function stablishmentType(): BelongsTo
     {
-        return $this->belongsTo(StablishmentType::class,'stablishment_type','id');
+        return $this->belongsTo(StablishmentType::class,'stablishment_type_id','id');
     }
 
     public function district(): BelongsTo

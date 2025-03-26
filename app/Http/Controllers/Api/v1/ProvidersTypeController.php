@@ -21,7 +21,7 @@ class ProvidersTypeController extends Controller
             $perPage = $request->input('per_page', 10);
 
             $providersTypes = (new ProvidersType)->paginate($perPage);
-            return ApiResponse::success(new ProvidersTypeCollection($providersTypes), 'Tipos de proveedores obtenidos exitosamente',200);
+            return ApiResponse::success($providersTypes, 'Tipos de proveedores obtenidos exitosamente',200);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }

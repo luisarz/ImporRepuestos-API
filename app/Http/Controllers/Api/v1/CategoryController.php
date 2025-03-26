@@ -21,7 +21,7 @@ class CategoryController extends Controller
         $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
 
         try {
-            $categories = Category::paginate($perPage);
+            $categories = Category::with('categoryParent')->paginate($perPage);
             return ApiResponse::success($categories, 'Categories retrieved successfully', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

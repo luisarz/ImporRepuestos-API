@@ -10,15 +10,18 @@ use App\Http\Resources\Api\v1\UnitMeasurementCollection;
 use App\Http\Resources\Api\v1\UnitMeasurementResource;
 use App\Models\UnitMeasurement;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class UnitMeasurementController extends Controller
 {
-    public function index(Request $request): \Illuminate\Http\JsonResponse
+    public function index(Request $request): JsonResponse
     {
+
         try {
-            $unitMeasurements = UnitMeasurement::paginate(10);
+            $perPage = $request->input('per_page', 10);
+            $unitMeasurements = UnitMeasurement::paginate($perPage);
             return ApiResponse::success($unitMeasurements, 'Unidades de medida obtenidas correctamente',200);
         }catch (ModelNotFoundException $e) {
             return ApiResponse::error('No se encontraron unidades de medida', 404);
@@ -28,18 +31,18 @@ class UnitMeasurementController extends Controller
         }
     }
 
-    public function store(UnitMeasurementStoreRequest $request): \Illuminate\Http\JsonResponse
+    public function store(UnitMeasurementStoreRequest $request): JsonResponse
     {
         try {
             $unitMeasurement = (new \App\Models\UnitMeasurement)->create($request->validated());
-            return ApiResponse::success($unitMeasurement, 'Unidad de medida creada correctamente', 201);
+            return ApiResponse::success($unitMeasurement, 'Unidad de medida creada correctamente', 200);
         }
         catch (\Exception $e) {
             return response()->json(['message' => 'Error al crear la unidad de medida'], 500);
         }
     }
 
-    public function show(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
         try {
             $unitMeasurement = (new \App\Models\UnitMeasurement)->findOrFail($id);
@@ -51,7 +54,7 @@ class UnitMeasurementController extends Controller
         }
     }
 
-    public function update(UnitMeasurementUpdateRequest $request, $id): \Illuminate\Http\JsonResponse
+    public function update(UnitMeasurementUpdateRequest $request, $id): JsonResponse
     {
         try {
             $unitMeasurement = (new \App\Models\UnitMeasurement)->findOrFail($id);
@@ -64,7 +67,7 @@ class UnitMeasurementController extends Controller
         }
     }
 
-    public function destroy(Request $request, $id): \Illuminate\Http\JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
         try {
             $unitMeasurement = (new \App\Models\UnitMeasurement)->findOrFail($id);

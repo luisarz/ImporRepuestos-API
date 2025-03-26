@@ -21,7 +21,7 @@ class DocumentsTypesProviderController extends Controller
             $perPage = $request->input('per_page', 10);
 
             $documentsTypesProviders = (new DocumentsTypesProvider)->paginate($perPage);
-            return ApiResponse::success(new DocumentsTypesProviderCollection($documentsTypesProviders), 'Tipos de documentos de proveedores obtenidos exitosamente', 200);
+            return ApiResponse::success($documentsTypesProviders, 'Tipos de documentos de proveedores obtenidos exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }

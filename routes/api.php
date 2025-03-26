@@ -64,6 +64,7 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('roles', RolesController::class);
     Route::apiResource('modulos', ModuloController::class);
+    Route::get('modulos-all', [ModuloController::class, 'getAll']);
     Route::apiResource('users', UserController::class);
     Route::apiResource('permissions', ModuleRolController::class);
 //    Route::post('permissions/allow-access', [ModuleRolController::class, 'allowAccess']);
@@ -85,7 +86,7 @@ Route::middleware(['jwt'])->group(function () {
 
     #Proveedores
     Route::apiResource('providers-types', ProvidersTypeController::class);
-    Route::apiResource('documents-types-providers', DocumentsTypesProviderController::class);
+    Route::apiResource('providers-documents-types', DocumentsTypesProviderController::class);
     Route::apiResource('providers', ProviderController::class);
     Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
 

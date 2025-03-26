@@ -21,7 +21,7 @@ class WarehouseStoreRequest extends FormRequest
     {
         return [
             'company_id' => ['required', 'integer'],
-            'stablishment_type' => ['required', 'integer'],
+            'stablishment_type_id' => ['required', 'integer'],
             'name' => ['required', 'string'],
             'nrc' => ['required', 'string'],
             'nit' => ['required', 'string'],

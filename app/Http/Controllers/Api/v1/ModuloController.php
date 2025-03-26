@@ -20,9 +20,18 @@ class ModuloController extends Controller
         try {
             $perPage = $request->input('per_page', 100); // Si no envía per_page, usa 10 por defecto
 
-            $modulos =Modulo::with('padre')->paginate($perPage);
+            $modulos = Modulo::with('padre')->orderBy('orden')->paginate($perPage);
+
             return ApiResponse::success($modulos, 'Módulos recuperados exitosamente',200);
 
+        }catch (\Exception $e){
+            return ApiResponse::error(null,$e->getMessage(), 500);
+        }
+    }
+    public function getAll(){
+        try {
+            $modulos = Modulo::with('padre')->get();
+            return ApiResponse::success($modulos, 'Módulos recuperados exitosamente',200);
         }catch (\Exception $e){
             return ApiResponse::error(null,$e->getMessage(), 500);
         }

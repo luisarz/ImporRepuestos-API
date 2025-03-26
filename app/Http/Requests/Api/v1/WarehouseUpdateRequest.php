@@ -21,7 +21,7 @@ class WarehouseUpdateRequest extends FormRequest
     {
         return [
             'company_id' => ['required', 'integer'],
-            'stablishment_type' => ['required', 'integer'],
+            'stablishment_type_id' => ['required', 'integer'],
             'name' => ['required', 'string'],
             'nrc' => ['required', 'string'],
             'nit' => ['required', 'string'],
@@ -31,7 +31,7 @@ class WarehouseUpdateRequest extends FormRequest
             'phone' => ['required', 'string'],
             'email' => ['required', 'email'],
             'product_prices' => ['required', 'integer'],
-            'logo' => ['nullable', 'json'],
+            'logo' => ['nullable'],
             'is_active' => ['required', 'boolean'],
         ];
     }
