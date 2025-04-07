@@ -22,7 +22,7 @@ class VehicleModelController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
 
-            $vehicleModels = VehicleModel::paginate($perPage);
+            $vehicleModels = VehicleModel::with('brand')->paginate($perPage);
             return ApiResponse::success($vehicleModels,'Modelos de vehículos recuperados',200);
         }catch (\Exception $e){
             return ApiResponse::error(null,$e->getMessage(),500);

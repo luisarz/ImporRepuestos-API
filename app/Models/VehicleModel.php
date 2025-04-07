@@ -31,4 +31,9 @@ class VehicleModel extends Model
         'brand_id'=>'integer',
         'is_active' => 'boolean',
     ];
+    public function brand()
+    {
+        return $this->belongsTo(Brand::class, 'brand_id');
+
+    }
 }
