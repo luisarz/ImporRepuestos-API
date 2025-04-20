@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Product extends Model
 {
@@ -31,6 +32,7 @@ class Product extends Model
         'is_active',
         'is_taxed',
         'is_service',
+        'is_temp'
     ];
 
     /**
@@ -44,12 +46,41 @@ class Product extends Model
         'category_id' => 'integer',
         'provider_id' => 'integer',
         'unit_measurement_id' => 'integer',
-        'image' => 'array',
         'is_active' => 'boolean',
         'is_taxed' => 'boolean',
         'is_service' => 'boolean',
+        'is_temp'=>'boolean',
     ];
+    // Accesor para obtener la URL completa de la imagen
+    public function getImageUrlAttribute()
+    {
+        return $this->image ? Storage::url($this->image) : null;
+    }
 
+    // Eliminar la imagen física al eliminar el producto
+    protected static function booted()
+    {
+        static::deleting(function ($product) {
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
+            }
+        });
+        static::creating(function ($product) {
+            // Marcar como temporal si no se especifica lo contrario
+            if (!isset($product->is_temp)) {
+                $product->is_temp = true;
+            }
+
+        });
+        static::updating(function ($product) {
+            // Marcar como temporal si no se especifica lo contrario
+            if (isset($product->is_temp)) {
+                $product->is_temp = false;
+            }
+
+        });
+
+    }
     public function brand(): BelongsTo
     {
         return $this->belongsTo(Brand::class);

@@ -30,7 +30,7 @@ class VehicleStoreRequest extends FormRequest
             'fuel_type' => ['required', 'integer'],
             'vehicle_class' => ['required', 'string'],
             'income_date' => ['required', 'date'],
-            'municipality_id' => ['required', 'integer','exists:municipalities,id'],
+//            'municipality_id' => ['required', 'integer','exists:municipalities,id'],
             'antique' => ['required', 'string'],
             'plate_type' => ['required', 'integer','exists:plate_types,id'],
             'capacity' => ['required', 'numeric'],

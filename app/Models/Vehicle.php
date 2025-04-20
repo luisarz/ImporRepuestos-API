@@ -71,4 +71,5 @@ class Vehicle extends Model
 
 
 
+
 }

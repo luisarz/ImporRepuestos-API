@@ -20,19 +20,20 @@ class ProductUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string'],
-            'original_code' => ['required', 'string'],
-            'barcode' => ['nullable', 'string'],
-            'description' => ['nullable', 'string'],
-            'brand_id' => ['required', 'integer', 'exists:brands,id'],
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'provider_id' => ['nullable', 'integer', 'exists:providers,id'],
-            'unit_measurement_id' => ['nullable', 'integer', 'exists:unit_measurements,id'],
-            'description_measurement_id' => ['required', 'string'],
-            'image' => ['nullable', 'json'],
-            'is_active' => ['required'],
-            'is_taxed' => ['required'],
-            'is_service' => ['required'],
+//            'id' => ['required', 'integer', 'exists:products,id'],
+                'code' => 'required|string',
+                'original_code' => 'nullable|string',
+                'barcode' => 'nullable|string',
+                'description' => 'required|string',
+                'brand_id' => 'required|integer',
+                'category_id' => 'required|integer',
+                'provider_id' => 'required|integer',
+                'unit_measurement_id' => 'required|integer',
+                'description_measurement_id' => 'required|string',
+                'is_active' => 'required|in:0,1',
+                'is_taxed' => 'required|in:0,1',
+                'is_service' => 'required|in:0,1',
+                'is_grouped' => 'required|in:0,1',
         ];
     }
 }

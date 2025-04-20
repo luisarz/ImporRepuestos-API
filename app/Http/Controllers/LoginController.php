@@ -58,7 +58,7 @@ class LoginController extends Controller
 
 
     // User logout
-    public function logout()
+    public function logout(): JsonResponse
     {
         JWTAuth::invalidate(JWTAuth::getToken());
 
