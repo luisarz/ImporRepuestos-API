@@ -22,7 +22,7 @@ class EquivalentStoreRequest extends FormRequest
         return [
             'product_id' => ['required', 'integer','exists:products,id'],
             'product_id_equivalent' => ['required', 'integer','exists:products,id'],
-            'is_active' => ['required'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

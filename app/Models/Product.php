@@ -32,7 +32,9 @@ class Product extends Model
         'is_active',
         'is_taxed',
         'is_service',
-        'is_temp'
+        'is_temp',
+        'is_discontinued',
+        'is_not_purchasable',
     ];
 
     /**
@@ -50,6 +52,8 @@ class Product extends Model
         'is_taxed' => 'boolean',
         'is_service' => 'boolean',
         'is_temp'=>'boolean',
+        'is_discontinued' => 'boolean',
+        'is_not_purchasable' => 'boolean',
     ];
     // Accesor para obtener la URL completa de la imagen
     public function getImageUrlAttribute()

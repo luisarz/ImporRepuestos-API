@@ -20,19 +20,20 @@ class ProductStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-//            'code' => ['required', 'string'],
-//            'original_code' => ['required', 'string'],
-//            'barcode' => ['nullable', 'string'],
-//            'description' => ['nullable', 'string'],
-//            'brand_id' => ['required', 'integer','exists:brands,id'],
-//            'category_id' => ['required', 'integer','exists:categories,id'],
-//            'provider_id' => ['nullable', 'integer','exists:providers,id'],
-//            'unit_measurement_id' => ['nullable', 'integer','exists:unit_measurements,id'],
-//            'description_measurement_id' => ['required', 'string'],
-//            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // 5MB
-//            'is_active' => ['required'],
-//            'is_taxed' => ['required'],
-//            'is_service' => ['required'],
+            'code' => ['required', 'string'],
+            'original_code' => ['required', 'string'],
+            'barcode' => ['nullable', 'string'],
+            'description' => ['nullable', 'string'],
+            'brand_id' => ['required', 'integer','exists:brands,id'],
+            'category_id' => ['required', 'integer','exists:categories,id'],
+            'unit_measurement_id' => ['nullable', 'integer','exists:unit_measurements,id'],
+            'description_measurement_id' => ['required', 'string'],
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:5120', // 5MB
+            'is_active' => ['required'],
+            'is_taxed' => ['required'],
+            'is_service' => ['required'],
+            'is_discontinued' => 'required|in:0,1',
+            'is_not_purchasable' => 'required|in:0,1',
         ];
     }
 }

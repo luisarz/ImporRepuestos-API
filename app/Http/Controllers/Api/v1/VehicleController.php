@@ -21,11 +21,10 @@ class VehicleController extends Controller
 
         try {
             $perPage = $request->input('per_page', 10);
-
             $vehicles=Vehicle::with('model','model.brand','fuelType','plateType')->paginate($perPage);
             return ApiResponse::success($vehicles,'Vehiculos recuperados',200);
         }catch (\Exception $e){
-            return ApiResponse::error(null,'Ocurrió un error',500);
+            return ApiResponse::error(null,'Ocurrió un error'. $e->getmessage(),500);
         }
     }
 

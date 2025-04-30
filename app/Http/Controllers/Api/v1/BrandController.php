@@ -19,7 +19,6 @@ class BrandController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-
             $brands = Brand::paginate($perPage);
             return ApiResponse::success($brands, 'Marcas recuperadas de manera exitosa', 200);
         } catch (\Exception $e) {

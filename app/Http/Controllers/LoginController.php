@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\MenuAllowedRequest;
+use App\Models\Employee;
 use App\Models\ModuleRol;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -74,7 +75,7 @@ class LoginController extends Controller
         ]);
     }
     private function getMenu(MenuAllowedRequest $request){
-        $empleados = Empleados::findOrFail($user->id_empleado_usuario);
+        $empleados = Employee::findOrFail($user->id_empleado_usuario);
         $session = session();
         $session->put('id', $user->id);
         $session->put('id_empleado_usuario', $user->id_empleado_usuario);
@@ -91,5 +92,9 @@ class LoginController extends Controller
         $session->put("access",$Access);
 
         \Illuminate\Support\Facades\Auth::login($user, true);
+    }
+    public function refresh(): JsonResponse
+    {
+        return $this->respondWithToken(auth()->refresh());
     }
 }

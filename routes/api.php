@@ -115,6 +115,7 @@ Route::middleware(['jwt'])->group(function () {
     #Aplicaciones y equivalencias
     Route::apiResource('applications', ApplicationController::class);
     Route::apiResource('equivalents', EquivalentController::class);
+    Route::get('equivalents/product/{id_products}', [EquivalentController::class, 'getEquivalentByProduct']);
 
     #Purchase Header, Items and batches,
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);

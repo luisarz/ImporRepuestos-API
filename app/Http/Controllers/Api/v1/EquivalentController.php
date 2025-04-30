@@ -10,6 +10,7 @@ use App\Http\Resources\Api\v1\EquivalentCollection;
 use App\Http\Resources\Api\v1\EquivalentResource;
 use App\Models\Application;
 use App\Models\Equivalent;
+use Dotenv\Exception\ValidationException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -22,11 +23,31 @@ class EquivalentController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
 
-            $application = Equivalent::with([
+            $equivalents = Equivalent::with([
                 'productOriginal:id,code,barcode,description',
                 'productEquivalent:id,code,barcode,description',
-            ])->select('product_id', 'product_id_equivalent')->paginate($perPage);
-            return ApiResponse::success($application, 'Equivalentes recuperada exitosamente', 200);
+            ])->select('id', 'product_id', 'product_id_equivalent')->paginate($perPage);
+            return ApiResponse::success($equivalents, 'Equivalentes recuperada exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'No se encontró el equivalente buscada', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+
+
+    }
+
+    public function getEquivalentByProduct($id_products): JsonResponse
+    {
+        try {
+            $equivalents = Equivalent::with([
+                'productOriginal:id,code,barcode,description',
+                'productEquivalent:id,code,barcode,description',
+            ])->where('product_id', $id_products)->get();
+            if ($equivalents->isEmpty()) {
+                return ApiResponse::error(null, 'No se encontró el equivalente buscada', 404);
+            }
+            return ApiResponse::success($equivalents, 'Equivalentes recuperada exitosamente', 200);
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'No se encontró el equivalente buscada', 404);
         } catch (\Exception $e) {
