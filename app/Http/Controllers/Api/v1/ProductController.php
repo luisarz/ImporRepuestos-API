@@ -25,8 +25,7 @@ class ProductController extends Controller
             $sortOrder = $request->input('sortOrder', 'asc');
 
             $products = Product::with('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description','applications')
-//                ->orderBy($sortField, $sortOrder)
-                ->paginate($perPage);
+                ->paginate(10);
             return ApiResponse::success($products, 'Productos recuperados exitosamente' , 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

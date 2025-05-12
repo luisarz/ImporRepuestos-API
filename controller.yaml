@@ -87,6 +87,6 @@ controllers:
 #    resource: api
 #  Api\v1\QuotePurchase:
 #    resource: api
-#  Api\v1\QuotePurchaseItem:
-#    resource: api
+  Api\v1\Interchanges:
+    resource: api
 

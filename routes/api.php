@@ -3,6 +3,7 @@
 use App\Http\Requests\MenuAllowedRequest;
 use App\Http\Controllers\Api\v1\{ApplicationController,
     BatchCodeOrigenController,
+    InterchangesController,
     MenuAllowedController,
     ModuleRolController,
     ModuloController,
@@ -116,6 +117,9 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('applications', ApplicationController::class);
     Route::apiResource('equivalents', EquivalentController::class);
     Route::get('equivalents/product/{id_products}', [EquivalentController::class, 'getEquivalentByProduct']);
+    
+    Route::apiResource('interchanges', InterchangesController::class);
+    Route::get('interchanges/product/{id_products}', [InterchangesController::class, 'getInterchangeByProduct']);
 
     #Purchase Header, Items and batches,
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);
@@ -156,6 +160,8 @@ Route::middleware(['jwt'])->group(function () {
 
 
 });
+
+
 
 
 
