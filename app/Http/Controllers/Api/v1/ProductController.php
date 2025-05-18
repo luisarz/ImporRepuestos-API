@@ -24,8 +24,11 @@ class ProductController extends Controller
             $sortField = $request->input('sortField', null);
             $sortOrder = $request->input('sortOrder', 'asc');
 
-            $products = Product::with('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description','applications')
-                ->paginate(10);
+            $products = Product::with('brand:id,code,description',
+                'category:id,code,description',
+                'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description','applications')
+                ->where('is_temp',0)
+                ->paginate($perPage);
             return ApiResponse::success($products, 'Productos recuperados exitosamente' , 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

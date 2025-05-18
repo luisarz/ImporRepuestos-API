@@ -20,46 +20,64 @@ class InventoryController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
 
-            $inventories = Inventory::with('warehouse:id,name','product:id,code,original_code,description','prices')
+            $inventories = Inventory::with(
+                ['warehouse:id,name',
+                    'product:id,code,original_code,description,category_id,unit_measurement_id,image,barcode,description_measurement_id',
+                    'prices',
+                    'product.category',
+                    'product.unitMeasurement'
+                ])
                 ->withSum('inventoryBatches', 'quantity')
+                ->whereHas('product', function ($query) use ($search) {
+                    $query->where('code', 'like', "%$search%")
+                        ->orWhere('original_code', 'like', "%$search%")
+                        ->orWhere('description', 'like', "%$search%");
+                })
                 ->paginate($perPage);
             $inventories->getCollection()->transform(function ($inventory) {
-                $inventory->actual_stock = $inventory->inventoryBatches->sum('quantity');
+                $stock = $inventory->inventoryBatches->sum('quantity');
+                $inventory->actual_stock = number_format($stock ?? 0, 2);
+
+                $price = $inventory->prices->firstWhere('is_default', 1)?->price ?? 0;
+                $inventory->default_price = number_format($price, 2);
+
                 return $inventory;
             });
+
+
             return ApiResponse::success($inventories, 'Inventarios recuperados exitosamente', 200);
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 
     public function store(InventoryStoreRequest $request): JsonResponse
     {
         try {
-            $exists = Inventory::where('warehouse_id', $request->warehouse_id)
-                ->where('product_id', $request->product_id)
-                ->exists();
-            if ($exists) {
-                return ApiResponse::error(null,'Ya existe un inventario para este producto en este almacén', 400);
-            }
+//            $exists = Inventory::where('warehouse_id', $request->warehouse_id)
+//                ->where('product_id', $request->product_id)
+//                ->exists();
+//            if ($exists) {
+//                return ApiResponse::error(null, 'Ya existe un inventario para este producto en este almacén', 400);
+//            }
             $inventory = (new Inventory)->create($request->validated());
             return ApiResponse::success($inventory, 'Inventario creado exitosamente', 201);
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 
     public function show(Request $request, $id): JsonResponse
     {
         try {
-            $inventory = Inventory::with('warehouse:id,name','product:id,code,original_code,description','prices')->findOrFail($id);
+            $inventory = Inventory::with('warehouse:id,name', 'product:id,code,original_code,description', 'prices')->findOrFail($id);
             return ApiResponse::success($inventory, 'Inventario recuperado exitosamente', 200);
-        }catch (ModelNotFoundException $e) {
-            return ApiResponse::error('Inventario no encontrado','Inventario no encontrado', 404);
-        }
-        catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error('Inventario no encontrado', 'Inventario no encontrado', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 
@@ -67,6 +85,33 @@ class InventoryController extends Controller
     {
         try {
             $inventory = Inventory::findOrFail($id);
+            $existing = Inventory::where('warehouse_id', $request->warehouse_id)
+                ->where('product_id', $request->product_id)
+                ->where('id', '!=', $request->id) // si tienes ID al editar
+                ->first();
+
+            if ($existing) {
+                return ApiResponse::error(null, 'Este inventario ya existe', 200);
+            }
+
+            $inventory = Inventory::updateOrCreate(
+                [
+                    'warehouse_id' => $request->warehouse_id,
+                    'product_id' => $request->product_id
+                ],
+                $request->only([
+                    'last_cost_without_tax',
+                    'last_cost_with_tax',
+                    'stock_actual_quantity',
+                    'stock_min',
+                    'alert_stock_min',
+                    'stock_max',
+                    'alert_stock_max',
+                    'provider_id',
+                    'is_service',
+                    'is_active'
+                ])
+            );
 
             // Actualizar o crear el inventario con la combinación única
             $inventory->updateOrCreate(
@@ -82,12 +127,14 @@ class InventoryController extends Controller
                     'alert_stock_min',
                     'stock_max',
                     'alert_stock_max',
-                    'last_purchase',
-                    'is_service'
+//                    'last_purchase',
+                    'provider_id',
+                    'is_service',
+                    'is_active'
                 ])
             );
 
-            return ApiResponse::success(new InventoryResource($inventory),'Inventario actualizado exitosamente',200);
+            return ApiResponse::success(new InventoryResource($inventory), 'Inventario actualizado exitosamente', 200);
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error('Inventario no encontrado', 'Inventario no encontrado', 404);
         } catch (\Exception $e) {
@@ -102,11 +149,10 @@ class InventoryController extends Controller
             $inventory = (new Inventory)->findOrFail($id);
             $inventory->delete();
             return ApiResponse::success(null, 'Inventario eliminado exitosamente', 200);
-        }catch (ModelNotFoundException $e) {
-            return ApiResponse::error('Inventario no encontrado','Inventario no encontrado', 404);
-        }
-        catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error('Inventario no encontrado', 'Inventario no encontrado', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 }

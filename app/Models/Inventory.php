@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Storage;
 
 class Inventory extends Model
 {
@@ -20,6 +21,7 @@ class Inventory extends Model
     protected $fillable = [
         'warehouse_id',
         'product_id',
+        'provider_id',
         'last_cost_without_tax',
         'last_cost_with_tax',
         'stock_actual_quantity',
@@ -28,7 +30,8 @@ class Inventory extends Model
         'stock_max',
         'alert_stock_max',
         'last_purchase',
-        'is_service',
+        'is_temp',
+        'is_active',
     ];
 
     /**
@@ -40,6 +43,7 @@ class Inventory extends Model
         'id' => 'integer',
         'product_id' => 'integer',
         'warehouse_id' => 'integer',
+        'provider_id' => 'integer',
         'last_cost_without_tax' => 'float',
         'last_cost_with_tax' => 'float',
         'stock_actual_quantity' => 'float',
@@ -48,8 +52,29 @@ class Inventory extends Model
         'stock_max' => 'float',
         'alert_stock_max' => 'boolean',
         'last_purchase' => 'datetime',
-        'is_service' => 'boolean',
+        'is_temp' => 'boolean',
+        'is_active' => 'boolean',
     ];
+
+    protected static function booted()
+    {
+
+        static::creating(function ($inventory) {
+            // Marcar como temporal si no se especifica lo contrario
+            if (!isset($inventory->is_temp)) {
+                $inventory->is_temp = true;
+            }
+
+        });
+        static::updating(function ($inventory) {
+            // Marcar como No temporal si no se especifica lo contrario
+            if (isset($inventory->is_temp)) {
+                $inventory->is_temp = false;
+            }
+
+        });
+
+    }
 
     public function warehouse(): BelongsTo
     {
@@ -59,16 +84,14 @@ class Inventory extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'product_id', 'id');
-
     }
 
     public function prices(): HasMany
     {
         return $this->hasMany(Price::class);
-
     }
 
-        public function inventoryBatches(): HasMany
+    public function inventoryBatches(): HasMany
     {
         return $this->hasMany(InventoriesBatch::class, 'id_inventory');
     }

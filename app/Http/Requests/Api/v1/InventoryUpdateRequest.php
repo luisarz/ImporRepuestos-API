@@ -23,14 +23,14 @@ class InventoryUpdateRequest extends FormRequest
             'warehouse_id' => ['required', 'integer', 'exists:warehouses,id'],
             'product_id' => ['required', 'integer', 'exists:products,id'],
             'last_cost_without_tax' => ['required', 'numeric'],
+            'provider_id' => ['required', 'integer', 'exists:providers,id'],
             'last_cost_with_tax' => ['required', 'numeric'],
             'stock_actual_quantity' => ['required', 'numeric'],
             'stock_min' => ['required', 'numeric'],
-            'alert_stock_min' => ['required'],
+            'alert_stock_min' => ['required','boolean'],
             'stock_max' => ['required', 'numeric'],
-            'alert_stock_max' => ['required'],
+            'alert_stock_max' => ['required', 'boolean'],
             'last_purchase' => ['required'],
-            'is_service' => ['required'],
         ];
     }
 }

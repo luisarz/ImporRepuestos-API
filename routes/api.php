@@ -117,9 +117,9 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('applications', ApplicationController::class);
     Route::apiResource('equivalents', EquivalentController::class);
     Route::get('equivalents/product/{id_products}', [EquivalentController::class, 'getEquivalentByProduct']);
-    
+
     Route::apiResource('interchanges', InterchangesController::class);
-    Route::get('interchanges/product/{id_products}', [InterchangesController::class, 'getInterchangeByProduct']);
+    Route::get('interchanges/product/{id_product}', [InterchangesController::class, 'getInterchangeByProduct']);
 
     #Purchase Header, Items and batches,
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);

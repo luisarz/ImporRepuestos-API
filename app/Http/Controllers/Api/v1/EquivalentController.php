@@ -26,7 +26,7 @@ class EquivalentController extends Controller
                 'productOriginal:id,code,barcode,description',
                 'productEquivalent:id,code,barcode,description,brand_id',
                 'productEquivalent.brand',
-            ])->select('id', 'product_id', 'product_id_equivalent','brand_id')->paginate(3);
+            ])->select('id', 'product_id', 'product_id_equivalent')->paginate(3);
             return ApiResponse::success($equivalents, 'Equivalentes recuperada exitosamente', 200);
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'No se encontró el equivalente buscada', 404);

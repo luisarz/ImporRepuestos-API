@@ -17,9 +17,11 @@ use Illuminate\Http\Response;
 
 class InterchangesController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
-        $interchanges = \App\Models\Interchange::all();
+        $perPage = $request->query('per_page', 10);
+        $interchanges = \App\Models\Interchange::with('product')->paginate($perPage);
+        return ApiResponse::success($interchanges, 'Intercambios recuperados exitosamente', 200);
 
     }
 
@@ -37,18 +39,15 @@ class InterchangesController extends Controller
     }
     public function getInterchangeByProduct($id,Request $request): JsonResponse
     {
-        \Illuminate\Log\log($request->all());
-        \Illuminate\Log\log($id);
+
+        $per_page= $request->input('per_page', 10);
+
         try {
             $id_product = $request->input('$id');
-
-            $equivalents = \App\Models\Interchange::where('product_id', $id)->paginate(10);
-
-
-
-            return ApiResponse::success($equivalents, 'Equivalentes recuperada exitosamente', 200);
+            $interchanges = \App\Models\Interchange::where('product_id', $id)->paginate($per_page);
+            return ApiResponse::success($interchanges, 'Intercambios recuperada exitosamente', 200);
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error(null, 'No se encontró el equivalente buscada', 404);
+            return ApiResponse::error(null, 'No se encontró el Intercambio buscada', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
