@@ -27,10 +27,37 @@ class InventoryUpdateRequest extends FormRequest
             'last_cost_with_tax' => ['required', 'numeric'],
             'stock_actual_quantity' => ['required', 'numeric'],
             'stock_min' => ['required', 'numeric'],
-            'alert_stock_min' => ['required','boolean'],
-            'stock_max' => ['required', 'numeric'],
-            'alert_stock_max' => ['required', 'boolean'],
-            'last_purchase' => ['required'],
+//            'alert_stock_min' => ['required','boolean'],
+//            'stock_max' => ['required', 'numeric'],
+//            'alert_stock_max' => ['required', 'boolean'],
+//            'last_purchase' => ['required'],
+        ];
+    }
+    public function attributes(): array
+    {
+        return [
+            'last_cost_without_tax' => 'costo sin IVA',
+            'last_cost_with_tax' => 'costo con IVA',
+            'warehouse_id' => 'sucursal',
+            'product_id' => 'producto',
+            'provider_id' => 'proveedor',
+            'stock_actual_quantity' => 'inventario actual',
+            'stock_min' => 'stock mínimo',
+            'alert_stock_min' => 'alerta stock mínimo',
+            'stock_max' => 'stock máximo',
+            'alert_stock_max' => 'alerta stock máximo',
+            'last_purchase' => 'última compra',
+        ];
+    }
+    public function messages(): array
+    {
+        return [
+            'last_cost_without_tax.numeric' => 'El campo :attribute debe ser numérico.',
+            'last_cost_with_tax.numeric' => 'El campo :attribute debe ser numérico.',
+            'warehouse_id.required' => 'La :attribute es obligatoria.',
+            'product_id.required' => 'El :attribute es obligatorio.',
+            'provider_id.required' => 'El :attribute es obligatorio.',
+            // puedes agregar más mensajes personalizados si lo deseas
         ];
     }
 }

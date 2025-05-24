@@ -83,7 +83,6 @@ class ProductController extends Controller
             $product = Product::findOrFail($id);
 
 
-
             if ($request->hasFile('image')) {
                 \Log::info('Subiendo imagen...');
 
