@@ -23,12 +23,25 @@ class ProductController extends Controller
             $perPage = $request->input('per_page', 10);
             $sortField = $request->input('sortField', null);
             $sortOrder = $request->input('sortOrder', 'asc');
+            $search = $request->input('search', null);
 
-            $products = Product::with('brand:id,code,description',
+            $products = Product::with(
+                'brand:id,code,description',
                 'category:id,code,description',
-                'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description','applications')
-                ->where('is_temp',0)
-                ->paginate($perPage);
+                'provider:id,comercial_name,document_number',
+                'unitMeasurement:id,code,description',
+                'applications'
+            )
+                ->where('is_temp', 0)
+                ->where(function ($query) use ($search) {
+                    $query->where('description', 'like', '%' . $search . '%')
+                        ->orWhere('code', 'like', '%' . $search . '%')
+                        ->orWhere('original_code', 'like', '%' . $search . '%')
+                        ->orWhere('barcode', 'like', '%' . $search . '%');
+                })
+
+
+            ->paginate($perPage);
             return ApiResponse::success($products, 'Productos recuperados exitosamente' , 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

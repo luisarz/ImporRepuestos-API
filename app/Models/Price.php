@@ -15,6 +15,8 @@ class Price extends Model
         'inventory_id',
         'price_description',
         'price',
+        'utility',
+        'is_default',
         'max_discount',
         'is_active',
         'quantity',
@@ -26,6 +28,8 @@ class Price extends Model
         'inventory_id' => 'integer',
         'price' => 'float',
         'max_discount' => 'float',
+        'utility' => 'float',
+        'is_default' => 'boolean',
         'is_active' => 'boolean',
         'quantity' => 'float',
     ];
