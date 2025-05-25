@@ -125,6 +125,7 @@ Route::middleware(['jwt'])->group(function () {
     #Purchase Header, Items and batches,
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);
     Route::apiResource('purchase-items', PurchaseItemController::class);
+
     # Batches individual and batch CODE Cp,CL, J
     Route::apiResource('batch-code-origens', BatchCodeOrigenController::class);
     Route::apiResource('batches', BatchController::class);

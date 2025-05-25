@@ -51,7 +51,7 @@ class Batch extends Model
 
     public function origenCode(): BelongsTo
     {
-        return $this->belongsTo(BatchCodeOrigen::class);
+        return $this->belongsTo(BatchCodeOrigen::class,'origen_code','id');
     }
     public function purchaseItem(): BelongsTo
     {

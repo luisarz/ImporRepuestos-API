@@ -109,8 +109,9 @@ class InventoryController extends Controller
                 $message.= 'Este producto ya existe en la sucursal que intentas levantarlo';
                 return ApiResponse::error(null, $message, 200);
             }
+            //validamos que sea temporal antes de actualizar
             $is_temp=false;
-            if($inventory->is_temp == 0){
+            if ($inventory->is_temp) {
                 $is_temp=true;
             }
 
@@ -131,30 +132,33 @@ class InventoryController extends Controller
 
             if ($updated) {
                 //Crear un loto inicial separaado por el id del inventario
-                $lote=new Batch();
-                $lote->code=$inventory->product->code;
-                $lote->origen_code=1;
-                $lote->inventory_id=$inventory->id;
-                $lote->incoming_date=now();
-                $lote->expiration_date=null;
-                $lote->initial_quantity=$request->stock_actual_quantity;
-                $lote->available_quantity=$request->stock_actual_quantity;
-                $lote->observations="Lote de Iniventario inicial";
-                $lote->is_active=1;
-                if($lote->save()) {
-                    $message .= 'Lote creado exitosamente. ';
-                } else {
-                    $message .= 'Error al crear el lote. ';
+                if($is_temp){
+                    $lote=new Batch();
+                    $lote->code=$inventory->product->code;
+                    $lote->origen_code=1;
+                    $lote->inventory_id=$inventory->id;
+                    $lote->incoming_date=now();
+                    $lote->expiration_date=null;
+                    $lote->initial_quantity=$request->stock_actual_quantity;
+                    $lote->available_quantity=$request->stock_actual_quantity;
+                    $lote->observations="Lote de Iniventario inicial";
+                    $lote->is_active=1;
+                    if($lote->save()) {
+                        $message .= 'Lote creado exitosamente. ';
+                    } else {
+                        $message .= 'Error al crear el lote. ';
+                    }
+
+                    //Crear un lote de inventario
+                    $inventory->inventoryBatches()->create([
+                        'inventory_id' => $inventory->id,
+                        'id_batch' => $lote->id,
+                        'quantity' => $request->stock_actual_quantity,
+                        'operation_date' => now(),
+                    ]);
+                    $message .= 'Lote de inventario creado exitosamente. ';
                 }
 
-                //Crear un lote de inventario
-                $inventory->inventoryBatches()->create([
-                    'inventory_id' => $inventory->id,
-                    'id_batch' => $lote->id,
-                    'quantity' => $request->stock_actual_quantity,
-                    'operation_date' => now(),
-                ]);
-                $message .= 'Lote de inventario creado exitosamente. ';
 
 
 

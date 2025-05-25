@@ -68,7 +68,7 @@ class Inventory extends Model
         });
         static::updating(function ($inventory) {
             // Marcar como No temporal si no se especifica lo contrario
-            if (isset($inventory->is_temp)) {
+            if ($inventory->is_temp) {
                 $inventory->is_temp = false;
             }
 

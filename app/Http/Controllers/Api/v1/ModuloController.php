@@ -12,22 +12,50 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Spatie\Permission\Models\Permission;
+use Illuminate\Support\Facades\Log;
 
 class ModuloController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
         try {
-            $perPage = $request->input('per_page', 100); // Si no envía per_page, usa 10 por defecto
+            $perPage = $request->input('per_page', 100);
+            $search = $request->input('search', '');
+            $sortField = $request->input('sortField', 'nombre');
+            $sortOrder = $request->input('desc', 'asc');
+            $validSortFields = ['nombre', 'ruta', 'orden']; // Add your actual columns here
+            $sortField = in_array($sortField, $validSortFields) ? $sortField : 'nombre';
+            $query = Modulo::query();
+            $query->with('padre:id,nombre,ruta,icono,orden');
 
-            $modulos = Modulo::with('padre')->orderBy('orden')->paginate($perPage);
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('nombre', 'like', "%{$search}%")
+                        ->orWhere('ruta', 'like', "%{$search}%");
+                });
+            }
 
-            return ApiResponse::success($modulos, 'Módulos recuperados exitosamente',200);
+            $results = $query->orderBy($sortField, $sortOrder)
+                ->paginate($perPage);
 
-        }catch (\Exception $e){
-            return ApiResponse::error(null,$e->getMessage(), 500);
+////            log($sortField);
+//            log::emergency($sortField);
+//            $modulos = Modulo::with('padre')
+//                ->where(function ($query) use ($search) {
+//                    $query->where('nombre', 'like', "%$search%")
+//                        ->orWhere('ruta', 'like', "%$search%");
+//                })
+//                ->orderBy('orden') // siempre orden principal
+//                ->orderBy($sortField, $sortOrder) // orden secundario
+//                ->paginate($perPage);
+
+            return ApiResponse::success($results, 'Módulos recuperados exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
         }
     }
+
     public function getAll(){
         try {
             $modulos = Modulo::with('padre')->get();
