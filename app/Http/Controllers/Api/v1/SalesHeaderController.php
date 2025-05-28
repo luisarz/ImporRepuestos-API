@@ -20,14 +20,27 @@ class SalesHeaderController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $filtersJson = $request->input('filters') ?? '[]';
+            $filters = json_decode($filtersJson, true) ?? [];
 
-            $salesHeaders = SalesHeader::with(['customer:id,document_number,name,last_name,sales_type,document_type_id',
+
+            $salesHeaders = SalesHeader::with(['customer:id,document_number,name,last_name,document_type_id',
                 'warehouse:id,name',
                 'seller:id,name,last_name,dui',
-                'documentType'
-            ])->paginate($perPage);
+                'documentType',
+                'paymentMethod',
+                'operationCondition',
+
+            ])
+                ->whereHas('customer', function ($query) use ($search) {
+                    $query->where('name', 'like', "%$search%")
+                        ->orWhere('last_name', 'like', "%$search%");
+                })
+                ->paginate($perPage);
             $salesHeaders->getCollection()->transform(function ($sale) {
                 $sale->formatted_date = $sale->sale_date->format('d/m/Y');
+                $sale->total_sale_formatted = number_format($sale->sale_total, 2, '.', ',');
                 return $sale;
             });
             return ApiResponse::success($salesHeaders, 'Venta recuperada con éxito', 200);

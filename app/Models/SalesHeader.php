@@ -82,18 +82,32 @@ class SalesHeader extends Model
     {
         return $this->belongsTo(Customer::class);
     }
+
     public function warehouse(): BelongsTo
     {
         return $this->belongsTo(Warehouse::class);
 
     }
+
     public function items(): HasMany
     {
         return $this->hasMany(SaleItem::class, 'sale_id', 'id');
 
     }
+
     public function documentType(): BelongsTo
     {
-        return $this->belongsTo(DocumentType::class,     'document_type_id', 'id');
+        return $this->belongsTo(DocumentType::class, 'document_type_id', 'id');
+    }
+
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id', 'id');
+
+    }
+
+    public function operationCondition(): BelongsTo
+    {
+        return $this->belongsTo(OperationCondition::class, 'operation_condition_id', 'id');
     }
 }
