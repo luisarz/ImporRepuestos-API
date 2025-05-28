@@ -21,10 +21,15 @@ class SalesHeaderController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
 
-            $salesHeaders = SalesHeader::with(['customer:id,document_number,name,last_name,sales_type',
+            $salesHeaders = SalesHeader::with(['customer:id,document_number,name,last_name,sales_type,document_type_id',
                 'warehouse:id,name',
                 'seller:id,name,last_name,dui',
+                'documentType'
             ])->paginate($perPage);
+            $salesHeaders->getCollection()->transform(function ($sale) {
+                $sale->formatted_date = $sale->sale_date->format('d/m/Y');
+                return $sale;
+            });
             return ApiResponse::success($salesHeaders, 'Venta recuperada con éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

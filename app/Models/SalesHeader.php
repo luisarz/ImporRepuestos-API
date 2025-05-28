@@ -92,4 +92,8 @@ class SalesHeader extends Model
         return $this->hasMany(SaleItem::class, 'sale_id', 'id');
 
     }
+    public function documentType(): BelongsTo
+    {
+        return $this->belongsTo(DocumentType::class,     'document_type_id', 'id');
+    }
 }

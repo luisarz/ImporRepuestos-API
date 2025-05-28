@@ -25,21 +25,44 @@ class InventoryController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
             $search = $request->input('search', '');
+            $filtersJson = $request->input('filters') ?? '[]';
+            $filters = json_decode($filtersJson, true) ?? [];
 
-            $inventories = Inventory::with(
-                ['warehouse:id,name',
-                    'product:id,code,original_code,description,category_id,unit_measurement_id,image,barcode,description_measurement_id',
-                    'prices',
-                    'product.category',
-                    'product.unitMeasurement'
-                ])
+            $inventories = Inventory::with([
+                'warehouse:id,name',
+                'product:id,code,original_code,description,category_id,unit_measurement_id,image,barcode,description_measurement_id',
+                'prices',
+                'product.category',
+                'product.unitMeasurement'
+            ])
                 ->withSum('inventoryBatches', 'quantity')
                 ->whereHas('product', function ($query) use ($search) {
                     $query->where('code', 'like', "%$search%")
                         ->orWhere('original_code', 'like', "%$search%")
                         ->orWhere('description', 'like', "%$search%");
-                })
-                ->paginate($perPage);
+                });
+
+            // 🔍 Aplicar filtros dinámicamente
+            foreach ($filters as $filter) {
+                $column = $filter['column'] ?? null;
+                $value = $filter['value'] ?? null;
+                $type = $filter['type'] ?? 'text';
+
+                if (!$column || $value === null) continue;
+
+                // Verifica si es un filtro sobre relación (usa notación punto)
+                if (str_contains($column, '.')) {
+                    [$relation, $field] = explode('.', $column, 2);
+                    $inventories->whereHas($relation, function ($q) use ($field, $value) {
+                        $q->where($field, 'like', "%$value%");
+                    });
+                } else {
+                    $inventories->where($column, 'like', "%$value%");
+                }
+            }
+
+            $inventories = $inventories->paginate($perPage);
+
             $inventories->getCollection()->transform(function ($inventory) {
                 $stock = $inventory->inventoryBatches->sum('quantity');
                 $inventory->actual_stock = number_format($stock ?? 0, 2);
@@ -50,11 +73,11 @@ class InventoryController extends Controller
                 return $inventory;
             });
 
-
             return ApiResponse::success($inventories, 'Inventarios recuperados exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
+
     }
 
     public function getPrices($idInventory,Request $request): JsonResponse
@@ -141,7 +164,7 @@ class InventoryController extends Controller
                     $lote->expiration_date=null;
                     $lote->initial_quantity=$request->stock_actual_quantity;
                     $lote->available_quantity=$request->stock_actual_quantity;
-                    $lote->observations="Lote de Iniventario inicial";
+                    $lote->observations="Lote de Inventario inicial";
                     $lote->is_active=1;
                     if($lote->save()) {
                         $message .= 'Lote creado exitosamente. ';
