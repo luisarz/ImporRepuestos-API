@@ -67,10 +67,18 @@ class LoginController extends Controller
     }
     protected function respondWithToken($token)
     {
+        $user = auth()->user();
+        $employee= Employee::with('warehouse')->findOrFail($user->employee_id);
+
         return response()->json([
             'access_token' => $token,
+            'warehouse_id' => $employee->warehouse_id,
+            'employee_id' => $employee->id,
+            'employee_name' => $employee->name . ' ' . $employee->last_name,
+            'warehouse_name' => $employee->warehouse->name,
+
             'token_type' => 'bearer',
-            'user' => auth()->user(),
+//            'user' => auth()->user(),
             'expires_in' => auth()->factory()->getTTL() * 720
         ]);
     }
