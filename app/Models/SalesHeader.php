@@ -19,8 +19,8 @@ class SalesHeader extends Model
     protected $fillable = [
         'cashbox_open_id',
         'sale_date',
-        'warehouse_id',
         'document_type_id',
+        'warehouse_id',
         'document_internal_number',
         'seller_id',
         'customer_id',
@@ -32,6 +32,7 @@ class SalesHeader extends Model
         'have_retention',
         'retention',
         'sale_total',
+        'payment_method_id',
         'payment_status',
         'is_order',
         'is_order_closed_without_invoiced',
@@ -39,8 +40,13 @@ class SalesHeader extends Model
         'discount_percentage',
         'discount_money',
         'total_order_after_discount',
+        'billing_model',
+        'transmision_type',
+        'is_dte',
+        'is_dte_send',
         'is_active',
     ];
+
 
     /**
      * The attributes that should be cast to native types.

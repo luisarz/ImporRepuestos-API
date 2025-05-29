@@ -142,6 +142,7 @@ Route::middleware(['jwt'])->group(function () {
 
     #Sales, Items, DTE, Payment Details
     Route::apiResource('sales', SalesHeaderController::class);
+    Route::get('sale-items', [SaleItemController::class, 'index']);
     Route::get('sale-items/{id_venta}', [SaleItemController::class, 'index']);
     Route::get('sale-details/{id_venta}', [SaleItemController::class, 'details']);
     Route::get('sale-item/{id_item}', [SaleItemController::class, 'show']);
