@@ -145,6 +145,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('sale-items', [SaleItemController::class, 'index']);
     Route::get('sale-items/{id_venta}', [SaleItemController::class, 'index']);
     Route::get('sale-details/{id_venta}', [SaleItemController::class, 'details']);
+    Route::get('sale-total/{id_venta}', [SaleItemController::class, 'totalSale']);
     Route::get('sale-item/{id_item}', [SaleItemController::class, 'show']);
     Route::apiResource('sale-items', SaleItemController::class);
 

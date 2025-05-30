@@ -49,15 +49,40 @@ class SaleItemController extends Controller
     public function details($id, Request $request): JsonResponse
     {
         try {
-            $perPage = $request->input('per_page', 10);
-
-
+            $perPage = $request->input('per_page', 100);
             $saleItem = SaleItem::with([
-                    'inventory',
-                    'inventory.product',
-                    'inventory.product.category',
-                ]
-            )->where('sale_id', $id)->paginate($perPage);
+                'inventory',
+                'inventory.product',
+                'inventory.product.category',
+            ])
+                ->where('sale_id', $id)
+                ->paginate($perPage)
+                ->through(function ($item) {
+                    $item->formatted_price = '$' . number_format($item->price, 2);
+                    $item->formatted_total = '$' . number_format($item->total, 2);
+                    return $item;
+                });
+
+            return ApiResponse::success($saleItem, 'Venta recuperada con éxito', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+
+    }
+    public function totalSale($id): JsonResponse
+    {
+        try {
+            $total = SaleItem::where('sale_id', $id)->sum('total');
+            $neto=$total/1.13;
+            $iva=$neto*0.13;
+            $saleItem = [
+                'total' => $total,
+                'neto' => $neto,
+                'iva' => $iva,
+            ];
+
+
+
             return ApiResponse::success($saleItem, 'Venta recuperada con éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
