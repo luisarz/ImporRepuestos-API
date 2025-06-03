@@ -139,7 +139,7 @@ class DTEController extends Controller
             ];
             $i++;
         }
-        $branchId = auth()->user()->employee->branch_id ?? null;
+        $branchId = auth()->user()->employee->warehouse_id ?? null;
         if (!$branchId) {
             $branchId=1;
             return response()->json(["status" => "error", "message" => "No se ha configurado la empresa"]);

@@ -13,7 +13,6 @@
         "laravel/framework": "^11.31",
         "laravel/octane": "^2.8",
         "laravel/tinker": "^2.9",
-        "league/flysystem-aws-s3-v3": "3.0",
         "luecano/numero-a-letras": "*",
         "simplesoftwareio/simple-qrcode": "*",
         "spatie/laravel-permission": "^6.16",
