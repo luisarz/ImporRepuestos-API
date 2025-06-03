@@ -79,6 +79,7 @@ class SalesHeader extends Model
         'is_active' => 'boolean',
     ];
 
+
     public function seller(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
@@ -95,7 +96,7 @@ class SalesHeader extends Model
 
     }
 
-    public function items(): HasMany
+    public function saleDetails(): HasMany
     {
         return $this->hasMany(SaleItem::class, 'sale_id', 'id');
 
@@ -106,14 +107,17 @@ class SalesHeader extends Model
         return $this->belongsTo(DocumentType::class, 'document_type_id', 'id');
     }
 
+
+
     public function paymentMethod(): BelongsTo
     {
-        return $this->belongsTo(PaymentMethod::class, 'payment_method_id', 'id');
-
+        return $this->belongsTo(PaymentMethod::class, 'payment_method_id','id');
     }
-
-    public function operationCondition(): BelongsTo
+    public  function saleCondition(): BelongsTo
     {
-        return $this->belongsTo(OperationCondition::class, 'operation_condition_id', 'id');
+        return $this->belongsTo(OperationCondition::class, 'operation_condition_id');
+
     }
+
+
 }

@@ -25,12 +25,13 @@ class SalesHeaderController extends Controller
             $filters = json_decode($filtersJson, true) ?? [];
 
 
-            $salesHeaders = SalesHeader::with(['customer:id,document_number,name,last_name,document_type_id',
+            $salesHeaders = SalesHeader::with([
+                'customer:id,document_number,name,last_name,document_type_id',
                 'warehouse:id,name',
                 'seller:id,name,last_name,dui',
                 'documentType',
                 'paymentMethod',
-                'operationCondition',
+                'saleCondition',
 
             ])
                 ->whereHas('customer', function ($query) use ($search) {

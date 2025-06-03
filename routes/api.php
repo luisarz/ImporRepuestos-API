@@ -1,5 +1,6 @@
 <?php
 
+
 use App\Http\Requests\MenuAllowedRequest;
 use App\Http\Controllers\Api\v1\{ApplicationController,
     BatchCodeOrigenController,
@@ -54,6 +55,9 @@ use App\Http\Controllers\LoginController;
 use App\Http\Middleware\JwtMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\v1\DTEController;
+use App\Http\Controllers\Api\v1\SenEmailDTEController;
+
 
 
 Route::post('login', [LoginController::class, 'login']);
@@ -161,6 +165,14 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('quote-purchases', QuotePurchaseController::class);
     Route::apiResource('quote-purchase-items', QuotePurchaseItemController::class);
+
+//    facturacion electronica
+    Route::get('/generarDTE/{idVenta}', [DTEController::class, 'generarDTE'])->middleware(['auth'])->name('generarDTE');
+    Route::get('/sendAnularDTE/{idVenta}', [DTEController::class, 'anularDTE'])->middleware(['auth'])->name('sendAnularDTE');
+    Route::get('/printDTETicket/{idVenta}', [DTEController::class, 'printDTETicket'])->middleware(['auth'])->name('printDTETicket');
+    Route::get('/printDTEPdf/{idVenta}', [DTEController::class, 'printDTEPdf'])->middleware(['auth'])->name('printDTEPdf');
+    Route::get('/sendDTE/{idVenta}', [SenEmailDTEController::class, 'SenEmailDTEController'])->middleware(['auth'])->name('sendDTE');
+
 
 
 });

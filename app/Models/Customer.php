@@ -59,7 +59,7 @@ class Customer extends Model
 
     public function documentType(): BelongsTo
     {
-        return $this->belongsTo(CustomerDocumentsType::class);
+        return $this->belongsTo(CustomerDocumentsType::class,'document_type_id', 'id');
     }
 
     public function warehouse(): BelongsTo
@@ -67,9 +67,29 @@ class Customer extends Model
         return $this->belongsTo(Warehouse::class);
     }
 
-    public function address(): HasMany
+    public function departamento(): BelongsTo
     {
-        return $this->hasMany(CustomerAddressCatalog::class,'customer_id','id');
+        return $this->belongsTo(Department::class, 'departament_id', 'id');
+    }
+    public function municipio(): BelongsTo
+    {
+        return $this->belongsTo(Municipality::class,'municipality_id', 'id');
+    }
+    public function address(): BelongsTo
+    {
+        return $this->belongsTo(CustomerAddressCatalog::class);
+    }
+    public function sales(): HasMany
+    {
+        return $this->hasMany(Sale::class, 'customer_id', 'id');
+    }
+    public function economicActivity(): BelongsTo
+    {
+        return $this->belongsTo(EconomicActivity::class, 'economic_activity_id', 'id');
 
+    }
+    public function documentTypeCustomer(): BelongsTo
+    {
+        return $this->belongsTo(CustomerDocumentsType::class, 'document_type_id', 'id');
     }
 }

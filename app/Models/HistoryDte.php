@@ -16,33 +16,28 @@ class HistoryDte extends Model
      * @var array
      */
     protected $fillable = [
-        'sale_dte_id',
+        'sales_invoice_id',
         'version',
         'ambiente',
-        'status',
-        'code_generation',
-        'receipt_stamp',
+        'versionApp',
+        'estado',
+        'codigoGeneracion',
+        'selloRecibido',
+        'num_control',
         'fhProcesamiento',
-        'clasifica_msg',
-        'code_mgs',
-        'description_msg',
-        'observations',
+        'clasificaMsg',
+        'codigoMsg',
+        'descripcionMsg',
+        'observaciones',
         'dte',
+        'contingencia',
+        'motivo_contingencia'
     ];
-
-    /**
-     * The attributes that should be cast to native types.
-     *
-     * @var array
-     */
     protected $casts = [
-        'id' => 'integer',
-        'sale_dte_id' => 'integer',
-        'fhProcesamiento' => 'datetime',
+        'dte' => 'array',
     ];
-
-    public function saleDte(): BelongsTo
+    public function salesInvoice()
     {
-        return $this->belongsTo(SalesDte::class);
+        return $this->belongsTo(Sale::class,'sales_invoice_id','id');
     }
 }

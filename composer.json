@@ -7,12 +7,15 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "barryvdh/laravel-dompdf": "*",
         "dedoc/scramble": "^0.12.10",
         "laravel-lang/lang": "^15.11",
         "laravel/framework": "^11.31",
         "laravel/octane": "^2.8",
         "laravel/tinker": "^2.9",
         "league/flysystem-aws-s3-v3": "3.0",
+        "luecano/numero-a-letras": "*",
+        "simplesoftwareio/simple-qrcode": "*",
         "spatie/laravel-permission": "^6.16",
         "tymon/jwt-auth": "^2.1"
     },
