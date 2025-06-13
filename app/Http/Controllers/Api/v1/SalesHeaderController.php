@@ -60,15 +60,17 @@ class SalesHeaderController extends Controller
         }
     }
 
-    public function show(Request $request, $id): JsonResponse
+    public function show($id): JsonResponse
     {
+        \Illuminate\Log\log($id);
         try {
-            $salesHeader = SalesHeader::with(['customer:id,document_number,name,last_name,sales_type',
-                'warehouse:id,name',
-                'seller:id,name,last_name,dui',
-                'items',
-                'items.inventory:id,code,name',
-            ])->findOrFail($id);
+//            $salesHeader = SalesHeader::with(['customer:id,document_number,name,last_name,sales_type',
+//                'warehouse:id,name',
+//                'seller:id,name,last_name,dui',
+//                'items',
+//                'items.inventory:id,code,name',
+//            ])->findOrFail($id);
+            $salesHeader = SalesHeader::findOrFail($id);
             return ApiResponse::success($salesHeader, 'Venta recuperada con éxito', 200);
         } catch (ModelNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), 'Venta no encontrada', 404);

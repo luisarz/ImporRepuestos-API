@@ -89,18 +89,16 @@ class DTEController extends Controller
             'saleDetails',
             'saleDetails.inventory.product'])->find($idVenta);
 
-        $establishmentType = trim($factura->warehouse->stablishmenttype->code);
+
+        $establishmentType = trim($factura->warehouse->stablishmentType->code);
         $conditionCode = trim($factura->saleCondition->code??'');
-        if (!$establishmentType || !$conditionCode) {
-            return response()->json(['status' => 'error', 'message' => 'Establecimiento o forma de pago no encontrados']);
-        }
+
         $receptor = [
-            "documentType" => null,//$factura->customer->documenttypecustomer->code ?? null,
-            "documentNum" => null,//$factura->customer->dui ?? $factura->customer->nit,
+            "documentType" => $factura->customer->documentType->code ?? null,
+            "documentNum" => $factura->customer->document_number ?? null,
             "nit" => null,
             "nrc" => null,
             "name" => isset($factura->customer) ? trim($factura->customer->name ?? '') . " " . trim($factura->customer->last_name ?? '') : null,
-//            "phoneNumber" => isset($factura->customer) ? str_replace(["(", ")", "-", " "], "", $factura->customer->phone ?? null) : null,
             "phoneNumber" => ($number = preg_replace('/\D/', '', $factura->customer?->phone ?? '')) && strlen($number) >= 8 ? $number : null,
 
             "email" => isset($factura->customer) ? trim($factura->customer->email ?? null) : null,
@@ -178,7 +176,7 @@ class DTEController extends Controller
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = trim($factura->salescondition->code);
         $receptor = [
-            "documentType" => trim($factura->customer->documenttypecustomer->code) ?? null,
+            "documentType" => trim($factura->customer->documentType->code) ?? null,
             "documentNum" => trim($factura->customer->nit),
             "nit" => trim(str_replace("-", '', $factura->customer->nit)) ?? null,
             "nrc" => trim(str_replace("-", "", $factura->customer->nrc)) ?? null,
@@ -263,8 +261,8 @@ class DTEController extends Controller
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = 1;//trim($factura->salescondition->code);
         $receptor = [
-            "documentType" => $factura->customer->documenttypecustomer->code ?? null,
-            "documentNum" => $factura->customer->dui,
+            "documentType" => $factura->customer->documentType->code ?? null,
+            "documentNum" => $factura->customer->document_number,
 //            "nit" => $factura->customer->nit,
             "nit" => trim(str_replace("-", '', $factura->customer->nit)) ?? null,
             "nrc" => trim(str_replace("-", '', $factura->customer->nrc)) ?? null,
@@ -353,8 +351,8 @@ class DTEController extends Controller
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = 1;//trim($factura->salescondition->code);
         $receptor = [
-//            "documentType" => $factura->customer->documenttypecustomer->code ?? null,
-//            "documentNum" => $factura->customer->dui ?? $factura->customer->nit,
+//            "documentType" => $factura->customer->documentType->code ?? null,
+//            "documentNum" => $factura->customer->document_number ?? $factura->customer->nit,
 //            "name" => isset($factura->customer) ? trim($factura->customer->name ?? '') . " " . trim($factura->customer->last_name ?? '') : null,
 //            "nit" => null,
 //            "nrc" => null,
@@ -365,8 +363,8 @@ class DTEController extends Controller
 //            "codeMunicipality" => null,// isset($factura->customer->distrito) ? trim($factura->customer->distrito->code ?? '') : null,
 //            "codCountry" => "9450",
 //            "personType" => 1
-            "documentType" => $factura->customer->documenttypecustomer->code ?? 37,
-            "documentNum" => $factura->customer->dui,
+            "documentType" => $factura->customer->documentType->code ?? 37,
+            "documentNum" => $factura->customer->document_number,
             "nit" => null,
             "nrc" => null,
             "name" => isset($factura->customer) ? trim($factura->customer->name ?? '') . " " . trim($factura->customer->last_name ?? '') : null,
@@ -472,7 +470,7 @@ class DTEController extends Controller
         $conditionCode = (int)trim($factura->salescondition->code ?? 1);
 
         $receptor = [
-            "documentType" => $factura->customer->documenttypecustomer->code ?? null,
+            "documentType" => $factura->customer->documentType->code ?? null,
             "documentNum" => isset($factura->customer) ? str_replace(["(", ")", "-", " "], "", $factura->customer->nit ?? '') : null,
             "nit" => $factura->customer->nit??null,
             "nrc" => $factura->customer->nrc ?? null,
@@ -890,8 +888,9 @@ class DTEController extends Controller
 
             $pdfPage->save($pathPage);
             $pdf->set_paper(array(0, 0, 250, 1000)); // Custom paper size
-
-            return $pdf->stream("{$codGeneracion}.pdf");
+            return response()->json([
+                'pdf' => base64_encode($pdf->output())
+            ]);
         } else {
             $jsonResponse=$this->getDTE($codGeneracion);
             $this->saveRestoreJson($jsonResponse->original, $codGeneracion);
@@ -966,7 +965,10 @@ class DTEController extends Controller
             $pathPage = storage_path("app/public/DTEs/{$codGeneracion}.pdf");
 
             $pdf->save($pathPage);
-            return $pdf->stream("{$codGeneracion}.pdf"); // El PDF se abre en una nueva pestaña
+            return response()->json([
+                'pdf' => base64_encode($pdf->output())
+            ]);
+//            return $pdf->stream("{$codGeneracion}.pdf"); // El PDF se abre en una nueva pestaña
         } else {
             $jsonResponse=$this->getDTE($codGeneracion);
             $this->saveRestoreJson($jsonResponse->original, $codGeneracion);

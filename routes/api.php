@@ -191,3 +191,24 @@ Route::middleware(['jwt'])->group(function () {
 
 
 
+
+
+Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
+
+
+Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
+
+
+Route::apiResource('c-a-t-document-types', App\Http\Controllers\Api\v1\CATDocumentTypeController::class);
+
+
+Route::apiResource('document-types', App\Http\Controllers\Api\v1\documentTypeController::class);
+
+
+Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
+
+
+Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
+
+
+Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
