@@ -2,41 +2,66 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\DocumentTypeStoreRequest;
 use App\Http\Requests\Api\v1\DocumentTypeUpdateRequest;
 use App\Http\Resources\Api\v1\DocumentTypeCollection;
 use App\Http\Resources\Api\v1\DocumentTypeResource;
 use App\Models\DocumentType;
+use App\Models\OperationCondition;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
 class DocumentTypeController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request): JsonResponse
     {
-        $documentTypes = DocumentType::all();
+        try {
+            $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $operationConditions = DocumentType::where('name', 'like', "%$search%")->paginate($perPage);
+            return ApiResponse::success($operationConditions, 'Operation conditions retrieved successfully', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'An error occurred while retrieving the operation conditions', 500);
+        }
 
-        return new DocumentTypeCollection($documentTypes);
     }
 
-    public function store(DocumentTypeStoreRequest $request): Response
+    public function store(DocumentTypeStoreRequest $request): JsonResponse
     {
-        $documentType = DocumentType::create($request->validated());
+        try {
+            $documentType = DocumentType::create($request->validated());
+            return ApiResponse::success($documentType, 'Document type created successfully', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'An error occurred while creating the document type', 500);
+        }
 
-        return new DocumentTypeResource($documentType);
     }
 
-    public function show(Request $request, DocumentType $documentType): Response
+    public function show(Request $request, $id): JsonResponse
     {
-        return new DocumentTypeResource($documentType);
+        try {
+            $documentType = DocumentType::findorfail($id);
+            return ApiResponse::success($documentType, 'Document type retrieved successfully', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error($e->getMessage(), 'Document type does not exist', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'An error occurred while retrieving the document type', 500);
+        }
     }
 
-    public function update(DocumentTypeUpdateRequest $request, DocumentType $documentType): Response
+    public function update(DocumentTypeUpdateRequest $request, $id): JsonResponse
     {
-        $documentType->update($request->validated());
-
-        return new DocumentTypeResource($documentType);
+        try {
+            $documentType = (new \App\Models\DocumentType)->findOrFail($id);
+            $documentType->update($request->validated());
+            return ApiResponse::success($documentType, 'Document type updated successfully', 200);
+        }catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'An error occurred while updating the document type', 500);
+        }
     }
 
     public function destroy(Request $request, DocumentType $documentType): Response

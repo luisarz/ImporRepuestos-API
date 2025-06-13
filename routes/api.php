@@ -4,6 +4,7 @@
 use App\Http\Requests\MenuAllowedRequest;
 use App\Http\Controllers\Api\v1\{ApplicationController,
     BatchCodeOrigenController,
+    DocumentTypeController,
     InterchangesController,
     MenuAllowedController,
     ModuleRolController,
@@ -179,6 +180,9 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('/logDTE/{idVenta}', [DTEController::class, 'logDTE'])->middleware(['auth'])->name('logDTE');
     Route::get('/sendDTE/{idVenta}', [SenEmailDTEController::class, 'SenEmailDTEController'])->middleware(['auth'])->name('sendDTE');
 
+
+    //Catalogos hacienda
+    Route::apiResource('document-tax', DocumentTypeController::class);
 
 
 });

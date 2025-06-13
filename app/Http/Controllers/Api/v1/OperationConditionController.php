@@ -54,9 +54,10 @@ class OperationConditionController extends Controller
         }
     }
 
-    public function update(OperationConditionUpdateRequest $request, OperationCondition $operationCondition): JsonResponse
+    public function update(OperationConditionUpdateRequest $request, $id): JsonResponse
     {
         try {
+            $operationCondition = (new \App\Models\OperationCondition)->findOrFail($id);
             $operationCondition->update($request->validated());
             return ApiResponse::success($operationCondition, 'Operation condition updated successfully', 200);
         } catch (\Exception $e) {

@@ -20,7 +20,8 @@ class DocumentTypeUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'documentType' => ['required'],
+            'name' => ['required'],
+            'is_active'=>['required']
         ];
     }
 }
