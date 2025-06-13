@@ -1,8 +1,10 @@
 created:
-    - app/Http/Controllers/Api/v1/DocumentTypeController.php
-    - tests/Feature/Http/Controllers/Api/v1/DocumentTypeControllerTest.php
-    - app/Http/Resources/Api\v1/DocumentTypeCollection.php
-    - app/Http/Resources/Api\v1/DocumentTypeResource.php
+    - app/Http/Controllers/Api/v1/PaymentMethodController.php
+    - tests/Feature/Http/Controllers/Api/v1/PaymentMethodControllerTest.php
+    - app/Http/Requests/Api\v1/PaymentMethodStoreRequest.php
+    - app/Http/Requests/Api\v1/PaymentMethodUpdateRequest.php
+    - app/Http/Resources/Api\v1/PaymentMethodCollection.php
+    - app/Http/Resources/Api\v1/PaymentMethodResource.php
 updated:
     - routes/api.php
 models:

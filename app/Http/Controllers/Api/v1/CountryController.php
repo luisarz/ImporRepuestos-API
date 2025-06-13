@@ -18,9 +18,11 @@ class CountryController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+            $search = $request->input('search', '');
+//            $countries =Country::where('description','like','%$search%')->paginate($perPage);
+            $countries = Country::where('description', 'like', '%' . $search . '%')->paginate($perPage);
 
-            $countries = (new Country)->paginate($perPage);
-         return ApiResponse::success($countries, 'Países recuperados exitosamente', 200);
+            return ApiResponse::success($countries, 'Países recuperados exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error al recuperar la información', 500);
         }

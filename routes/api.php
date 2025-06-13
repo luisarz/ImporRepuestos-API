@@ -8,6 +8,8 @@ use App\Http\Controllers\Api\v1\{ApplicationController,
     MenuAllowedController,
     ModuleRolController,
     ModuloController,
+    OperationConditionController,
+    PaymentMethodController,
     RolesController,
     UserController};
 use App\Http\Controllers\Api\v1\BatchController;
@@ -78,6 +80,9 @@ Route::middleware(['jwt'])->group(function () {
     #Hacienda Catalogs (Países, Departamentos, Municipios, Distritos)
 
     Route::apiResource('countries', CountryController::class);
+
+    Route::apiResource('operation-conditions', OperationConditionController::class);
+    Route::apiResource('payment-methods', PaymentMethodController::class);
     Route::apiResource('departments', DepartmentController::class);
     Route::apiResource('municipalities', MunicipalityController::class);
     Route::apiResource('districts', DistrictController::class);
@@ -171,6 +176,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('/sendAnularDTE/{idVenta}', [DTEController::class, 'anularDTE'])->middleware(['auth'])->name('sendAnularDTE');
     Route::get('/printDTETicket/{idVenta}', [DTEController::class, 'printDTETicket'])->middleware(['auth'])->name('printDTETicket');
     Route::get('/printDTEPdf/{idVenta}', [DTEController::class, 'printDTEPdf'])->middleware(['auth'])->name('printDTEPdf');
+    Route::get('/logDTE/{idVenta}', [DTEController::class, 'logDTE'])->middleware(['auth'])->name('logDTE');
     Route::get('/sendDTE/{idVenta}', [SenEmailDTEController::class, 'SenEmailDTEController'])->middleware(['auth'])->name('sendDTE');
 
 
@@ -193,22 +199,4 @@ Route::middleware(['jwt'])->group(function () {
 
 
 
-Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
 
-
-Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
-
-
-Route::apiResource('c-a-t-document-types', App\Http\Controllers\Api\v1\CATDocumentTypeController::class);
-
-
-Route::apiResource('document-types', App\Http\Controllers\Api\v1\documentTypeController::class);
-
-
-Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
-
-
-Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);
-
-
-Route::apiResource('document-types', App\Http\Controllers\Api\v1\DocumentTypeController::class);

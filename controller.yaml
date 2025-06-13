@@ -87,6 +87,6 @@ controllers:
 #    resource: api
 #  Api\v1\QuotePurchase:
 #    resource: api
-#  Api\v1\DocumentType:
+#  Api\v1\PaymentMethod:
 #    resource: api
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api\v1;
 
+use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Contingency;
@@ -170,7 +171,7 @@ class DTEController extends Controller
 
     function CCFJson($idVenta): array|JsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documenttype', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'salescondition', 'paymentmethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
@@ -256,7 +257,7 @@ class DTEController extends Controller
 
     function CreditNotesJSON($idVenta): array|JsonResponse
     {
-        $factura = SalesHeader::with('saleRelated', 'warehouse.stablishmenttype', 'documenttype', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'salescondition', 'paymentmethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('saleRelated', 'warehouse.stablishmenttype', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = 1;//trim($factura->salescondition->code);
@@ -346,7 +347,7 @@ class DTEController extends Controller
 
     function ExportacionJson($idVenta): array|jsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documenttype', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'salescondition', 'paymentmethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = 1;//trim($factura->salescondition->code);
@@ -464,7 +465,7 @@ class DTEController extends Controller
 
     function sujetoExcluidoJson($idVenta): array|jsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documenttype', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'salescondition', 'paymentmethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = (int)trim($factura->salescondition->code ?? 1);
@@ -668,15 +669,17 @@ class DTEController extends Controller
             return response()->json(['message' => 'No se ha configurado la empresa']);
         }
         $venta = SalesHeader::with([
-            'warehouse.stablishmenttype',
+            'warehouse.stablishmentType',
             'seller',
-            'documenttype',
-            'salescondition',
-            'paymentmethod',
+            'documentType',
+            'saleCondition',
+            'paymentMethod',
             'dteProcesado' => function ($query) {
                 $query->where('estado', 'PROCESADO');
             }
         ])->find($idVenta);
+
+//        return response()->json($venta);
 
         if (!$venta) {
             return [
@@ -729,7 +732,7 @@ class DTEController extends Controller
             ];
         } else {
             $venta = SalesHeader::find($idVenta);
-            $venta->sale_status = "Anulado";
+            $venta->sale_status = 3;
             $venta->save();
             return [
                 'estado' => 'EXITO',
@@ -1107,6 +1110,22 @@ class DTEController extends Controller
         $fileName = "DTEs/{$codGeneracion}.json";
         $jsonContent = json_encode($responseData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
         Storage::disk('public')->put($fileName, $jsonContent);
+    }
+    public  function logDTE($idVenta)
+    {
+        try {
+            $historyDTE= HistoryDte::where('sales_invoice_id', $idVenta)
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
+            return ApiResponse::success($historyDTE, 'Historial de DTE obtenido correctamente',200);
+        }catch (Exception $e) {
+            ApiResponse::error(null,
+                'Error al obtener el historial de DTE: ' . $e->getMessage(),
+                500);
+        }
+
+
+
     }
 
 }

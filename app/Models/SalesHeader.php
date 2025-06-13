@@ -119,5 +119,11 @@ class SalesHeader extends Model
 
     }
 
+    public function dteProcesado(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(HistoryDte::class, 'sales_invoice_id');
+
+    }
+
 
 }
