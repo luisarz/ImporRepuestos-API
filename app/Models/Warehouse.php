@@ -46,7 +46,7 @@ class Warehouse extends Model
 //        'logo' => 'array',
     ];
 
-    public function id(): BelongsTo
+    public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class);
     }

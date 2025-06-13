@@ -2,7 +2,8 @@
 
 namespace App\Mail;
 
-use App\Models\Sale;
+
+use App\Models\SalesHeader;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -18,12 +19,12 @@ class sendEmailDTE extends Mailable
 
     public $jsonPath;
     public $pdfPath;
-    public Sale $sale;
+    public SalesHeader $sale;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($jsonPath, $pdfPath, Sale $sale)
+    public function __construct($jsonPath, $pdfPath, SalesHeader $sale)
     {
         $this->jsonPath = $jsonPath;
         $this->pdfPath = $pdfPath;

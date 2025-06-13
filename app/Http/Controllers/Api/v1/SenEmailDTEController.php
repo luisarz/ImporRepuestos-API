@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Http\Controllers\Controller;
-use App\Models\Sale;
+use App\Models\SalesHeader;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\sendEmailDTE as sendDTEFiles;
 
@@ -11,7 +11,7 @@ class SenEmailDTEController extends Controller
 {
     public function SenEmailDTEController($idVenta): \Illuminate\Http\JsonResponse
     {
-        $sale = Sale::with('customer','wherehouse','wherehouse.company')->find($idVenta);
+        $sale = SalesHeader::with('customer','warehouse','warehouse.company')->find($idVenta);
         if (!$sale) {
             return response()->json([
                 'status' => false,
