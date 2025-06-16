@@ -20,7 +20,7 @@ class DepartmentStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'country_id' => ['required', 'integer','exists:countries,id'],
+//            'country_id' => ['required', 'integer','exists:countries,id'],
             'code' => ['required', 'string'],
             'description' => ['required', 'string'],
             'is_active' => ['required'],

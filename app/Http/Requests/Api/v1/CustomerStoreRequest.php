@@ -20,9 +20,15 @@ class CustomerStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'customer_type' => ['required', 'integer'],
+            'customer_type_id' => ['required', 'integer'],
             'document_type_id' => ['required', 'integer'],
             'document_number' => ['required', 'string'],
+            'economic_activity_id'=>['required','integer'],
+            'country_id'=>['required','integer'],
+            'departament_id'=>['required','integer'],
+            'municipality_id'=>['required','integer'],
+            'phone'=>['required','integer'],
+            'email'=>['required','integer'],
             'name' => ['required', 'string'],
             'last_name' => ['required', 'string'],
             'warehouse' => ['required', 'integer','exists:warehouses,id'],
@@ -30,11 +36,12 @@ class CustomerStoreRequest extends FormRequest
             'nit' => ['required', 'string'],
             'is_exempt' => ['required'],
             'sales_type' => ['required', 'in:1,2,3,4'],
-            'is_creditable' => ['required'],
+//            'is_creditable' => ['required'],
             'address' => ['required', 'string'],
-            'credit_limit' => ['required', 'numeric'],
-            'credit_amount' => ['required', 'numeric'],
-            'is_delivery' => ['required'],
+            'credit_limit' => [ 'numeric'],
+            'credit_amount' => [ 'numeric'],
+//            'is_delivery' => ['required'],
+            'is_active' => ['required'],
         ];
     }
 }

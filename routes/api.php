@@ -93,7 +93,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('economic-activities', EconomicActivityController::class);
     Route::apiResource('company', CompanyController::class);
     Route::apiResource('establishment-types', StablishmentTypeController::class);
-    Route::apiResource('warehouse', WarehouseController::class);
+    Route::apiResource('warehouses', WarehouseController::class);
 
     #Proveedores
     Route::apiResource('providers-types', ProvidersTypeController::class);

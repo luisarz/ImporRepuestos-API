@@ -21,7 +21,7 @@ class CustomerController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
 
-            $customers = Customer::with('address')->paginate($perPage);
+            $customers = Customer::with('documentType','warehouse','departamento','municipio')->paginate($perPage);
             return ApiResponse::success($customers, 'Clientes recuperados cone éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
