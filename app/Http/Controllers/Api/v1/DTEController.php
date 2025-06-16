@@ -1073,7 +1073,8 @@ class DTEController extends Controller
     {
 
         $responseData = $this->SendDTE($dte, $idVenta);
-//    dd($responseData['respuestaHacienda']['estado']);
+     
+//    dd($responseData['respuestaHacienda']);
 //    if (isset($responseData['respuestaHacienda']['estado']) && $responseData['respuestaHacienda']["estado"] === "RECHAZADO" || $responseData["estado"] === "RECHAZADO") {
         if (
             (isset($responseData['respuestaHacienda']['estado']) && $responseData['respuestaHacienda']['estado'] === "RECHAZADO")
@@ -1096,6 +1097,7 @@ class DTEController extends Controller
             return [
                 'estado' => 'EXITO',
                 'mensaje' => 'DTE enviado correctamente',
+                'codGeneracion'=>$responseData['respuestaHacienda']['codigoGeneracion']??'SN',
             ];
         } else {
 //            $this->saveJson($responseData, $idVenta, false);

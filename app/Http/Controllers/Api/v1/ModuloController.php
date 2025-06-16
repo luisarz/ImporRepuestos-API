@@ -21,10 +21,10 @@ class ModuloController extends Controller
         try {
             $perPage = $request->input('per_page', 100);
             $search = $request->input('search', '');
-            $sortField = $request->input('sortField', 'nombre');
+            $sortField = $request->input('sortField', 'orden');
             $sortOrder = $request->input('desc', 'asc');
             $validSortFields = ['nombre', 'ruta', 'orden']; // Add your actual columns here
-            $sortField = in_array($sortField, $validSortFields) ? $sortField : 'nombre';
+            $sortField = in_array($sortField, $validSortFields) ? $sortField : 'orden';
             $query = Modulo::query();
             $query->with('padre:id,nombre,ruta,icono,orden');
 

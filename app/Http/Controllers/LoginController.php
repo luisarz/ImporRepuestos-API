@@ -46,7 +46,7 @@ class LoginController extends Controller
         try {
             $credentials = request(['email', 'password']);
 
-            if (! $token = auth()->attempt($credentials)) {
+            if (!$token = auth()->attempt($credentials)) {
                 return response()->json(['error' => 'Unauthorized'], 401);
             }
             return $this->respondWithToken($token);
@@ -65,24 +65,26 @@ class LoginController extends Controller
 
         return response()->json(['message' => 'Successfully logged out']);
     }
+
     protected function respondWithToken($token)
     {
         $user = auth()->user();
-        $employee= Employee::with('warehouse')->findOrFail($user->employee_id);
+        $employee = Employee::with('warehouse')->findOrFail($user->employee_id);
 
         return response()->json([
             'access_token' => $token,
+            'logged_status' => true,
             'warehouse_id' => $employee->warehouse_id,
             'employee_id' => $employee->id,
             'employee_name' => $employee->name . ' ' . $employee->last_name,
             'warehouse_name' => $employee->warehouse->name,
-
             'token_type' => 'bearer',
-//            'user' => auth()->user(),
             'expires_in' => auth()->factory()->getTTL() * 720
         ]);
     }
-    private function getMenu(MenuAllowedRequest $request){
+
+    private function getMenu(MenuAllowedRequest $request)
+    {
         $empleados = Employee::findOrFail($user->id_empleado_usuario);
         $session = session();
         $session->put('id', $user->id);
@@ -92,15 +94,15 @@ class LoginController extends Controller
         $session->put('id_rol', $user->id_rol);
 
 
-
-        $Access = ModuleRol::Where("id_rol",$user->id_rol)
-            ->join('modulo','modulo.id_modulo', '=', 'modulo_rol.id_modulo')
+        $Access = ModuleRol::Where("id_rol", $user->id_rol)
+            ->join('modulo', 'modulo.id_modulo', '=', 'modulo_rol.id_modulo')
             ->orderBy('modulo.orden', 'ASC')->get();
 
-        $session->put("access",$Access);
+        $session->put("access", $Access);
 
         \Illuminate\Support\Facades\Auth::login($user, true);
     }
+
     public function refresh(): JsonResponse
     {
         return $this->respondWithToken(auth()->refresh());
