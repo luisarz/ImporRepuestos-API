@@ -89,4 +89,6 @@ controllers:
 #    resource: api
 #  Api\v1\PaymentMethod:
 #    resource: api
+#  Api\v1\CategoryGroup:
+#    resource: api
 

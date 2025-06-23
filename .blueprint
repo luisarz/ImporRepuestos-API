@@ -1,10 +1,8 @@
 created:
-    - app/Http/Controllers/Api/v1/PaymentMethodController.php
-    - tests/Feature/Http/Controllers/Api/v1/PaymentMethodControllerTest.php
-    - app/Http/Requests/Api\v1/PaymentMethodStoreRequest.php
-    - app/Http/Requests/Api\v1/PaymentMethodUpdateRequest.php
-    - app/Http/Resources/Api\v1/PaymentMethodCollection.php
-    - app/Http/Resources/Api\v1/PaymentMethodResource.php
+    - app/Http/Controllers/Api/v1/CategoryGroupController.php
+    - tests/Feature/Http/Controllers/Api/v1/CategoryGroupControllerTest.php
+    - app/Http/Resources/Api\v1/CategoryGroupCollection.php
+    - app/Http/Resources/Api\v1/CategoryGroupResource.php
 updated:
     - routes/api.php
 models:
@@ -14,15 +12,16 @@ models:
     BatchCodeOrigen: { code: string, description: string, is_active: biginteger }
     Brand: { code: string, description: string, image: 'longtext nullable default:NULL', is_active: boolean }
     Category: { code: string, description: string, commission_percentage: 'decimal:5,2 nullable default:NULL', category_parent_id: 'biginteger unsigned nullable default:NULL', is_active: boolean }
+    CategoryGroup: { code: string, name: string, active: 'boolean default:1' }
     Company: { district_id: 'biginteger unsigned', economic_activity_id: 'biginteger unsigned', company_name: string, nrc: string, nit: string, phone: string, whatsapp: string, email: string, address: string, web: string, api_key_mh: string, logo: 'string nullable default:NULL', is_active: boolean }
     Contingency: { warehouse_id: 'biginteger unsigned', uuid_hacienda: string, start_date: datetime, end_date: 'datetime nullable default:NULL', contingency_types_id: 'biginteger unsigned', contingency_motivation: 'string nullable default:NULL', is_close: 'tinyinteger nullable default:NULL' }
     ContingencyType: {  }
     Country: { code: char, description: string, is_active: boolean }
-    Customer: { customer_type: 'biginteger unsigned', document_type_id: 'biginteger unsigned', document_number: string, economic_activity_id: 'biginteger nullable default:NULL', departament_id: 'biginteger nullable default:NULL', municipality_id: 'biginteger nullable default:NULL', phone: 'string nullable default:NULL', email: 'string nullable default:NULL', name: string, last_name: string, warehouse: 'biginteger unsigned', nrc: string, nit: string, is_exempt: boolean, sales_type: "enum:'1','2','3','4' default:'1'", is_creditable: boolean, address: string, credit_limit: 'decimal:8,2', credit_amount: 'decimal:8,2', is_delivery: boolean }
+    Customer: { customer_type_id: 'biginteger unsigned', document_type_id: 'biginteger unsigned', document_number: string, economic_activity_id: 'biginteger unsigned nullable default:NULL', country_id: 'biginteger nullable default:NULL', departament_id: 'biginteger unsigned', municipality_id: 'biginteger unsigned', phone: 'string nullable default:NULL', email: 'string nullable default:NULL', name: string, last_name: string, warehouse: 'biginteger unsigned', nrc: string, nit: string, is_exempt: boolean, sales_type: "enum:'1','2','3','4' default:'1'", is_creditable: boolean, address: string, credit_limit: 'decimal:8,2', credit_amount: 'decimal:8,2', is_delivery: boolean, is_active: 'boolean nullable default:NULL' }
     CustomerAddressCatalog: { district_id: 'biginteger unsigned', customer_id: 'biginteger unsigned', address_reference: string, is_active: boolean, email: 'string nullable default:NULL', phone: 'string nullable default:NULL', contact: 'string nullable default:NULL', contact_phone: 'string nullable default:NULL', contact_email: 'string nullable default:NULL' }
     CustomerDocumentsType: { code: string, description: string, is_active: boolean }
     CustomerType: { code: string, description: string, is_active: boolean }
-    Department: { country_id: 'biginteger unsigned', code: string, description: string, is_active: boolean }
+    Department: { country_id: 'biginteger unsigned default:1', code: string, description: string, is_active: boolean }
     District: { municipality_id: 'biginteger unsigned', code: string, description: string, is_active: boolean }
     DocumentType: { code: 'string nullable default:NULL', name: string, is_active: 'boolean default:1' }
     DocumentsTypesProvider: { code: string, description: string, is_active: biginteger }

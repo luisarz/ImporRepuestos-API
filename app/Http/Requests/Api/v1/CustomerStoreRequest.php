@@ -31,7 +31,7 @@ class CustomerStoreRequest extends FormRequest
             'email'=>['required','integer'],
             'name' => ['required', 'string'],
             'last_name' => ['required', 'string'],
-            'warehouse' => ['required', 'integer','exists:warehouses,id'],
+            'warehouse_id' => ['required', 'integer','exists:warehouses,id'],
             'nrc' => ['required', 'string'],
             'nit' => ['required', 'string'],
             'is_exempt' => ['required'],

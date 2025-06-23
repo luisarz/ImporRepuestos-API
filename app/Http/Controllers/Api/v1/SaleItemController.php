@@ -39,7 +39,14 @@ class SaleItemController extends Controller
     public function store(SaleItemStoreRequest $request): JsonResponse
     {
         try {
+
             $saleItem = SaleItem::create($request->validated());
+            //Actualizar el total de la venta
+            $sale = SalesHeader::findOrFail($saleItem->sale_id);
+            $sale->sale_total += $saleItem->total;
+            $sale->save();
+            $saleItem['formatted_price'] = '$' . number_format($saleItem->price, 2);
+
             return ApiResponse::success($saleItem, 'Item de venta creado con éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
@@ -73,10 +80,10 @@ class SaleItemController extends Controller
     {
         try {
             $total = SaleItem::where('sale_id', $id)->sum('total');
-            $neto=$total/1.13;
-            $iva=$neto*0.13;
+            $neto=number_format($total/1.13,2);
+            $iva=number_format(  $neto*0.13,2);
             $saleItem = [
-                'total' => $total,
+                'total' =>number_format($total,2),
                 'neto' => $neto,
                 'iva' => $iva,
             ];

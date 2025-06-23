@@ -29,7 +29,7 @@ class Customer extends Model
         'email',
         'name',
         'last_name',
-        'warehouse',
+        'warehouse_id',
         'nrc',
         'nit',
         'is_exempt',

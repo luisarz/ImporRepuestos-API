@@ -4,6 +4,7 @@
 use App\Http\Requests\MenuAllowedRequest;
 use App\Http\Controllers\Api\v1\{ApplicationController,
     BatchCodeOrigenController,
+    CategoryGroupController,
     DocumentTypeController,
     InterchangesController,
     MenuAllowedController,
@@ -106,7 +107,8 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('employees', EmployeeController::class);
 
     #Productos
-    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('category-groups', CategoryGroupController::class);
+    Route::apiResource('sub-categories', CategoryController::class);
     Route::apiResource('brands', BrandController::class);
     Route::apiResource('unit-measurements', UnitMeasurementController::class);
 
@@ -186,6 +188,10 @@ Route::middleware(['jwt'])->group(function () {
 
 
 });
+
+
+
+
 
 
 

@@ -16,6 +16,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class InventoryController extends Controller
@@ -72,6 +73,13 @@ class InventoryController extends Controller
 
                 return $inventory;
             });
+
+            log::info('Inventories retrieved successfully', [
+                'count' => $inventories->count(),
+                'perPage' => $perPage,
+                'search' => $search,
+                'filters' => $filters
+            ]);
 
             return ApiResponse::success($inventories, 'Inventarios recuperados exitosamente', 200);
         } catch (\Exception $e) {
