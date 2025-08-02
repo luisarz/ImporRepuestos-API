@@ -12,6 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('kardexes', function (Blueprint $table) {
+            $table->id();
             $table->foreignId('branch_id')->constrained('warehouses')->cascadeOnDelete();
             $table->dateTime('date');
             $table->string('operation_type')->nullable()    ;
