@@ -62,7 +62,11 @@ class LoginController extends Controller
     public function logout(): JsonResponse
     {
         JWTAuth::invalidate(JWTAuth::getToken());
-        return response()->json(['message' => 'Successfully logged out']);
+
+        // Eliminar la cookie del token
+        $cookie = cookie()->forget('auth_token');
+
+        return response()->json(['message' => 'Successfully logged out'])->cookie($cookie);
     }
 
     protected function respondWithToken($token)
@@ -70,16 +74,30 @@ class LoginController extends Controller
         $user = auth()->user();
         $employee = Employee::with('warehouse')->findOrFail($user->employee_id);
 
+        $expiresIn = auth()->factory()->getTTL(); // En minutos
+
+        // Crear cookie httpOnly con el token
+        $cookie = cookie(
+            'auth_token',           // nombre
+            $token,                 // valor
+            $expiresIn,            // tiempo en minutos
+            '/',                    // path
+            null,                   // domain (null = dominio actual)
+            false,                  // secure (true en producción con HTTPS)
+            true,                   // httpOnly (no accesible desde JS)
+            false,                  // raw
+            'lax'                   // sameSite (lax o strict)
+        );
+
         return response()->json([
-            'access_token' => $token,
             'logged_status' => true,
             'warehouse_id' => $employee->warehouse_id,
             'employee_id' => $employee->id,
             'employee_name' => $employee->name . ' ' . $employee->last_name,
             'warehouse_name' => $employee->warehouse->name,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 720
-        ]);
+            'expires_in' => $expiresIn
+        ])->cookie($cookie);
     }
 
     private function getMenu(MenuAllowedRequest $request)

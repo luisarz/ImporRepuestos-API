@@ -11,7 +11,17 @@ class JwtMiddleware
     public function handle($request, Closure $next)
     {
         try {
-            $user = JWTAuth::parseToken()->authenticate();
+            // Intentar obtener el token desde el header Authorization
+            $token = JWTAuth::getToken();
+
+            // Si no está en el header, buscar en la cookie
+            if (!$token && $request->hasCookie('auth_token')) {
+                $token = $request->cookie('auth_token');
+                JWTAuth::setToken($token);
+            }
+
+            // Autenticar el usuario con el token
+            $user = JWTAuth::authenticate();
             if (!$user) {
                 return response()->json(['error' => 'User not found'], 401);
             }
