@@ -117,6 +117,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('/v1/products/{id}', [ProductController::class, 'update']);
 
     Route::get('prices/inventory/{idInventory}', [InventoryController::class, 'getPrices']);
+    Route::get('inventories/product/{productId}', [InventoryController::class, 'getByProduct']);
     Route::apiResource('inventories', InventoryController::class);
     Route::apiResource('prices', PriceController::class);
 

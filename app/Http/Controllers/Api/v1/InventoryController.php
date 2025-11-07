@@ -103,6 +103,50 @@ class InventoryController extends Controller
 
     }
 
+    /**
+     * Obtiene todos los inventarios de un producto específico en todas las sucursales
+     *
+     * @param int $productId ID del producto
+     * @return JsonResponse
+     */
+    public function getByProduct($productId): JsonResponse
+    {
+        try {
+            $inventories = Inventory::with([
+                'warehouse:id,name,address,phone',
+                'product:id,code,original_code,description',
+                'prices' => function($query) {
+                    $query->where('is_default', true)->where('is_active', true);
+                }
+            ])
+            ->where('product_id', $productId)
+            ->where('is_active', true)
+            ->where('is_temp', false)
+            ->get();
+
+            // Calcular stock actual de cada inventario sumando los batches
+            $inventories->each(function ($inventory) {
+                $stock = $inventory->inventoryBatches->sum('quantity');
+                $inventory->actual_stock = $stock ?? 0;
+
+                // Obtener precio predeterminado
+                $defaultPrice = $inventory->prices->first();
+                $inventory->default_price = $defaultPrice ? $defaultPrice->price : 0;
+
+                // Limpiar relación de precios para no enviar data innecesaria
+                unset($inventory->prices);
+            });
+
+            return ApiResponse::success($inventories, 'Inventarios recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener inventarios por producto', [
+                'product_id' => $productId,
+                'error' => $e->getMessage()
+            ]);
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error al obtener los inventarios', 500);
+        }
+    }
+
     public function store(InventoryStoreRequest $request): JsonResponse
     {
         try {
