@@ -24,7 +24,10 @@ class PriceStoreRequest extends FormRequest
             'inventory_id' => ['required', 'integer', 'exists:inventories,id'],
             'price_description' => ['required', 'string'],
             'max_discount' => ['required', 'numeric'],
-            'is_default'=>['required','boolean'],
+            'is_active' => ['required', 'boolean'],
+            'quantity' => ['required', 'numeric'],
+            'is_default' => ['nullable', 'boolean'],
+            'utility' => ['nullable', 'numeric'],
         ];
     }
 }
