@@ -20,8 +20,17 @@ class UnitMeasurementController extends Controller
     {
 
         try {
-            $perPage = $request->input('per_page', 10);
+            // Soportar múltiples formatos de paginación
+            $perPage = $request->input('length', $request->input('per_page', 10));
+
+            // Si per_page es muy grande o inválido, usar valor por defecto
+            if (!is_numeric($perPage) || $perPage > 100 || $perPage < 1) {
+                $perPage = 10;
+            }
+
+            // Obtener los datos paginados
             $unitMeasurements = UnitMeasurement::paginate($perPage);
+
             return ApiResponse::success($unitMeasurements, 'Unidades de medida obtenidas correctamente',200);
         }catch (ModelNotFoundException $e) {
             return ApiResponse::error('No se encontraron unidades de medida', 404);
