@@ -26,6 +26,8 @@ class PriceUpdateRequest extends FormRequest
             'max_discount' => ['required', 'numeric'],
             'is_active' => ['required', 'boolean'],
             'quantity' => ['required', 'numeric'],
+            'is_default' => ['nullable', 'boolean'],
+            'utility' => ['nullable', 'numeric'],
         ];
     }
 }
