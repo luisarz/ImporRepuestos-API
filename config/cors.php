@@ -20,10 +20,11 @@ return [
     'allowed_methods' => ['*'],
 
     'allowed_origins' => [
-        env('FRONTEND_URL', 'http://localhost:5173'),
-        'http://127.0.0.1:5173',
-        'http://localhost:3000',
-        'https://impor-api.laravel.cloud'
+        'http://localhost:5173',      // Desarrollo con Vite
+        'http://127.0.0.1:5173',      // Desarrollo con Vite (127.0.0.1)
+        'http://localhost:3000',      // Alternativo
+        'https://impor-front.com',    // Producción frontend
+        env('FRONTEND_URL', '*')      // Configurable desde .env
     ],
     // 'allowed_origins' => ['*'], // No se puede usar * con credentials
     'allowed_origins_patterns' => [],
