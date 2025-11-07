@@ -68,6 +68,7 @@ Route::post('login', [LoginController::class, 'login']);
 
 Route::middleware(['jwt'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout']);
+    Route::post('refresh', [LoginController::class, 'refresh']);
 
     Route::get('menu',[MenuAllowedController::class,'index']);
 
