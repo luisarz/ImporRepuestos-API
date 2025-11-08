@@ -159,4 +159,94 @@ class ProductController extends Controller
         }
 
     }
+
+    /**
+     * Activar productos por lotes
+     */
+    public function batchActivate(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'integer|exists:products,id'
+            ]);
+
+            $updated = Product::whereIn('id', $request->ids)->update(['is_active' => 1]);
+
+            return ApiResponse::success([
+                'updated_count' => $updated,
+                'ids' => $request->ids
+            ], "{$updated} productos activados exitosamente", 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al activar productos', 500);
+        }
+    }
+
+    /**
+     * Desactivar productos por lotes
+     */
+    public function batchDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'integer|exists:products,id'
+            ]);
+
+            $updated = Product::whereIn('id', $request->ids)->update(['is_active' => 0]);
+
+            return ApiResponse::success([
+                'updated_count' => $updated,
+                'ids' => $request->ids
+            ], "{$updated} productos desactivados exitosamente", 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al desactivar productos', 500);
+        }
+    }
+
+    /**
+     * Eliminar productos por lotes
+     */
+    public function batchDelete(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'ids' => 'required|array',
+                'ids.*' => 'integer|exists:products,id'
+            ]);
+
+            $deleted = Product::whereIn('id', $request->ids)->delete();
+
+            return ApiResponse::success([
+                'deleted_count' => $deleted,
+                'ids' => $request->ids
+            ], "{$deleted} productos eliminados exitosamente", 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al eliminar productos', 500);
+        }
+    }
+
+    /**
+     * Obtener estadísticas de productos
+     */
+    public function stats(Request $request): JsonResponse
+    {
+        try {
+            $total = Product::where('is_temp', 0)->count();
+            $active = Product::where('is_temp', 0)->where('is_active', 1)->count();
+            $discontinued = Product::where('is_temp', 0)->where('is_discontinued', 1)->count();
+
+            return ApiResponse::success([
+                'total' => $total,
+                'active' => $active,
+                'discontinued' => $discontinued
+            ], 'Estadísticas recuperadas exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al obtener estadísticas', 500);
+        }
+    }
 }

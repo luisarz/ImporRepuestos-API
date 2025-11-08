@@ -7,8 +7,8 @@ use App\Http\Controllers\Api\v1\{ApplicationController,
     CategoryGroupController,
     DocumentTypeController,
     InterchangesController,
-    MenuAllowedController,
-    ModuleRolController,
+    MenuController,
+    PermissionController,
     ModuloController,
     OperationConditionController,
     PaymentMethodController,
@@ -70,29 +70,47 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout']);
     Route::post('refresh', [LoginController::class, 'refresh']);
 
-    Route::get('menu',[MenuAllowedController::class,'index']);
+    // ========== MENU (NUEVO - Basado en permisos de Spatie) ==========
+    Route::prefix('menu')->group(function () {
+        Route::get('/', [MenuController::class, 'index']);
+        Route::get('/permissions', [MenuController::class, 'permissions']);
+    });
 
+    // ========== PERMISSIONS (NUEVO - Gestión de permisos Spatie) ==========
+    Route::prefix('permissions')->group(function () {
+        Route::get('/', [PermissionController::class, 'index']);
+        Route::get('/grouped', [PermissionController::class, 'groupedByModule']);
+        Route::post('/sync', [PermissionController::class, 'syncFromModules']);
+    });
+
+    // ========== ROLES ==========
     // Estadísticas y acciones grupales de roles - DEBEN IR ANTES del apiResource
     Route::get('roles/stats/all', [RolesController::class, 'stats']);
+    Route::get('roles/all/list', [RolesController::class, 'getAll']);
     Route::post('roles/bulk/get', [RolesController::class, 'bulkGet']);
     Route::post('roles/bulk/activate', [RolesController::class, 'bulkActivate']);
     Route::post('roles/bulk/deactivate', [RolesController::class, 'bulkDeactivate']);
     Route::post('roles/bulk/delete', [RolesController::class, 'bulkDelete']);
-
     Route::apiResource('roles', RolesController::class);
 
+    // ========== MODULOS ==========
     // Estadísticas y acciones grupales de modulos - DEBEN IR ANTES del apiResource
     Route::get('modulos/stats/all', [ModuloController::class, 'stats']);
     Route::post('modulos/bulk/get', [ModuloController::class, 'bulkGet']);
     Route::post('modulos/bulk/activate', [ModuloController::class, 'bulkActivate']);
     Route::post('modulos/bulk/deactivate', [ModuloController::class, 'bulkDeactivate']);
     Route::post('modulos/bulk/delete', [ModuloController::class, 'bulkDelete']);
-
     Route::apiResource('modulos', ModuloController::class);
     Route::get('modulos-all', [ModuloController::class, 'getAll']);
+
+    // ========== USERS ==========
+    // Estadísticas y acciones grupales de users - DEBEN IR ANTES del apiResource
+    Route::get('users/stats/all', [UserController::class, 'stats']);
+    Route::post('users/bulk/get', [UserController::class, 'bulkGet']);
+    Route::post('users/bulk/activate', [UserController::class, 'bulkActivate']);
+    Route::post('users/bulk/deactivate', [UserController::class, 'bulkDeactivate']);
+    Route::post('users/bulk/delete', [UserController::class, 'bulkDelete']);
     Route::apiResource('users', UserController::class);
-    Route::apiResource('permissions', ModuleRolController::class);
-//    Route::post('permissions/allow-access', [ModuleRolController::class, 'allowAccess']);
 
 
     #Hacienda Catalogs (Países, Departamentos, Municipios, Distritos)
@@ -191,6 +209,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('jobs-titles/bulk/deactivate', [JobsTitleController::class, 'bulkDeactivate']);
     Route::post('jobs-titles/bulk/delete', [JobsTitleController::class, 'bulkDelete']);
     Route::apiResource('jobs-titles', JobsTitleController::class);
+    Route::get('employees/all/list', [EmployeeController::class, 'getAll']);
     Route::apiResource('employees', EmployeeController::class);
 
     #Productos
@@ -215,6 +234,11 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('unit-measurements', UnitMeasurementController::class);
 
     #Inventarios
+    // Estadísticas y acciones por lotes de productos - DEBEN IR ANTES del apiResource
+    Route::get('products/stats/all', [ProductController::class, 'stats']);
+    Route::post('products/batch/activate', [ProductController::class, 'batchActivate']);
+    Route::post('products/batch/deactivate', [ProductController::class, 'batchDeactivate']);
+    Route::post('products/batch/delete', [ProductController::class, 'batchDelete']);
     Route::apiResource('products', ProductController::class);
     Route::post('/v1/products/{id}', [ProductController::class, 'update']);
 
@@ -290,7 +314,15 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('customer-types/bulk/delete', [CustomerTypeController::class, 'bulkDelete']);
 
     Route::apiResource('customer-types', CustomerTypeController::class);
+
+    // Customers - rutas especiales antes del resource
+    Route::get('customers/stats/all', [CustomerController::class, 'stats']);
+    Route::post('customers/bulk/get', [CustomerController::class, 'bulkGet']);
+    Route::post('customers/bulk/activate', [CustomerController::class, 'bulkActivate']);
+    Route::post('customers/bulk/deactivate', [CustomerController::class, 'bulkDeactivate']);
+    Route::post('customers/bulk/delete', [CustomerController::class, 'bulkDelete']);
     Route::apiResource('customers', CustomerController::class);
+
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
 
     #Sales, Items, DTE, Payment Details
