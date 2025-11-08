@@ -77,16 +77,17 @@ class LoginController extends Controller
         $expiresIn = auth()->factory()->getTTL(); // En minutos
 
         // Crear cookie httpOnly con el token
+        // Para localhost, NO especificar dominio (null) permite compartir entre puertos del mismo host
         $cookie = cookie(
             'auth_token',           // nombre
             $token,                 // valor
             $expiresIn,            // tiempo en minutos
             '/',                    // path
-            null,                   // domain (null = dominio actual)
-            false,                  // secure (true en producción con HTTPS)
+            null,                   // domain null = permite compartir en localhost entre puertos
+            false,                  // secure (false en desarrollo, true en producción)
             true,                   // httpOnly (no accesible desde JS)
             false,                  // raw
-            'lax'                   // sameSite (lax o strict)
+            'lax'                   // sameSite (lax para desarrollo local)
         );
 
         return response()->json([

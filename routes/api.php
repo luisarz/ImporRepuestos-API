@@ -110,6 +110,11 @@ Route::middleware(['jwt'])->group(function () {
     #Productos
     Route::apiResource('category-groups', CategoryGroupController::class);
     Route::apiResource('sub-categories', CategoryController::class);
+    Route::get('brands/stats/all', [BrandController::class, 'stats']);
+    Route::post('brands/bulk/get', [BrandController::class, 'bulkGet']);
+    Route::post('brands/bulk/activate', [BrandController::class, 'bulkActivate']);
+    Route::post('brands/bulk/deactivate', [BrandController::class, 'bulkDeactivate']);
+    Route::post('brands/bulk/delete', [BrandController::class, 'bulkDelete']);
     Route::apiResource('brands', BrandController::class);
     Route::apiResource('unit-measurements', UnitMeasurementController::class);
 

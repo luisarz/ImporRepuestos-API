@@ -31,4 +31,12 @@ class Brand extends Model
         'image' => 'array',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Relación con productos
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
 }
