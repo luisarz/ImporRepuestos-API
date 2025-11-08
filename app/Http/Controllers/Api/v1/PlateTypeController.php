@@ -77,6 +77,25 @@ class PlateTypeController extends Controller
         }
     }
 
+    public function stats(): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $total = PlateType::count();
+            $active = PlateType::where('is_active', 1)->count();
+            $inactive = PlateType::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
     // Acciones grupales
     public function bulkGet(Request $request): \Illuminate\Http\JsonResponse
     {

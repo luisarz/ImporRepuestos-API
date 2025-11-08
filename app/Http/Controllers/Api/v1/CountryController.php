@@ -87,19 +87,22 @@ class CountryController extends Controller
         }
     }
 
-    // Estadísticas
-    public function getStats(): \Illuminate\Http\JsonResponse
+    public function stats(): \Illuminate\Http\JsonResponse
     {
         try {
+            $total = Country::count();
+            $active = Country::where('is_active', 1)->count();
+            $inactive = Country::where('is_active', 0)->count();
+
             $stats = [
-                'total' => Country::count(),
-                'active' => Country::where('is_active', 1)->count(),
-                'inactive' => Country::where('is_active', 0)->count(),
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
             ];
 
-            return ApiResponse::success($stats, 'Estadísticas recuperadas exitosamente', 200);
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(), 'Ocurrió un error al recuperar las estadísticas', 500);
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }
     }
 
