@@ -66,4 +66,49 @@ class PaymentMethodController extends Controller
 
         return response()->noContent();
     }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $paymentMethods = PaymentMethod::whereIn('id', $ids)->get();
+            return ApiResponse::success($paymentMethods, 'Métodos de pago recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            PaymentMethod::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Métodos de pago activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            PaymentMethod::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Métodos de pago desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            PaymentMethod::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Métodos de pago eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 }

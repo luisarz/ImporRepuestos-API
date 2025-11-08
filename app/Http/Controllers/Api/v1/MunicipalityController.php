@@ -19,12 +19,40 @@ class MunicipalityController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+            $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
 
-            $municipalities = Municipality::with('department')->paginate($perPage);
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc';
+            }
+
+            $query = Municipality::query()->with('department');
+
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            $allowedSortFields = ['id', 'code', 'description', 'is_active', 'created_at', 'updated_at'];
+
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $municipalities = $query->paginate($perPage);
             return ApiResponse::success($municipalities, 'Municipios recuperados con éxito', 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }
     }
 
@@ -73,6 +101,70 @@ class MunicipalityController extends Controller
             return ApiResponse::success('','Municipio eliminado con éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(),'Ocurrió un error al eliminar el municipio', 500);
+        }
+    }
+
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = Municipality::count();
+            $active = Municipality::where('is_active', 1)->count();
+            $inactive = Municipality::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $municipalities = Municipality::whereIn('id', $ids)->with('department')->get();
+            return ApiResponse::success($municipalities, 'Municipios recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Municipality::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Municipios activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Municipality::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Municipios desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Municipality::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Municipios eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }
     }
 }

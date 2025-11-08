@@ -82,16 +82,58 @@ Route::middleware(['jwt'])->group(function () {
 
     #Hacienda Catalogs (Países, Departamentos, Municipios, Distritos)
 
+    // Estadísticas y acciones grupales de countries - DEBEN IR ANTES del apiResource
+    Route::get('countries/stats/all', [CountryController::class, 'getStats']);
+    Route::post('countries/bulk/get', [CountryController::class, 'bulkGet']);
+    Route::post('countries/bulk/activate', [CountryController::class, 'bulkActivate']);
+    Route::post('countries/bulk/deactivate', [CountryController::class, 'bulkDeactivate']);
+    Route::post('countries/bulk/delete', [CountryController::class, 'bulkDelete']);
+
     Route::apiResource('countries', CountryController::class);
 
+    // Acciones grupales de operation-conditions - DEBEN IR ANTES del apiResource
+    Route::post('operation-conditions/bulk/get', [OperationConditionController::class, 'bulkGet']);
+    Route::post('operation-conditions/bulk/activate', [OperationConditionController::class, 'bulkActivate']);
+    Route::post('operation-conditions/bulk/deactivate', [OperationConditionController::class, 'bulkDeactivate']);
+    Route::post('operation-conditions/bulk/delete', [OperationConditionController::class, 'bulkDelete']);
+
     Route::apiResource('operation-conditions', OperationConditionController::class);
+
+    // Acciones grupales de payment-methods - DEBEN IR ANTES del apiResource
+    Route::post('payment-methods/bulk/get', [PaymentMethodController::class, 'bulkGet']);
+    Route::post('payment-methods/bulk/activate', [PaymentMethodController::class, 'bulkActivate']);
+    Route::post('payment-methods/bulk/deactivate', [PaymentMethodController::class, 'bulkDeactivate']);
+    Route::post('payment-methods/bulk/delete', [PaymentMethodController::class, 'bulkDelete']);
+
     Route::apiResource('payment-methods', PaymentMethodController::class);
+
+    // Estadísticas y acciones grupales de departments - DEBEN IR ANTES del apiResource
+    Route::get('departments/stats/all', [DepartmentController::class, 'stats']);
+    Route::post('departments/bulk/get', [DepartmentController::class, 'bulkGet']);
+    Route::post('departments/bulk/activate', [DepartmentController::class, 'bulkActivate']);
+    Route::post('departments/bulk/deactivate', [DepartmentController::class, 'bulkDeactivate']);
+    Route::post('departments/bulk/delete', [DepartmentController::class, 'bulkDelete']);
+
     Route::apiResource('departments', DepartmentController::class);
+
+    // Estadísticas y acciones grupales de municipalities - DEBEN IR ANTES del apiResource
+    Route::get('municipalities/stats/all', [MunicipalityController::class, 'stats']);
+    Route::post('municipalities/bulk/get', [MunicipalityController::class, 'bulkGet']);
+    Route::post('municipalities/bulk/activate', [MunicipalityController::class, 'bulkActivate']);
+    Route::post('municipalities/bulk/deactivate', [MunicipalityController::class, 'bulkDeactivate']);
+    Route::post('municipalities/bulk/delete', [MunicipalityController::class, 'bulkDelete']);
+
     Route::apiResource('municipalities', MunicipalityController::class);
     Route::apiResource('districts', DistrictController::class);
 
 
     #Empresa sucursal y almacenes (Actividades Económicas, Empresas, Tipos de Establecimientos, Almacenes)
+    // Acciones grupales de economic-activities - DEBEN IR ANTES del apiResource
+    Route::post('economic-activities/bulk/get', [EconomicActivityController::class, 'bulkGet']);
+    Route::post('economic-activities/bulk/activate', [EconomicActivityController::class, 'bulkActivate']);
+    Route::post('economic-activities/bulk/deactivate', [EconomicActivityController::class, 'bulkDeactivate']);
+    Route::post('economic-activities/bulk/delete', [EconomicActivityController::class, 'bulkDelete']);
+
     Route::apiResource('economic-activities', EconomicActivityController::class);
     Route::apiResource('company', CompanyController::class);
     Route::apiResource('establishment-types', StablishmentTypeController::class);
@@ -105,7 +147,20 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('warehouses', WarehouseController::class);
 
     #Proveedores
+    // Acciones grupales de providers-types - DEBEN IR ANTES del apiResource
+    Route::post('providers-types/bulk/get', [ProvidersTypeController::class, 'bulkGet']);
+    Route::post('providers-types/bulk/activate', [ProvidersTypeController::class, 'bulkActivate']);
+    Route::post('providers-types/bulk/deactivate', [ProvidersTypeController::class, 'bulkDeactivate']);
+    Route::post('providers-types/bulk/delete', [ProvidersTypeController::class, 'bulkDelete']);
+
     Route::apiResource('providers-types', ProvidersTypeController::class);
+
+    // Acciones grupales de providers-documents-types - DEBEN IR ANTES del apiResource
+    Route::post('providers-documents-types/bulk/get', [DocumentsTypesProviderController::class, 'bulkGet']);
+    Route::post('providers-documents-types/bulk/activate', [DocumentsTypesProviderController::class, 'bulkActivate']);
+    Route::post('providers-documents-types/bulk/deactivate', [DocumentsTypesProviderController::class, 'bulkDeactivate']);
+    Route::post('providers-documents-types/bulk/delete', [DocumentsTypesProviderController::class, 'bulkDelete']);
+
     Route::apiResource('providers-documents-types', DocumentsTypesProviderController::class);
     Route::apiResource('providers', ProviderController::class);
     Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
@@ -149,8 +204,28 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('prices', PriceController::class);
 
     #vehiculos
+    // Acciones grupales de plate-types - DEBEN IR ANTES del apiResource
+    Route::post('plate-types/bulk/get', [PlateTypeController::class, 'bulkGet']);
+    Route::post('plate-types/bulk/activate', [PlateTypeController::class, 'bulkActivate']);
+    Route::post('plate-types/bulk/deactivate', [PlateTypeController::class, 'bulkDeactivate']);
+    Route::post('plate-types/bulk/delete', [PlateTypeController::class, 'bulkDelete']);
+
     Route::apiResource('plate-types', PlateTypeController::class);
+
+    // Acciones grupales de vehicle-models - DEBEN IR ANTES del apiResource
+    Route::post('vehicle-models/bulk/get', [VehicleModelController::class, 'bulkGet']);
+    Route::post('vehicle-models/bulk/activate', [VehicleModelController::class, 'bulkActivate']);
+    Route::post('vehicle-models/bulk/deactivate', [VehicleModelController::class, 'bulkDeactivate']);
+    Route::post('vehicle-models/bulk/delete', [VehicleModelController::class, 'bulkDelete']);
+
     Route::apiResource('vehicle-models', VehicleModelController::class);
+
+    // Acciones grupales de fuel-types - DEBEN IR ANTES del apiResource
+    Route::post('fuel-types/bulk/get', [FuelTypeController::class, 'bulkGet']);
+    Route::post('fuel-types/bulk/activate', [FuelTypeController::class, 'bulkActivate']);
+    Route::post('fuel-types/bulk/deactivate', [FuelTypeController::class, 'bulkDeactivate']);
+    Route::post('fuel-types/bulk/delete', [FuelTypeController::class, 'bulkDelete']);
+
     Route::apiResource('fuel-types', FuelTypeController::class);
     Route::apiResource('vehicles', VehicleController::class);
 
@@ -175,7 +250,21 @@ Route::middleware(['jwt'])->group(function () {
 
 
     #Customer documents types, customer
+    // Acciones grupales de customer-documents-types - DEBEN IR ANTES del apiResource
+    Route::post('customer-documents-types/bulk/get', [CustomerDocumentsTypeController::class, 'bulkGet']);
+    Route::post('customer-documents-types/bulk/activate', [CustomerDocumentsTypeController::class, 'bulkActivate']);
+    Route::post('customer-documents-types/bulk/deactivate', [CustomerDocumentsTypeController::class, 'bulkDeactivate']);
+    Route::post('customer-documents-types/bulk/delete', [CustomerDocumentsTypeController::class, 'bulkDelete']);
+
     Route::apiResource('customer-documents-types', CustomerDocumentsTypeController::class);
+
+    // Acciones grupales de customer-types - DEBEN IR ANTES del apiResource
+    Route::get('customer-types/stats/all', [CustomerTypeController::class, 'stats']);
+    Route::post('customer-types/bulk/get', [CustomerTypeController::class, 'bulkGet']);
+    Route::post('customer-types/bulk/activate', [CustomerTypeController::class, 'bulkActivate']);
+    Route::post('customer-types/bulk/deactivate', [CustomerTypeController::class, 'bulkDeactivate']);
+    Route::post('customer-types/bulk/delete', [CustomerTypeController::class, 'bulkDelete']);
+
     Route::apiResource('customer-types', CustomerTypeController::class);
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
@@ -212,6 +301,12 @@ Route::middleware(['jwt'])->group(function () {
 
 
     //Catalogos hacienda
+    // Acciones grupales de document-tax - DEBEN IR ANTES del apiResource
+    Route::post('document-tax/bulk/get', [DocumentTypeController::class, 'bulkGet']);
+    Route::post('document-tax/bulk/activate', [DocumentTypeController::class, 'bulkActivate']);
+    Route::post('document-tax/bulk/deactivate', [DocumentTypeController::class, 'bulkDeactivate']);
+    Route::post('document-tax/bulk/delete', [DocumentTypeController::class, 'bulkDelete']);
+
     Route::apiResource('document-tax', DocumentTypeController::class);
 
 

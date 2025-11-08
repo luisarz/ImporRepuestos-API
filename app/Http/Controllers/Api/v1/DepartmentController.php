@@ -79,4 +79,69 @@ class DepartmentController extends Controller
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error al eliminar el departamento.', 500);
         }
     }
+
+    // Estadísticas
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = Department::count();
+            $active = Department::where('is_active', 1)->count();
+            $inactive = Department::where('is_active', 0)->count();
+
+            return ApiResponse::success([
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive,
+            ], 'Estadísticas recuperadas exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+
+            $items = Department::whereIn('id', $ids)->get();
+
+            return ApiResponse::success($items, 'Elementos recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Department::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Elementos activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Department::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Elementos desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Department::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Elementos eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
 }

@@ -78,4 +78,68 @@ class CustomerTypeController extends Controller
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
+
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = CustomerType::count();
+            $active = CustomerType::where('is_active', 1)->count();
+            $inactive = CustomerType::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $customerTypes = CustomerType::whereIn('id', $ids)->get();
+            return ApiResponse::success($customerTypes, 'Tipos de cliente recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            CustomerType::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Tipos de cliente activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            CustomerType::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Tipos de cliente desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            CustomerType::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Tipos de cliente eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 }

@@ -71,4 +71,49 @@ class EconomicActivityController extends Controller
 
         return response()->noContent();
     }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $activities = EconomicActivity::whereIn('id', $ids)->get();
+            return ApiResponse::success($activities, 'Actividades económicas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            EconomicActivity::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Actividades económicas activadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            EconomicActivity::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Actividades económicas desactivadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            EconomicActivity::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Actividades económicas eliminadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 }

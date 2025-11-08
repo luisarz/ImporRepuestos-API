@@ -77,8 +77,50 @@ class FuelTypeController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
+    }
 
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $fuelTypes = FuelType::whereIn('id', $ids)->get();
+            return ApiResponse::success($fuelTypes, 'Tipos de combustible recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            FuelType::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Tipos de combustible activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            FuelType::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Tipos de combustible desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            FuelType::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Tipos de combustible eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
     }
 }

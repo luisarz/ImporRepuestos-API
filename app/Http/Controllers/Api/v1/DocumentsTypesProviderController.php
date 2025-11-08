@@ -77,4 +77,49 @@ class DocumentsTypesProviderController extends Controller
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $documentsTypesProviders = DocumentsTypesProvider::whereIn('id', $ids)->get();
+            return ApiResponse::success($documentsTypesProviders, 'Tipos de documento de proveedor recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            DocumentsTypesProvider::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Tipos de documento de proveedor activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            DocumentsTypesProvider::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Tipos de documento de proveedor desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            DocumentsTypesProvider::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Tipos de documento de proveedor eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 }

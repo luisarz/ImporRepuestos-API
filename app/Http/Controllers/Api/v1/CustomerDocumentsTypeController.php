@@ -79,4 +79,49 @@ class CustomerDocumentsTypeController extends Controller
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $items = CustomerDocumentsType::whereIn('id', $ids)->get();
+            return ApiResponse::success($items, 'Tipos de documento recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            CustomerDocumentsType::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Tipos de documento activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            CustomerDocumentsType::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Tipos de documento desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            CustomerDocumentsType::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Tipos de documento eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 }

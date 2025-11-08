@@ -82,4 +82,49 @@ class VehicleModelController extends Controller
         }
 
     }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $vehicleModels = VehicleModel::whereIn('id', $ids)->with('brand')->get();
+            return ApiResponse::success($vehicleModels, 'Modelos de vehículo recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            VehicleModel::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Modelos de vehículo activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            VehicleModel::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Modelos de vehículo desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            VehicleModel::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Modelos de vehículo eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 }
