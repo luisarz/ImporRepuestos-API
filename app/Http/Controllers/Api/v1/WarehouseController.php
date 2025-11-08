@@ -84,5 +84,51 @@ class WarehouseController extends Controller
         }
     }
 
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $warehouses = Warehouse::whereIn('id', $ids)
+                ->with('stablishmentType', 'district', 'economicActivity', 'company')
+                ->get();
+            return ApiResponse::success($warehouses, 'Almacenes recuperados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Warehouse::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Almacenes activados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Warehouse::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Almacenes desactivados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Warehouse::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Almacenes eliminados de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 
 }

@@ -95,6 +95,13 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('economic-activities', EconomicActivityController::class);
     Route::apiResource('company', CompanyController::class);
     Route::apiResource('establishment-types', StablishmentTypeController::class);
+
+    // Acciones grupales de warehouses - DEBEN IR ANTES del apiResource
+    Route::post('warehouses/bulk/get', [WarehouseController::class, 'bulkGet']);
+    Route::post('warehouses/bulk/activate', [WarehouseController::class, 'bulkActivate']);
+    Route::post('warehouses/bulk/deactivate', [WarehouseController::class, 'bulkDeactivate']);
+    Route::post('warehouses/bulk/delete', [WarehouseController::class, 'bulkDelete']);
+
     Route::apiResource('warehouses', WarehouseController::class);
 
     #Proveedores
@@ -104,11 +111,20 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
 
     #Empleados (Cargos, Empleados)
+    Route::post('jobs-titles/bulk/get', [JobsTitleController::class, 'bulkGet']);
+    Route::post('jobs-titles/bulk/activate', [JobsTitleController::class, 'bulkActivate']);
+    Route::post('jobs-titles/bulk/deactivate', [JobsTitleController::class, 'bulkDeactivate']);
+    Route::post('jobs-titles/bulk/delete', [JobsTitleController::class, 'bulkDelete']);
     Route::apiResource('jobs-titles', JobsTitleController::class);
     Route::apiResource('employees', EmployeeController::class);
 
     #Productos
     Route::apiResource('category-groups', CategoryGroupController::class);
+    Route::get('sub-categories/stats/all', [CategoryController::class, 'stats']);
+    Route::post('sub-categories/bulk/get', [CategoryController::class, 'bulkGet']);
+    Route::post('sub-categories/bulk/activate', [CategoryController::class, 'bulkActivate']);
+    Route::post('sub-categories/bulk/deactivate', [CategoryController::class, 'bulkDeactivate']);
+    Route::post('sub-categories/bulk/delete', [CategoryController::class, 'bulkDelete']);
     Route::apiResource('sub-categories', CategoryController::class);
     Route::get('brands/stats/all', [BrandController::class, 'stats']);
     Route::post('brands/bulk/get', [BrandController::class, 'bulkGet']);
@@ -116,6 +132,11 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('brands/bulk/deactivate', [BrandController::class, 'bulkDeactivate']);
     Route::post('brands/bulk/delete', [BrandController::class, 'bulkDelete']);
     Route::apiResource('brands', BrandController::class);
+    Route::get('unit-measurements/stats/all', [UnitMeasurementController::class, 'stats']);
+    Route::post('unit-measurements/bulk/get', [UnitMeasurementController::class, 'bulkGet']);
+    Route::post('unit-measurements/bulk/activate', [UnitMeasurementController::class, 'bulkActivate']);
+    Route::post('unit-measurements/bulk/deactivate', [UnitMeasurementController::class, 'bulkDeactivate']);
+    Route::post('unit-measurements/bulk/delete', [UnitMeasurementController::class, 'bulkDelete']);
     Route::apiResource('unit-measurements', UnitMeasurementController::class);
 
     #Inventarios

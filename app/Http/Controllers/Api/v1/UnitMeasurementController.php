@@ -22,21 +22,54 @@ class UnitMeasurementController extends Controller
         try {
             // Soportar múltiples formatos de paginación
             $perPage = $request->input('length', $request->input('per_page', 10));
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+
+            // El DataTable envía 'sortField' y 'sortOrder'
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
+
+            // Convertir a minúsculas y validar
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc'; // Valor por defecto si no es válido
+            }
 
             // Si per_page es muy grande o inválido, usar valor por defecto
             if (!is_numeric($perPage) || $perPage > 100 || $perPage < 1) {
                 $perPage = 10;
             }
 
+            $query = UnitMeasurement::query();
+
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Filtro por estado
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            // Aplicar ordenamiento - solo campos propios del modelo
+            $allowedSortFields = ['id', 'code', 'description', 'is_active', 'created_at', 'updated_at'];
+
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
             // Obtener los datos paginados
-            $unitMeasurements = UnitMeasurement::paginate($perPage);
+            $unitMeasurements = $query->paginate($perPage);
 
             return ApiResponse::success($unitMeasurements, 'Unidades de medida obtenidas correctamente',200);
         }catch (ModelNotFoundException $e) {
             return ApiResponse::error('No se encontraron unidades de medida', 404);
         }
         catch (\Exception $e) {
-            return response()->json(['message' => 'Error al obtener las unidades de medida'], 500);
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }
     }
 
@@ -47,7 +80,7 @@ class UnitMeasurementController extends Controller
             return ApiResponse::success($unitMeasurement, 'Unidad de medida creada correctamente', 200);
         }
         catch (\Exception $e) {
-            return response()->json(['message' => 'Error al crear la unidad de medida'], 500);
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }
     }
 
@@ -86,6 +119,70 @@ class UnitMeasurementController extends Controller
             return ApiResponse::error(null,'No se encontró la unidad de medida', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(),'Error al eliminar la unidad de medida', 500);
+        }
+    }
+
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = UnitMeasurement::count();
+            $active = UnitMeasurement::where('is_active', 1)->count();
+            $inactive = UnitMeasurement::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $unitMeasurements = UnitMeasurement::whereIn('id', $ids)->get();
+            return ApiResponse::success($unitMeasurements, 'Unidades de medida recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            UnitMeasurement::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Unidades de medida activadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            UnitMeasurement::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Unidades de medida desactivadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            UnitMeasurement::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Unidades de medida eliminadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }
     }
 }

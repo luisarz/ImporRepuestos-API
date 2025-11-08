@@ -18,11 +18,39 @@ class CategoryController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
-        $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
-
         try {
-            $categories = Category::with('categoryParent')->paginate($perPage);
-            return ApiResponse::success($categories, 'Categories retrieved successfully', 200);
+            $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
+
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc';
+            }
+
+            $query = Category::query()->withCount('products');
+
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            $allowedSortFields = ['id', 'code', 'description', 'is_active', 'created_at', 'updated_at'];
+
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $categories = $query->paginate($perPage);
+            return ApiResponse::success($categories, 'Categorías recuperadas de manera exitosa', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
@@ -66,14 +94,77 @@ class CategoryController extends Controller
     public function destroy(Request $request, $id): JsonResponse
     {
         try {
-            $category = (new \App\Models\Category)->findOrFail($id); // No es necesario usar "new"
+            $category = (new \App\Models\Category)->findOrFail($id);
             $category->delete();
-            return ApiResponse::success(null, 'Categoría eliminada', 200); // Retornar la respuesta correcta
+            return ApiResponse::success(null, 'Categoría eliminada de manera exitosa', 200);
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error('Categoría no encontrada', 'Categoría no encontrada', 404); // Retornar el error explícitamente
+            return ApiResponse::error($e->getMessage(),'Categoría no encontrada', 404);
         } catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500); // Retornar el error explícitamente
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = Category::count();
+            $active = Category::where('is_active', 1)->count();
+            $inactive = Category::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    // Acciones grupales
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $categories = Category::whereIn('id', $ids)->withCount('products')->get();
+            return ApiResponse::success($categories, 'Categorías recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Category::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Categorías activadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Category::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Categorías desactivadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Category::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Categorías eliminadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
 }
