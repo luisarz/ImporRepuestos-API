@@ -21,7 +21,15 @@ class RolesController extends Controller
         $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
 
         try {
-            $roles = Rol::paginate($perPage);
+            $query = Rol::query();
+
+            // Aplicar filtro de estado si se proporciona
+            if ($request->has('status_filter') && $request->input('status_filter') !== '') {
+                $statusFilter = $request->input('status_filter');
+                $query->where('is_active', $statusFilter);
+            }
+
+            $roles = $query->paginate($perPage);
             return ApiResponse::success($roles, 'Roles recuperados exitosamente',200);
         }catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
@@ -80,5 +88,83 @@ class RolesController extends Controller
         }
 
         return response()->noContent();
+    }
+
+    /**
+     * Obtener estadísticas de los roles
+     */
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = Rol::count();
+            $active = Rol::where('is_active', 1)->count();
+            $inactive = Rol::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtener roles por IDs (para exportación)
+     */
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $roles = Rol::whereIn('id', $ids)->get();
+            return ApiResponse::success($roles, 'Roles recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Activar múltiples roles
+     */
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Rol::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Roles activados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Desactivar múltiples roles
+     */
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Rol::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Roles desactivados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Eliminar múltiples roles
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Rol::whereIn('id', $ids)->delete();
+            return ApiResponse::success(null, 'Roles eliminados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 500);
+        }
     }
 }

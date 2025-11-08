@@ -23,7 +23,8 @@ class ModuloController extends Controller
             $search = $request->input('search', '');
             $sortField = $request->input('sortField', 'orden');
             $sortOrder = $request->input('desc', 'asc');
-            $validSortFields = ['nombre', 'ruta', 'orden']; // Add your actual columns here
+            $statusFilter = $request->input('status_filter', '');
+            $validSortFields = ['nombre', 'ruta', 'orden', 'is_active']; // Add your actual columns here
             $sortField = in_array($sortField, $validSortFields) ? $sortField : 'orden';
             $query = Modulo::query();
             $query->with('padre:id,nombre,ruta,icono,orden');
@@ -35,19 +36,13 @@ class ModuloController extends Controller
                 });
             }
 
+            // Filtro por estado
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
             $results = $query->orderBy($sortField, $sortOrder)
                 ->paginate($perPage);
-
-////            log($sortField);
-//            log::emergency($sortField);
-//            $modulos = Modulo::with('padre')
-//                ->where(function ($query) use ($search) {
-//                    $query->where('nombre', 'like', "%$search%")
-//                        ->orWhere('ruta', 'like', "%$search%");
-//                })
-//                ->orderBy('orden') // siempre orden principal
-//                ->orderBy($sortField, $sortOrder) // orden secundario
-//                ->paginate($perPage);
 
             return ApiResponse::success($results, 'Módulos recuperados exitosamente', 200);
 
@@ -182,5 +177,92 @@ class ModuloController extends Controller
             return ApiResponse::error(null,$e->getMessage(), 500);
         }
 
+    }
+
+    /**
+     * Obtener estadísticas de módulos
+     */
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = Modulo::count();
+            $active = Modulo::where('is_active', 1)->count();
+            $inactive = Modulo::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtener módulos por IDs
+     */
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $modulos = Modulo::whereIn('id', $ids)->get();
+
+            return ApiResponse::success($modulos, 'Módulos recuperados exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Activar múltiples módulos
+     */
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Modulo::whereIn('id', $ids)->update(['is_active' => 1]);
+
+            return ApiResponse::success(null, 'Módulos activados exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Desactivar múltiples módulos
+     */
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Modulo::whereIn('id', $ids)->update(['is_active' => 0]);
+
+            return ApiResponse::success(null, 'Módulos desactivados exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Eliminar múltiples módulos
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            Modulo::whereIn('id', $ids)->delete();
+
+            return ApiResponse::success(null, 'Módulos eliminados exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
+        }
     }
 }

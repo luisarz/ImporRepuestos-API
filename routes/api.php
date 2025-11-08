@@ -72,7 +72,22 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::get('menu',[MenuAllowedController::class,'index']);
 
+    // Estadísticas y acciones grupales de roles - DEBEN IR ANTES del apiResource
+    Route::get('roles/stats/all', [RolesController::class, 'stats']);
+    Route::post('roles/bulk/get', [RolesController::class, 'bulkGet']);
+    Route::post('roles/bulk/activate', [RolesController::class, 'bulkActivate']);
+    Route::post('roles/bulk/deactivate', [RolesController::class, 'bulkDeactivate']);
+    Route::post('roles/bulk/delete', [RolesController::class, 'bulkDelete']);
+
     Route::apiResource('roles', RolesController::class);
+
+    // Estadísticas y acciones grupales de modulos - DEBEN IR ANTES del apiResource
+    Route::get('modulos/stats/all', [ModuloController::class, 'stats']);
+    Route::post('modulos/bulk/get', [ModuloController::class, 'bulkGet']);
+    Route::post('modulos/bulk/activate', [ModuloController::class, 'bulkActivate']);
+    Route::post('modulos/bulk/deactivate', [ModuloController::class, 'bulkDeactivate']);
+    Route::post('modulos/bulk/delete', [ModuloController::class, 'bulkDelete']);
+
     Route::apiResource('modulos', ModuloController::class);
     Route::get('modulos-all', [ModuloController::class, 'getAll']);
     Route::apiResource('users', UserController::class);
