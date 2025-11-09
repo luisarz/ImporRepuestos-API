@@ -26,6 +26,16 @@ class ProductController extends Controller
             $search = $request->input('search', null);
             $isActive = $request->input('is_active', null);
 
+            // Validar sortField: si es "null" string o vacío, usar 'id'
+            if (!$sortField || $sortField === 'null' || $sortField === 'undefined') {
+                $sortField = 'id';
+            }
+
+            // Validar sortOrder
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'desc';
+            }
+
             $query = Product::with(
                 'brand:id,code,description',
                 'category:id,code,description',
@@ -49,10 +59,8 @@ class ProductController extends Controller
                 $query->where('is_active', $isActive);
             }
 
-            // Aplicar ordenamiento
-            if ($sortField) {
-                $query->orderBy($sortField, $sortOrder);
-            }
+            // Aplicar ordenamiento (siempre ordenar por algo)
+            $query->orderBy($sortField, $sortOrder);
 
             $products = $query->paginate($perPage);
             return ApiResponse::success($products, 'Productos recuperados exitosamente' , 200);
