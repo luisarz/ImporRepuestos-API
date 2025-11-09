@@ -42,13 +42,13 @@ class ProductsExport implements FromCollection, WithHeadings, WithMapping, WithS
     public function map($product): array
     {
         return [
-            $product->code,
-            $product->original_code,
-            $product->barcode,
-            $product->description,
-            $product->brand->name ?? 'N/A',
-            $product->category->name ?? 'N/A',
-            $product->unitMeasurement->name ?? 'N/A',
+            $product->code ?? '',
+            $product->original_code ?? '',
+            $product->barcode ?? '',
+            $product->description ?? '',
+            optional($product->brand)->name ?? 'Sin marca',
+            optional($product->category)->description ?? 'Sin categoría',
+            optional($product->unitMeasurement)->name ?? 'Sin unidad',
             $product->is_active ? 'Activo' : 'Inactivo',
             $product->is_discontinued ? 'Sí' : 'No',
             $product->is_taxed ? 'Sí' : 'No'

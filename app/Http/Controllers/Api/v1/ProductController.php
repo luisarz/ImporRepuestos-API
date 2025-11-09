@@ -452,8 +452,11 @@ class ProductController extends Controller
             $brandId = $request->input('brand_id');
 
             // Construir query base
-            $query = Product::with(['brand', 'category', 'unitMeasurement'])
-                ->where('is_temp', 0);
+            $query = Product::with([
+                'brand',
+                'category',
+                'unitMeasurement'
+            ])->where('is_temp', 0);
 
             // Aplicar filtros según el tipo
             switch ($type) {

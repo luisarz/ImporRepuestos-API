@@ -85,11 +85,11 @@
         <tbody>
             @foreach($products as $product)
             <tr>
-                <td>{{ $product->code }}</td>
-                <td>{{ $product->description }}</td>
-                <td>{{ $product->brand->name ?? 'N/A' }}</td>
-                <td>{{ $product->category->name ?? 'N/A' }}</td>
-                <td>{{ $product->unitMeasurement->name ?? 'N/A' }}</td>
+                <td>{{ $product->code ?? 'N/A' }}</td>
+                <td>{{ $product->description ?? 'N/A' }}</td>
+                <td>{{ optional($product->brand)->name ?? 'Sin marca' }}</td>
+                <td>{{ optional($product->category)->description ?? 'Sin categoría' }}</td>
+                <td>{{ optional($product->unitMeasurement)->name ?? 'Sin unidad' }}</td>
                 <td>
                     <span class="badge {{ $product->is_active ? 'badge-success' : 'badge-danger' }}">
                         {{ $product->is_active ? 'Activo' : 'Inactivo' }}
