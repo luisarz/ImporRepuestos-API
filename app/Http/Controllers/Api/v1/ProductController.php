@@ -356,6 +356,8 @@ class ProductController extends Controller
     public function batchActivate(Request $request): JsonResponse
     {
         try {
+            \Log::info('Batch Activate Request:', ['ids' => $request->ids, 'all' => $request->all()]);
+
             $request->validate([
                 'ids' => 'required|array',
                 'ids.*' => 'integer|exists:products,id'
@@ -369,6 +371,7 @@ class ProductController extends Controller
             ], "{$updated} productos activados exitosamente", 200);
 
         } catch (\Exception $e) {
+            \Log::error('Batch Activate Error:', ['message' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
             return ApiResponse::error($e->getMessage(), 'Error al activar productos', 500);
         }
     }
