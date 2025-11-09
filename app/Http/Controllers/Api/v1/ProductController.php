@@ -21,27 +21,40 @@ class ProductController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $sortField = $request->input('sortField', null);
-            $sortOrder = $request->input('sortOrder', 'asc');
+            $sortField = $request->input('sortField', 'id');
+            $sortOrder = $request->input('sortOrder', 'desc');
             $search = $request->input('search', null);
+            $isActive = $request->input('is_active', null);
 
-            $products = Product::with(
+            $query = Product::with(
                 'brand:id,code,description',
                 'category:id,code,description',
                 'provider:id,comercial_name,document_number',
                 'unitMeasurement:id,code,description',
                 'applications'
-            )
-                ->where('is_temp', 0)
-                ->where(function ($query) use ($search) {
-                    $query->where('description', 'like', '%' . $search . '%')
+            )->where('is_temp', 0);
+
+            // Aplicar búsqueda
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('description', 'like', '%' . $search . '%')
                         ->orWhere('code', 'like', '%' . $search . '%')
                         ->orWhere('original_code', 'like', '%' . $search . '%')
                         ->orWhere('barcode', 'like', '%' . $search . '%');
-                })
+                });
+            }
 
+            // Aplicar filtro de estado
+            if ($isActive !== null && $isActive !== '') {
+                $query->where('is_active', $isActive);
+            }
 
-            ->paginate($perPage);
+            // Aplicar ordenamiento
+            if ($sortField) {
+                $query->orderBy($sortField, $sortOrder);
+            }
+
+            $products = $query->paginate($perPage);
             return ApiResponse::success($products, 'Productos recuperados exitosamente' , 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
