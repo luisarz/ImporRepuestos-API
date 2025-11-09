@@ -26,9 +26,27 @@ class ProductController extends Controller
             $search = $request->input('search', null);
             $isActive = $request->input('is_active', null);
 
+            // Validar per_page
+            if (!is_numeric($perPage) || $perPage < 1) {
+                $perPage = 10;
+            }
+            $perPage = min((int)$perPage, 100); // Máximo 100 registros por página
+
             // Validar sortField: si es "null" string o vacío, usar 'id'
             if (!$sortField || $sortField === 'null' || $sortField === 'undefined') {
                 $sortField = 'id';
+            }
+
+            // Mapear campos de relaciones a campos reales de la tabla
+            $sortFieldMap = [
+                'category' => 'category_id',
+                'brand' => 'brand_id',
+                'unitMeasurement' => 'unit_measurement_id',
+            ];
+
+            // Si el campo está en el mapeo, usar el campo mapeado
+            if (isset($sortFieldMap[$sortField])) {
+                $sortField = $sortFieldMap[$sortField];
             }
 
             // Validar sortOrder
