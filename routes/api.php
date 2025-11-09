@@ -239,6 +239,11 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('products/batch/activate', [ProductController::class, 'batchActivate']);
     Route::post('products/batch/deactivate', [ProductController::class, 'batchDeactivate']);
     Route::post('products/batch/delete', [ProductController::class, 'batchDelete']);
+
+    // Rutas para gestión de imágenes de productos
+    Route::delete('products/{productId}/images/{imageId}', [ProductController::class, 'deleteImage']);
+    Route::put('products/{productId}/images/{imageId}/primary', [ProductController::class, 'setPrimaryImage']);
+
     Route::apiResource('products', ProductController::class);
     Route::post('/v1/products/{id}', [ProductController::class, 'update']);
 

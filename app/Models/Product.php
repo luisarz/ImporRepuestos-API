@@ -104,4 +104,33 @@ class Product extends Model
         return $this->hasMany(Equivalent::class,'product_id','id');
     }
 
+    /**
+     * Relación con imágenes del producto
+     */
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('order');
+    }
+
+    /**
+     * Obtener la imagen principal del producto
+     */
+    public function primaryImage()
+    {
+        return $this->hasOne(ProductImage::class)->where('is_primary', true);
+    }
+
+    /**
+     * Accesor para obtener la URL de la imagen principal
+     */
+    public function getPrimaryImageUrlAttribute()
+    {
+        $primaryImage = $this->primaryImage;
+        if ($primaryImage) {
+            return $primaryImage->image_url;
+        }
+        // Fallback a la imagen antigua si existe
+        return $this->image ? Storage::url($this->image) : null;
+    }
+
 }

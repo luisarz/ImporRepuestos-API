@@ -9,6 +9,7 @@ use App\Http\Requests\Api\v1\ProductUpdateRequest;
 use App\Http\Resources\Api\v1\ProductCollection;
 use App\Http\Resources\Api\v1\ProductResource;
 use App\Models\Product;
+use App\Models\ProductImage;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -59,7 +60,8 @@ class ProductController extends Controller
                 'category:id,code,description',
                 'provider:id,comercial_name,document_number',
                 'unitMeasurement:id,code,description',
-                'applications'
+                'applications',
+                'images' // Cargar imágenes del producto
             )->where('is_temp', 0);
 
             // Aplicar búsqueda
@@ -107,42 +109,53 @@ class ProductController extends Controller
             $product = Product::create($data);
             \Log::info('Producto creado con ID: ' . $product->id);
 
-            // Manejar la imagen si existe
-            if ($request->hasFile('image')) {
-                \Log::info('Procesando imagen...');
+            // Manejar múltiples imágenes si existen
+            if ($request->hasFile('images')) {
+                \Log::info('Procesando imágenes...');
 
-                try {
-                    $image = $request->file('image');
+                $images = $request->file('images');
+                if (!is_array($images)) {
+                    $images = [$images];
+                }
 
-                    // Validar imagen
-                    if (!$image->isValid()) {
-                        throw new \Exception('Archivo de imagen no válido');
+                foreach ($images as $index => $image) {
+                    try {
+                        // Validar imagen
+                        if (!$image->isValid()) {
+                            \Log::warning("Imagen {$index} no válida, saltando...");
+                            continue;
+                        }
+
+                        // Generar nombre único
+                        $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
+
+                        // Guardar imagen en storage/app/public/products
+                        $path = $image->storeAs('products', $imageName, 'public');
+
+                        if (!$path) {
+                            \Log::error("Error al guardar imagen {$index}");
+                            continue;
+                        }
+
+                        // Crear registro de imagen
+                        ProductImage::create([
+                            'product_id' => $product->id,
+                            'image_path' => $path,
+                            'is_primary' => $index === 0, // Primera imagen es la principal
+                            'order' => $index,
+                        ]);
+
+                        \Log::info("Imagen {$index} guardada: {$path}");
+
+                    } catch (\Exception $e) {
+                        \Log::error("Error al procesar imagen {$index}: " . $e->getMessage());
+                        continue;
                     }
-
-                    // Generar nombre único
-                    $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-
-                    // Guardar imagen en storage/app/public/products
-                    $path = $image->storeAs('products', $imageName, 'public');
-
-                    if (!$path) {
-                        throw new \Exception('Error al guardar el archivo');
-                    }
-
-                    // Actualizar el producto con la URL de la imagen
-                    $product->image = Storage::url($path);
-                    $product->save();
-
-                    \Log::info('Imagen guardada: ' . $product->image);
-
-                } catch (\Exception $e) {
-                    \Log::error('Error al procesar imagen: ' . $e->getMessage());
-                    // Continuar sin imagen en lugar de fallar
                 }
             }
 
-            // Recargar el producto con sus relaciones
-            $product->load('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description');
+            // Recargar el producto con sus relaciones e imágenes
+            $product->load('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description', 'images');
 
             \Log::info('Producto creado exitosamente:', ['id' => $product->id, 'is_temp' => $product->is_temp]);
 
@@ -176,56 +189,61 @@ class ProductController extends Controller
 
             $product = Product::findOrFail($id);
 
-            // Procesar imagen primero si existe
-            if ($request->hasFile('image')) {
-                \Log::info('Subiendo imagen...');
+            // Procesar múltiples imágenes si existen
+            if ($request->hasFile('images')) {
+                \Log::info('Subiendo imágenes...');
 
-                try {
-                    $image = $request->file('image');
+                $images = $request->file('images');
+                if (!is_array($images)) {
+                    $images = [$images];
+                }
 
-                    // Validar imagen
-                    if (!$image->isValid()) {
-                        throw new \Exception('Archivo de imagen no válido');
+                // Obtener el número actual de imágenes para continuar el orden
+                $currentImagesCount = $product->images()->count();
+
+                foreach ($images as $index => $image) {
+                    try {
+                        // Validar imagen
+                        if (!$image->isValid()) {
+                            \Log::warning("Imagen {$index} no válida, saltando...");
+                            continue;
+                        }
+
+                        // Generar nombre único
+                        $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
+
+                        // Guardar en storage/app/public/products
+                        $path = $image->storeAs('products', $imageName, 'public');
+
+                        if (!$path) {
+                            \Log::error("Error al guardar imagen {$index}");
+                            continue;
+                        }
+
+                        // Crear registro de imagen
+                        // Si no hay imágenes, la primera será principal
+                        ProductImage::create([
+                            'product_id' => $product->id,
+                            'image_path' => $path,
+                            'is_primary' => $currentImagesCount === 0 && $index === 0,
+                            'order' => $currentImagesCount + $index,
+                        ]);
+
+                        \Log::info("Imagen {$index} guardada: {$path}");
+
+                    } catch (\Exception $e) {
+                        \Log::error("Error al procesar imagen {$index}: " . $e->getMessage());
+                        continue;
                     }
-
-                    // Generar nombre único
-                    $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
-
-                    // Guardar en storage/app/public/products
-                    $path = $image->storeAs('products', $imageName, 'public');
-
-                    if (!$path) {
-                        throw new \Exception('Error al mover el archivo al almacenamiento');
-                    }
-
-                    // Eliminar imagen anterior si existe
-                    if ($product->image) {
-                        // Extraer el path relativo de la URL completa
-                        // Si image = "/storage/products/uuid.jpg", extraer "products/uuid.jpg"
-                        $oldPath = str_replace('/storage/', '', $product->image);
-                        Storage::disk('public')->delete($oldPath);
-                    }
-
-                    // Actualizar modelo con la URL de la imagen
-                    $product->image = Storage::url($path);
-                    $product->save();
-
-                    \Log::info('Imagen asignada al producto: ' . $product->image);
-
-                } catch (\Exception $e) {
-                    \Log::error('Error al procesar imagen: ' . $e->getMessage());
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Error al subir imagen: ' . $e->getMessage()
-                    ], 500);
                 }
             }
 
             // Actualizar con los datos validados
             $data = $request->validated();
 
-            // IMPORTANTE: Remover la imagen de los datos
-            // La imagen ya fue procesada arriba
+            // IMPORTANTE: Remover las imágenes de los datos
+            // Las imágenes ya fueron procesadas arriba
+            unset($data['images']);
             unset($data['image']);
 
             // IMPORTANTE: Al actualizar, siempre marcar como NO temporal
@@ -233,8 +251,8 @@ class ProductController extends Controller
 
             $product->update($data);
 
-            // Recargar con relaciones
-            $product->load('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description');
+            // Recargar con relaciones e imágenes
+            $product->load('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description', 'images');
 
             \Log::info('Producto actualizado exitosamente:', ['id' => $product->id, 'is_temp' => $product->is_temp]);
 
@@ -249,6 +267,64 @@ class ProductController extends Controller
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Eliminar una imagen específica del producto
+     */
+    public function deleteImage($productId, $imageId): JsonResponse
+    {
+        try {
+            $product = Product::findOrFail($productId);
+            $image = ProductImage::where('product_id', $productId)
+                                 ->where('id', $imageId)
+                                 ->firstOrFail();
+
+            $wasPrimary = $image->is_primary;
+            $image->delete();
+
+            // Si la imagen eliminada era la principal, asignar otra como principal
+            if ($wasPrimary) {
+                $newPrimary = $product->images()->orderBy('order')->first();
+                if ($newPrimary) {
+                    $newPrimary->is_primary = true;
+                    $newPrimary->save();
+                }
+            }
+
+            return ApiResponse::success(null, 'Imagen eliminada exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'Imagen no encontrada', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Establecer una imagen como principal
+     */
+    public function setPrimaryImage($productId, $imageId): JsonResponse
+    {
+        try {
+            $product = Product::findOrFail($productId);
+
+            // Quitar el flag de principal de todas las imágenes del producto
+            ProductImage::where('product_id', $productId)->update(['is_primary' => false]);
+
+            // Establecer la nueva imagen principal
+            $image = ProductImage::where('product_id', $productId)
+                                 ->where('id', $imageId)
+                                 ->firstOrFail();
+
+            $image->is_primary = true;
+            $image->save();
+
+            return ApiResponse::success($image, 'Imagen principal actualizada', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'Imagen no encontrada', 404);
+        } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
