@@ -240,6 +240,9 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('products/batch/deactivate', [ProductController::class, 'batchDeactivate']);
     Route::post('products/batch/delete', [ProductController::class, 'batchDelete']);
 
+    // Ruta para generar reportes
+    Route::get('products/report', [ProductController::class, 'generateReport']);
+
     // Rutas para gestión de imágenes de productos
     Route::delete('products/{productId}/images/{imageId}', [ProductController::class, 'deleteImage']);
     Route::put('products/{productId}/images/{imageId}/primary', [ProductController::class, 'setPrimaryImage']);

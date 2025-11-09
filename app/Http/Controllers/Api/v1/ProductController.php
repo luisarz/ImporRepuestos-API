@@ -439,4 +439,68 @@ class ProductController extends Controller
             return ApiResponse::error($e->getMessage(), 'Error al obtener estadísticas', 500);
         }
     }
+
+    /**
+     * Generar reporte de productos
+     */
+    public function generateReport(Request $request)
+    {
+        try {
+            $type = $request->input('type', 'all');
+            $format = $request->input('format', 'pdf');
+            $categoryId = $request->input('category_id');
+            $brandId = $request->input('brand_id');
+
+            // Construir query base
+            $query = Product::with(['brand', 'category', 'unitMeasurement'])
+                ->where('is_temp', 0);
+
+            // Aplicar filtros según el tipo
+            switch ($type) {
+                case 'category':
+                    if ($categoryId) {
+                        $query->where('category_id', $categoryId);
+                    }
+                    break;
+                case 'brand':
+                    if ($brandId) {
+                        $query->where('brand_id', $brandId);
+                    }
+                    break;
+                case 'active':
+                    $query->where('is_active', 1);
+                    break;
+                case 'inactive':
+                    $query->where('is_active', 0);
+                    break;
+            }
+
+            $products = $query->orderBy('code')->get();
+
+            if ($format === 'excel') {
+                return $this->generateExcelReport($products, $type);
+            } else {
+                return $this->generatePdfReport($products, $type);
+            }
+
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al generar reporte', 500);
+        }
+    }
+
+    private function generatePdfReport($products, $type)
+    {
+        $pdf = \PDF::loadView('reports.products', [
+            'products' => $products,
+            'type' => $type,
+            'date' => now()->format('d/m/Y H:i')
+        ]);
+
+        return $pdf->stream('productos_' . $type . '_' . time() . '.pdf');
+    }
+
+    private function generateExcelReport($products, $type)
+    {
+        return \Excel::download(new \App\Exports\ProductsExport($products), 'productos_' . $type . '_' . time() . '.xlsx');
+    }
 }

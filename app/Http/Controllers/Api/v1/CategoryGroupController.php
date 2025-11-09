@@ -20,7 +20,46 @@ class CategoryGroupController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $categoryGroups = CategoryGroup::paginate($perPage);
+            $sortField = $request->input('sortField', 'id');
+            $sortOrder = $request->input('sortOrder', 'desc');
+            $search = $request->input('search', null);
+            $isActive = $request->input('is_active', null);
+
+            // Validar per_page
+            if (!is_numeric($perPage) || $perPage < 1) {
+                $perPage = 10;
+            }
+            $perPage = min((int)$perPage, 100);
+
+            // Validar sortField
+            if (!$sortField || $sortField === 'null' || $sortField === 'undefined') {
+                $sortField = 'id';
+            }
+
+            // Validar sortOrder
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'desc';
+            }
+
+            $query = CategoryGroup::query();
+
+            // Aplicar búsqueda
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                      ->orWhere('code', 'like', '%' . $search . '%');
+                });
+            }
+
+            // Aplicar filtro de estado
+            if ($isActive !== null && $isActive !== '') {
+                $query->where('active', $isActive);
+            }
+
+            // Aplicar ordenamiento
+            $query->orderBy($sortField, $sortOrder);
+
+            $categoryGroups = $query->paginate($perPage);
             return ApiResponse::success($categoryGroups,'Category Groups retrieved successfully',200);
         }catch (\Exception $exception){
             return ApiResponse::error($exception->getMessage(),'Error al recuperar los grupos',500);
