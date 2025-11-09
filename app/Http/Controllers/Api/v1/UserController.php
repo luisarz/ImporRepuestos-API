@@ -22,7 +22,15 @@ class UserController extends Controller
         try {
             $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
 
-            $users = User::select('id','name','email')->paginate($perPage);
+            $query = User::with(['employee', 'roles']);
+
+            // Aplicar filtro de estado si se proporciona
+            if ($request->has('status_filter') && $request->input('status_filter') !== '') {
+                $statusFilter = $request->input('status_filter');
+                $query->where('is_active', $statusFilter);
+            }
+
+            $users = $query->paginate($perPage);
             return ApiResponse::success($users, 'Users recuperados existosamente', 200);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(),'Ocurrrió un error', 500);
@@ -33,15 +41,23 @@ class UserController extends Controller
     public function store(UserStoreRequest $request): JsonResponse
     {
         try {
+            $data = $request->validated();
 
-            $user = User::create($request->validated());
-            $roles=$request->get('roles');
+            // Hashear el password
+            if (isset($data['password'])) {
+                $data['password'] = bcrypt($data['password']);
+            }
+
+            $user = User::create($data);
+            $roles = $request->get('roles');
 
             $user->assignRole($roles);
-            $response=[
-                'user'=>$user,
-                'roles'=>$request->get('roles')
+
+            $response = [
+                'user' => $user->load(['employee', 'roles']),
+                'roles' => $request->get('roles')
             ];
+
             return ApiResponse::success($response, 'User creado exitosamente', 201);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(),'Ocurrrió un error', 500);
@@ -52,8 +68,7 @@ class UserController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         try {
-            $user = User::findOrfail($id);
-         $user->getRoleNames();
+            $user = User::with(['employee', 'roles'])->findOrfail($id);
             return ApiResponse::success($user, 'User recuperado existosamente', 200 );
         }catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'User no encontrado', 404);
@@ -65,11 +80,23 @@ class UserController extends Controller
     public function update(UserUpdateRequest $request, $id): JsonResponse
     {
         try {
-            $user=User::findOrfail($id);
-            $user->update($request->validated());
-            $roles=$request->get('roles');
+            $user = User::findOrfail($id);
+            $data = $request->validated();
+
+            // Solo actualizar password si se envió uno nuevo
+            if (isset($data['password']) && !empty($data['password'])) {
+                $data['password'] = bcrypt($data['password']);
+            } else {
+                // No actualizar el password si está vacío
+                unset($data['password']);
+            }
+
+            $user->update($data);
+
+            $roles = $request->get('roles');
             $user->syncRoles($roles);
-            return ApiResponse::success($user, 'User actualizado existosamente', 200);
+
+            return ApiResponse::success($user->load(['employee', 'roles']), 'User actualizado existosamente', 200);
         }catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'User no encontrado', 404);
         }catch(\Exception $e){
@@ -89,8 +116,89 @@ class UserController extends Controller
         }catch(\Exception $e){
             return ApiResponse::error($e->getMessage(),'Ocurrrió un error', 500);
         }
+    }
 
+    /**
+     * Obtener estadísticas de los usuarios
+     */
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = User::count();
+            $active = User::where('is_active', 1)->count();
+            $inactive = User::where('is_active', 0)->count();
 
-        return response()->noContent();
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Obtener usuarios por IDs (para exportación)
+     */
+    public function bulkGet(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $users = User::with(['employee', 'roles'])->whereIn('id', $ids)->get();
+            return ApiResponse::success($users, 'Usuarios recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Activar múltiples usuarios
+     */
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            User::whereIn('id', $ids)->update(['is_active' => 1]);
+            return ApiResponse::success(null, 'Usuarios activados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Desactivar múltiples usuarios
+     */
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            User::whereIn('id', $ids)->update(['is_active' => 0]);
+            return ApiResponse::success(null, 'Usuarios desactivados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Eliminar múltiples usuarios
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        try {
+            $ids = $request->input('ids', []);
+            $users = User::whereIn('id', $ids)->get();
+
+            foreach ($users as $user) {
+                $user->syncRoles([]);
+                $user->delete();
+            }
+
+            return ApiResponse::success(null, 'Usuarios eliminados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
     }
 }

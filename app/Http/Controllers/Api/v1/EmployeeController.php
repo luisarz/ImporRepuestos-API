@@ -78,4 +78,21 @@ class EmployeeController extends Controller
         }
 
     }
+
+    /**
+     * Obtener todos los empleados activos (sin paginar)
+     * Para uso en selects y formularios
+     */
+    public function getAll(Request $request): JsonResponse
+    {
+        try {
+            $employees = Employee::where('is_active', 1)
+                ->select('id', 'name', 'last_name', 'email')
+                ->orderBy('name')
+                ->get();
+            return ApiResponse::success($employees, 'Empleados recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
 }

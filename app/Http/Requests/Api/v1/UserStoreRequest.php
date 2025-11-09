@@ -21,11 +21,12 @@ class UserStoreRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'email' => ['required', 'email'],
+            'email' => ['required', 'email', 'unique:users,email'],
             'employee_id' => ['required', 'exists:employees,id'],
-            'password' => ['required', 'string'],
+            'password' => ['required', 'string', 'min:6'],
             'rememeber_token' => ['nullable', 'string'],
             'roles' => ['required', 'array'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }

@@ -39,55 +39,95 @@ class RolesController extends Controller
     public function store(RoleStoreRequest $request): JsonResponse
     {
         try {
-            $role = Role::create(['name'=>$request->name,'guard_name'=>$request->guard_name]);
-            $role->syncPermissions($request->permission);
-            return ApiResponse::success($role, 'Role creado exitosamente',201);
-        }catch (\Exception $e) {
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
-        }
+            $role = Role::create([
+                'name' => $request->name,
+                'guard_name' => $request->guard_name ?? 'api',
+                'description' => $request->description,
+                'is_active' => $request->is_active ?? 1,
+            ]);
 
+            if ($request->has('permissions')) {
+                $role->syncPermissions($request->permissions);
+            }
+
+            return ApiResponse::success($role->load('permissions'), 'Role creado exitosamente', 201);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
     }
 
-    public function show(Request $request,$id): JsonResponse
+    public function show(Request $request, $id): JsonResponse
     {
         try {
-            $role=Rol::findOrFail($id);
-            return ApiResponse::success($role, 'Rol recuperado exitosamente',200);
-        }catch (ModelNotFoundException $e) {
-            return ApiResponse::error(null,'Rol no encontrado',404);
-        }catch(\Exception $e){
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+            $role = Rol::with(['permissions.module'])->findOrFail($id);
+
+            $response = [
+                'id' => $role->id,
+                'name' => $role->name,
+                'guard_name' => $role->guard_name,
+                'description' => $role->description,
+                'is_active' => $role->is_active,
+                'permissions' => $role->getPermissionIds(),
+                'permissions_count' => $role->permissions->count(),
+                'users_count' => $role->users()->count(),
+                'created_at' => $role->created_at,
+                'updated_at' => $role->updated_at,
+            ];
+
+            return ApiResponse::success($response, 'Rol recuperado exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'Rol no encontrado', 404);
+        } catch(\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 
     public function update(RoleUpdateRequest $request, $id): JsonResponse
     {
         try {
-            $role=Rol::findOrFail($id);
-            $role->update($request->validated());
-            return ApiResponse::success($role, 'Role actualizado exitosamente',200);
+            $role = Rol::findOrFail($id);
 
-        }catch (ModelNotFoundException $e) {
-            return ApiResponse::error(null,'Rol no encontrado',404);
-        }catch(\Exception $e){
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+            $role->update([
+                'name' => $request->name,
+                'is_active' => $request->is_active,
+                'description' => $request->description,
+            ]);
+
+            // IMPORTANTE: Sincronizar permisos si se enviaron
+            if ($request->has('permissions')) {
+                $role->syncPermissions($request->permissions);
+            }
+
+            return ApiResponse::success($role->load('permissions'), 'Role actualizado exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'Rol no encontrado', 404);
+        } catch(\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
-
     }
 
-    public function destroy(Request $request,$id): JsonResponse
+    public function destroy(Request $request, $id): JsonResponse
     {
         try {
-            $rol=Rol::findOrFail($id);
-            $rol->delete();
-            return ApiResponse::success(null,'Role eliminado exitosamente',200);
-        }catch (ModelNotFoundException $e) {
-            return ApiResponse::error(null,'Rol no encontrado',404);
-        }catch(\Exception $e){
-            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
-        }
+            $role = Rol::findOrFail($id);
 
-        return response()->noContent();
+            // Verificar si tiene usuarios asignados
+            $usersCount = $role->users()->count();
+            if ($usersCount > 0) {
+                return ApiResponse::error(
+                    "No se puede eliminar el rol porque tiene {$usersCount} usuarios asignados",
+                    'Error de validación',
+                    400
+                );
+            }
+
+            $role->delete();
+            return ApiResponse::success(null, 'Role eliminado exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'Rol no encontrado', 404);
+        } catch(\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
     }
 
     /**
@@ -165,6 +205,24 @@ class RolesController extends Controller
             return ApiResponse::success(null, 'Roles eliminados exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Obtener todos los roles activos (sin paginar)
+     * Para uso en selects y formularios
+     */
+    public function getAll(Request $request): JsonResponse
+    {
+        try {
+            $roles = Rol::where('guard_name', 'api')
+                ->where('is_active', 1)
+                ->select('id', 'name', 'description')
+                ->orderBy('name')
+                ->get();
+            return ApiResponse::success($roles, 'Roles recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 }

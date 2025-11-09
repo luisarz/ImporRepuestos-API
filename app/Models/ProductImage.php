@@ -21,6 +21,11 @@ class ProductImage extends Model
     ];
 
     /**
+     * Atributos que se agregan al modelo
+     */
+    protected $appends = ['image_url'];
+
+    /**
      * Relación con Product
      */
     public function product(): BelongsTo

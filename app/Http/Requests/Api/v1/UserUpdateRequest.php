@@ -21,11 +21,12 @@ class UserUpdateRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string'],
-            'email' => 'required|email|unique:users,email,' . $this->route('id'),
+            'email' => 'required|email|unique:users,email,' . $this->route('user'),
             'employee_id' => ['required', 'exists:employees,id'],
-            'password' => ['required', 'string'],
+            'password' => ['nullable', 'string', 'min:6'],
             'rememeber_token' => ['nullable', 'string'],
             'roles' => ['required', 'array'],
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
 }
