@@ -90,14 +90,66 @@ class ProductController extends Controller
     public function store(ProductStoreRequest $request): JsonResponse
     {
         try {
+            \Log::info('=== CREANDO PRODUCTO ===');
+            \Log::info('Datos validados:', $request->validated());
 
+            // Crear el producto con los datos validados
+            $data = $request->validated();
 
+            // IMPORTANTE: Remover la imagen de los datos antes de crear
+            // La imagen se procesará después de crear el registro
+            unset($data['image']);
 
-            $product = (new \App\Models\Product)->create($request->validated());
-            // Si se sube una imagen, guárdala
+            // IMPORTANTE: Marcar como NO temporal (producto real)
+            $data['is_temp'] = false;
 
-            return ApiResponse::success($product, 'Producto creado exitosamente' . $request, 201);
+            // Crear el producto
+            $product = Product::create($data);
+            \Log::info('Producto creado con ID: ' . $product->id);
+
+            // Manejar la imagen si existe
+            if ($request->hasFile('image')) {
+                \Log::info('Procesando imagen...');
+
+                try {
+                    $image = $request->file('image');
+
+                    // Validar imagen
+                    if (!$image->isValid()) {
+                        throw new \Exception('Archivo de imagen no válido');
+                    }
+
+                    // Generar nombre único
+                    $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
+
+                    // Guardar imagen en storage/app/public/products
+                    $path = $image->storeAs('products', $imageName, 'public');
+
+                    if (!$path) {
+                        throw new \Exception('Error al guardar el archivo');
+                    }
+
+                    // Actualizar el producto con la URL de la imagen
+                    $product->image = Storage::url($path);
+                    $product->save();
+
+                    \Log::info('Imagen guardada: ' . $product->image);
+
+                } catch (\Exception $e) {
+                    \Log::error('Error al procesar imagen: ' . $e->getMessage());
+                    // Continuar sin imagen en lugar de fallar
+                }
+            }
+
+            // Recargar el producto con sus relaciones
+            $product->load('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description');
+
+            \Log::info('Producto creado exitosamente:', ['id' => $product->id, 'is_temp' => $product->is_temp]);
+
+            return ApiResponse::success($product, 'Producto creado exitosamente', 201);
         } catch (\Exception $e) {
+            \Log::error('Error al crear producto: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
@@ -118,40 +170,43 @@ class ProductController extends Controller
     public function update(ProductUpdateRequest $request, $id): JsonResponse
     {
         try {
+            \Log::info('=== ACTUALIZANDO PRODUCTO ===');
+            \Log::info('ID: ' . $id);
+            \Log::info('Datos recibidos:', $request->validated());
 
             $product = Product::findOrFail($id);
 
-
+            // Procesar imagen primero si existe
             if ($request->hasFile('image')) {
                 \Log::info('Subiendo imagen...');
 
                 try {
                     $image = $request->file('image');
 
-                    // 1. Validaciones previas
+                    // Validar imagen
                     if (!$image->isValid()) {
                         throw new \Exception('Archivo de imagen no válido');
                     }
 
-                    // 2. Generar nombre único
+                    // Generar nombre único
                     $imageName = Str::uuid() . '.' . $image->getClientOriginalExtension();
 
-                    // 3. Guardar con verificación
-                    //guredala en public_path
+                    // Guardar en storage/app/public/products
                     $path = $image->storeAs('products', $imageName, 'public');
 
                     if (!$path) {
                         throw new \Exception('Error al mover el archivo al almacenamiento');
                     }
 
-
-
-                    // 5. Eliminar imagen anterior si existe
+                    // Eliminar imagen anterior si existe
                     if ($product->image) {
-                        Storage::disk('public')->delete($product->image);
+                        // Extraer el path relativo de la URL completa
+                        // Si image = "/storage/products/uuid.jpg", extraer "products/uuid.jpg"
+                        $oldPath = str_replace('/storage/', '', $product->image);
+                        Storage::disk('public')->delete($oldPath);
                     }
 
-                    // 6. Actualizar modelo
+                    // Actualizar modelo con la URL de la imagen
                     $product->image = Storage::url($path);
                     $product->save();
 
@@ -159,16 +214,29 @@ class ProductController extends Controller
 
                 } catch (\Exception $e) {
                     \Log::error('Error al procesar imagen: ' . $e->getMessage());
-                    // Opcional: Retornar error al cliente
                     return response()->json([
                         'success' => false,
                         'message' => 'Error al subir imagen: ' . $e->getMessage()
                     ], 500);
                 }
             }
-            $product->update($request->validated());
 
-            // Log después de actualizar
+            // Actualizar con los datos validados
+            $data = $request->validated();
+
+            // IMPORTANTE: Remover la imagen de los datos
+            // La imagen ya fue procesada arriba
+            unset($data['image']);
+
+            // IMPORTANTE: Al actualizar, siempre marcar como NO temporal
+            $data['is_temp'] = false;
+
+            $product->update($data);
+
+            // Recargar con relaciones
+            $product->load('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description');
+
+            \Log::info('Producto actualizado exitosamente:', ['id' => $product->id, 'is_temp' => $product->is_temp]);
 
             return ApiResponse::success($product, 'Producto actualizado exitosamente', 200);
 

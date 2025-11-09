@@ -69,21 +69,8 @@ class Product extends Model
                 Storage::disk('public')->delete($product->image);
             }
         });
-        static::creating(function ($product) {
-            // Marcar como temporal si no se especifica lo contrario
-            if (!isset($product->is_temp)) {
-                $product->is_temp = true;
-            }
 
-        });
-        static::updating(function ($product) {
-            // Marcar como temporal si no se especifica lo contrario
-            if (isset($product->is_temp)) {
-                $product->is_temp = false;
-            }
-
-        });
-
+        // Ya no establecemos is_temp automáticamente - lo manejamos en el controlador
     }
     public function brand(): BelongsTo
     {
