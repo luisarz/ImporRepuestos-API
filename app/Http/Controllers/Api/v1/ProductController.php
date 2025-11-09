@@ -170,7 +170,14 @@ class ProductController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         try {
-            $product = Product::with('brand:id,code,description', 'category:id,code,description', 'provider:id,comercial_name,document_number', 'unitMeasurement:id,code,description', 'images')->findOrFail($id);
+            $product = Product::with([
+                'brand:id,code,description',
+                'category:id,code,description',
+                'provider:id,comercial_name,document_number',
+                'unitMeasurement:id,code,description',
+                'images',
+                'applications'
+            ])->findOrFail($id);
             return ApiResponse::success($product, 'Producto recuperado exitosamente', 200);
         }catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'Producto no encontrado', 404);

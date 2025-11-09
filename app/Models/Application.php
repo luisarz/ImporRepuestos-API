@@ -18,6 +18,8 @@ class Application extends Model
     protected $fillable = [
         'product_id',
         'vehicle_id',
+        'name',
+        'brand',
         'is_active',
     ];
 

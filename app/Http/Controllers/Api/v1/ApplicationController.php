@@ -82,11 +82,28 @@ class ApplicationController extends Controller
         try {
             $application= (new Application)->findOrFail($id);
             $application->delete();
-            return ApiResponse::success(null,'Aplicación recuperada exitosamente',200);
+            return ApiResponse::success(null,'Aplicación eliminada exitosamente',200);
         }catch (ModelNotFoundException $e){
             return ApiResponse::error(null,'No se encontró la Aplicación buscada',404);
         }catch (\Exception $e){
             return ApiResponse::error($e->getMessage(),'Ocurrió un error',500);
+        }
+    }
+
+    public function getApplicationByProduct($id, Request $request): JsonResponse
+    {
+        try {
+            $per_page = $request->input('per_page', 10);
+            $applications = Application::with([
+                'product:id,code,barcode,description',
+                'vehicle:id,year,chassis'
+            ])->where('product_id', $id)->paginate($per_page);
+
+            return ApiResponse::success($applications, 'Aplicaciones recuperadas exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'No se encontraron aplicaciones', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 }

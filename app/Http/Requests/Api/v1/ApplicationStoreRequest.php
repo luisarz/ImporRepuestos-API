@@ -21,7 +21,9 @@ class ApplicationStoreRequest extends FormRequest
     {
         return [
             'product_id' => ['required', 'integer','exists:products,id'],
-            'vehicle_id' => ['required', 'integer','exists:vehicles,id'],
+            'vehicle_id' => ['nullable', 'integer','exists:vehicles,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'brand' => ['nullable', 'string', 'max:255'],
             'is_active' => ['required', 'integer'],
         ];
     }

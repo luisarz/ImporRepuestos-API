@@ -37,21 +37,20 @@ class InterchangesController extends Controller
 
 
     }
-    public function getInterchangeByProduct($id,Request $request): JsonResponse
+    public function getInterchangeByProduct($id, Request $request): JsonResponse
     {
-
-        $per_page= $request->input('per_page', 10);
-
         try {
-            $id_product = $request->input('$id');
-            $interchanges = \App\Models\Interchange::where('product_id', $id)->paginate($per_page);
-            return ApiResponse::success($interchanges, 'Intercambios recuperada exitosamente', 200);
+            // Obtener intercambios del producto específico con relación al producto
+            $interchanges = \App\Models\Interchange::with('product')
+                ->where('product_id', $id)
+                ->get();
+
+            return ApiResponse::success($interchanges, 'Intercambios recuperados exitosamente', 200);
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error(null, 'No se encontró el Intercambio buscada', 404);
+            return ApiResponse::error(null, 'No se encontró el intercambio buscado', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
-
     }
     public function show(Request $request, Interchange $interchange): Response
     {

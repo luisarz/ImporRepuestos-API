@@ -283,6 +283,7 @@ Route::middleware(['jwt'])->group(function () {
 
     #Aplicaciones y equivalencias
     Route::apiResource('applications', ApplicationController::class);
+    Route::get('applications/product/{id_product}', [ApplicationController::class, 'getApplicationByProduct']);
     Route::apiResource('equivalents', EquivalentController::class);
     Route::get('equivalents/product/{id_products}', [EquivalentController::class, 'getEquivalentByProduct']);
 

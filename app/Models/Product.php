@@ -103,6 +103,10 @@ class Product extends Model
     {
         return $this->hasMany(Equivalent::class,'product_id','id');
     }
+    public function interchanges(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Interchange::class,'product_id','id');
+    }
 
     /**
      * Relación con imágenes del producto

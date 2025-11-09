@@ -35,28 +35,23 @@ class EquivalentController extends Controller
         }
     }
 
-    public function getEquivalentByProduct($id,Request $request): JsonResponse
+    public function getEquivalentByProduct($id, Request $request): JsonResponse
     {
-        \Illuminate\Log\log($request->all());
-        \Illuminate\Log\log($id);
         try {
-            $id_product = $request->input('$id');
-
+            // Obtener equivalentes del producto específico con todas las relaciones
             $equivalents = Equivalent::with([
-                'productOriginal:id,code,barcode,description,brand_id',
-                'productEquivalent:id,code,barcode,description',
+                'productOriginal',
+                'productEquivalent',
                 'productEquivalent.brand',
-            ])->where('product_id', $id)->paginate(10);
+                'productEquivalent.category'
+            ])->where('product_id', $id)->get();
 
-
-
-            return ApiResponse::success($equivalents, 'Equivalentes recuperada exitosamente', 200);
+            return ApiResponse::success($equivalents, 'Equivalentes recuperados exitosamente', 200);
         } catch (ModelNotFoundException $e) {
-            return ApiResponse::error(null, 'No se encontró el equivalente buscada', 404);
+            return ApiResponse::error(null, 'No se encontró el equivalente buscado', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
-
     }
 
     public function store(EquivalentStoreRequest $request): JsonResponse
