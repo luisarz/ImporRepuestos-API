@@ -65,10 +65,10 @@ use App\Http\Controllers\Api\v1\SenEmailDTEController;
 
 
 Route::post('login', [LoginController::class, 'login']);
+Route::post('refresh', [LoginController::class, 'refresh']); // ✅ Fuera del middleware
 
 Route::middleware(['jwt'])->group(function () {
     Route::post('logout', [LoginController::class, 'logout']);
-    Route::post('refresh', [LoginController::class, 'refresh']);
 
     // ========== MENU (NUEVO - Basado en permisos de Spatie) ==========
     Route::prefix('menu')->group(function () {
