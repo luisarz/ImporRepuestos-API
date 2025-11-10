@@ -22,7 +22,7 @@ class SaleItemUpdateRequest extends FormRequest
         return [
             'sale_id' => ['required', 'integer'],
             'inventory_id' => ['required', 'integer'],
-            'batch_id' => ['required', 'integer'],
+            'batch_id' => ['nullable', 'integer'],
             'saled' => ['required'],
             'quantity' => ['required', 'numeric'],
             'price' => ['required', 'numeric'],
