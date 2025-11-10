@@ -337,6 +337,8 @@ Route::middleware(['jwt'])->group(function () {
     #Sales, Items, DTE, Payment Details
     Route::post('sales/{id}/finalize', [SalesHeaderController::class, 'finalize']);
     Route::post('sales/{id}/cancel', [SalesHeaderController::class, 'cancel']);
+    Route::get('sales/stats/all', [SalesHeaderController::class, 'stats']);
+
 
     Route::apiResource('sales', SalesHeaderController::class);
     Route::apiResource('sales', SalesHeaderController::class);

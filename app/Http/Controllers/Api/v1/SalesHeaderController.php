@@ -307,4 +307,47 @@ class SalesHeaderController extends Controller
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error al anular la venta', 500);
         }
     }
+    /**
+
+     * Obtener estadísticas de ventas
+
+     */
+
+    public function stats(): JsonResponse
+
+    {
+
+        try {
+
+            $total = SalesHeader::count();
+
+            $today = SalesHeader::whereDate('sale_date', today())->count();
+
+            $pending = SalesHeader::where('sale_status', 1)->count(); // IN_PROGRESS
+
+            $completed = SalesHeader::where('sale_status', 2)->count(); // INVOICED
+
+
+
+            return ApiResponse::success([
+
+                'total' => $total,
+
+                'today' => $today,
+
+                'pending' => $pending,
+
+                'completed' => $completed
+
+            ], 'Estadísticas obtenidas exitosamente');
+
+        } catch (\Exception $e) {
+
+            Log::error("Error al obtener estadísticas de ventas: " . $e->getMessage());
+
+            return ApiResponse::error(null, 'Error al obtener estadísticas', 500);
+
+        }
+
+    }
 }
