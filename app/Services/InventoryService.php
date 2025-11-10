@@ -9,7 +9,7 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-class saleInventoryService
+class InventoryService
 {
     /**
      * Descontar stock del lote especificado en el item de venta
