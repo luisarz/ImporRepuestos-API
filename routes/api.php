@@ -335,6 +335,10 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
 
     #Sales, Items, DTE, Payment Details
+    Route::post('sales/{id}/finalize', [SalesHeaderController::class, 'finalize']);
+    Route::post('sales/{id}/cancel', [SalesHeaderController::class, 'cancel']);
+
+    Route::apiResource('sales', SalesHeaderController::class);
     Route::apiResource('sales', SalesHeaderController::class);
     Route::get('sale-items', [SaleItemController::class, 'index']);
     Route::get('sale-items/{id_venta}', [SaleItemController::class, 'index']);

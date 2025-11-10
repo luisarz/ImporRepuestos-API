@@ -34,7 +34,8 @@ class InventoryController extends Controller
                 'product:id,code,original_code,description,category_id,unit_measurement_id,image,barcode,description_measurement_id',
                 'prices',
                 'product.category',
-                'product.unitMeasurement'
+                'product.unitMeasurement',
+                'product.images'
             ])
                 ->withSum('inventoryBatches', 'quantity')
                 ->whereHas('product', function ($query) use ($search) {
