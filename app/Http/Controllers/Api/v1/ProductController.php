@@ -70,13 +70,37 @@ class ProductController extends Controller
                     $q->where('description', 'like', '%' . $search . '%')
                         ->orWhere('code', 'like', '%' . $search . '%')
                         ->orWhere('original_code', 'like', '%' . $search . '%')
-                        ->orWhere('barcode', 'like', '%' . $search . '%');
+                        ->orWhere('barcode', 'like', '%' . $search . '%')
+                        // Buscar en aplicaciones
+                        ->orWhereHas('applications', function ($appQuery) use ($search) {
+                            $appQuery->where('name', 'like', '%' . $search . '%')
+                                     ->orWhere('brand', 'like', '%' . $search . '%');
+                        });
                 });
             }
 
             // Aplicar filtro de estado
             if ($isActive !== null && $isActive !== '') {
                 $query->where('is_active', $isActive);
+            }
+
+            // Aplicar filtro de categoría
+            if ($request->has('category_id') && $request->input('category_id') !== '') {
+                $query->where('category_id', $request->input('category_id'));
+            }
+
+            // Aplicar filtro de marca
+            if ($request->has('brand_id') && $request->input('brand_id') !== '') {
+                $query->where('brand_id', $request->input('brand_id'));
+            }
+
+            // Aplicar filtro de aplicación
+            if ($request->has('application') && $request->input('application') !== '') {
+                $application = $request->input('application');
+                $query->whereHas('applications', function ($appQuery) use ($application) {
+                    $appQuery->where('name', 'like', '%' . $application . '%')
+                             ->orWhere('brand', 'like', '%' . $application . '%');
+                });
             }
 
             // Aplicar ordenamiento (siempre ordenar por algo)
