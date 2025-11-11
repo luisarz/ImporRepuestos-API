@@ -22,6 +22,8 @@ use App\Http\Controllers\Api\v1\CountryController;
 use App\Http\Controllers\Api\v1\CustomerAddressCatalogController;
 use App\Http\Controllers\Api\v1\CustomerController;
 use App\Http\Controllers\Api\v1\CustomerDocumentsTypeController;
+use App\Http\Controllers\Api\v1\DashboardController;
+use App\Http\Controllers\Api\v1\ReportsController;
 use App\Http\Controllers\Api\v1\CustomerTypeController;
 use App\Http\Controllers\Api\v1\DepartmentController;
 use App\Http\Controllers\Api\v1\DistrictController;
@@ -74,6 +76,54 @@ Route::middleware(['jwt'])->group(function () {
     Route::prefix('menu')->group(function () {
         Route::get('/', [MenuController::class, 'index']);
         Route::get('/permissions', [MenuController::class, 'permissions']);
+    });
+
+    // ========== DASHBOARD (Métricas y KPIs) ==========
+    Route::prefix('dashboard')->group(function () {
+        Route::get('/metrics', [DashboardController::class, 'getMetrics']);
+        Route::get('/today-sales', [DashboardController::class, 'getTodaySales']);
+        Route::get('/month-sales', [DashboardController::class, 'getMonthSales']);
+        Route::get('/top-products', [DashboardController::class, 'getTopProducts']);
+        Route::get('/sales-chart', [DashboardController::class, 'getSalesChart']);
+        Route::get('/recent-sales', [DashboardController::class, 'getRecentSales']);
+        Route::get('/low-stock', [DashboardController::class, 'getLowStockProducts']);
+        Route::get('/expiring-batches', [DashboardController::class, 'getExpiringBatches']);
+        Route::get('/pending-dtes', [DashboardController::class, 'getPendingDTEs']);
+        Route::get('/sales-by-category', [DashboardController::class, 'getSalesByCategory']);
+        Route::get('/new-customers', [DashboardController::class, 'getNewCustomers']);
+        Route::get('/alerts', [DashboardController::class, 'getAlerts']);
+    });
+
+    // ========== REPORTS (Reportes Avanzados) ==========
+    Route::prefix('reports')->group(function () {
+        // Reportes de Ventas
+        Route::get('/sales', [ReportsController::class, 'getSalesReport']);
+        Route::get('/sales-by-seller', [ReportsController::class, 'getSalesBySeller']);
+        Route::get('/sales-by-customer', [ReportsController::class, 'getSalesByCustomer']);
+        Route::get('/sales-by-product', [ReportsController::class, 'getSalesByProduct']);
+        Route::get('/sales-by-payment-method', [ReportsController::class, 'getSalesByPaymentMethod']);
+
+        // Reportes de Compras
+        Route::get('/purchases', [ReportsController::class, 'getPurchasesReport']);
+        Route::get('/purchases-by-provider', [ReportsController::class, 'getPurchasesByProvider']);
+        Route::get('/purchases-by-product', [ReportsController::class, 'getPurchasesByProduct']);
+
+        // Reportes de Inventario
+        Route::get('/inventory-valuation', [ReportsController::class, 'getInventoryValuation']);
+        Route::get('/inventory-rotation', [ReportsController::class, 'getInventoryRotation']);
+        Route::get('/products-without-movement', [ReportsController::class, 'getProductsWithoutMovement']);
+        Route::get('/stock-by-warehouse', [ReportsController::class, 'getStockByWarehouse']);
+        Route::get('/low-stock', [ReportsController::class, 'getLowStockReport']);
+
+        // Reportes de Rentabilidad
+        Route::get('/profitability-by-product', [ReportsController::class, 'getProfitabilityByProduct']);
+        Route::get('/profitability-by-category', [ReportsController::class, 'getProfitabilityByCategory']);
+        Route::get('/profit-margin', [ReportsController::class, 'getProfitMargin']);
+
+        // Reportes de DTEs
+        Route::get('/dtes', [ReportsController::class, 'getDTEsReport']);
+        Route::get('/dtes-by-status', [ReportsController::class, 'getDTEsByStatus']);
+        Route::get('/dtes-rejected', [ReportsController::class, 'getRejectedDTEs']);
     });
 
     // ========== PERMISSIONS (NUEVO - Gestión de permisos Spatie) ==========
@@ -174,7 +224,8 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('company', CompanyController::class);
     Route::apiResource('establishment-types', StablishmentTypeController::class);
 
-    // Acciones grupales de warehouses - DEBEN IR ANTES del apiResource
+    // Estadísticas y acciones grupales de warehouses - DEBEN IR ANTES del apiResource
+    Route::get('warehouses/stats/all', [WarehouseController::class, 'stats']);
     Route::post('warehouses/bulk/get', [WarehouseController::class, 'bulkGet']);
     Route::post('warehouses/bulk/activate', [WarehouseController::class, 'bulkActivate']);
     Route::post('warehouses/bulk/deactivate', [WarehouseController::class, 'bulkDeactivate']);
@@ -204,6 +255,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
 
     #Empleados (Cargos, Empleados)
+    Route::get('jobs-titles/stats/all', [JobsTitleController::class, 'stats']);
     Route::post('jobs-titles/bulk/get', [JobsTitleController::class, 'bulkGet']);
     Route::post('jobs-titles/bulk/activate', [JobsTitleController::class, 'bulkActivate']);
     Route::post('jobs-titles/bulk/deactivate', [JobsTitleController::class, 'bulkDeactivate']);
@@ -215,6 +267,7 @@ Route::middleware(['jwt'])->group(function () {
     #Productos
     Route::apiResource('category-groups', CategoryGroupController::class);
     Route::get('sub-categories/stats/all', [CategoryController::class, 'stats']);
+    Route::get('sub-categories/export-data', [CategoryController::class, 'getExportData']);
     Route::post('sub-categories/bulk/get', [CategoryController::class, 'bulkGet']);
     Route::post('sub-categories/bulk/activate', [CategoryController::class, 'bulkActivate']);
     Route::post('sub-categories/bulk/deactivate', [CategoryController::class, 'bulkDeactivate']);
@@ -248,7 +301,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::put('products/{productId}/images/{imageId}/primary', [ProductController::class, 'setPrimaryImage']);
 
     Route::apiResource('products', ProductController::class);
-    Route::post('/v1/products/{id}', [ProductController::class, 'update']);
+    Route::post('products/{id}', [ProductController::class, 'update']);
 
     Route::get('prices/inventory/{idInventory}', [InventoryController::class, 'getPrices']);
     Route::get('inventories/product/{productId}', [InventoryController::class, 'getByProduct']);
@@ -302,6 +355,14 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('batches', BatchController::class);
 
     #Se EJECUTARÁ el registro al momento de finalizar el registro de un lote en compras o realizar una venta o traslado
+    // Inventories Batches - rutas especiales antes del resource
+    Route::get('inventories-batches/warehouse/{warehouseId}', [InventoriesBatchController::class, 'getByWarehouse']);
+    Route::get('inventories-batches/product/{productId}', [InventoriesBatchController::class, 'getByProduct']);
+    Route::get('inventories-batches/expiring/list', [InventoriesBatchController::class, 'getExpiring']);
+    Route::get('inventories-batches/expired/list', [InventoriesBatchController::class, 'getExpired']);
+    Route::post('inventories-batches/transfer', [InventoriesBatchController::class, 'transfer']);
+    Route::post('inventories-batches/adjust-stock', [InventoriesBatchController::class, 'adjustStock']);
+    Route::get('inventories-batches/{id}/movements', [InventoriesBatchController::class, 'getMovements']);
     Route::apiResource('inventories-batches', InventoriesBatchController::class);
 
 
@@ -351,8 +412,14 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('sales-dtes', SalesDteController::class);
 
+    // Sale Payment Details - rutas especiales antes del resource
+    Route::get('sale-payment-details/sale/{saleId}', [SalePaymentDetailController::class, 'getBySale']);
+    Route::post('sale-payment-details/create-multiple', [SalePaymentDetailController::class, 'createMultiple']);
+    Route::post('sale-payment-details/validate-payments', [SalePaymentDetailController::class, 'validatePayments']);
     Route::apiResource('sale-payment-details', SalePaymentDetailController::class);
 
+    // History DTEs - rutas especiales antes del resource
+    Route::get('history-dtes/stats/all', [HistoryDteController::class, 'getStats']);
     Route::apiResource('history-dtes', HistoryDteController::class);
 
 
@@ -363,12 +430,12 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('quote-purchase-items', QuotePurchaseItemController::class);
 
 //    facturacion electronica
-    Route::get('/generarDTE/{idVenta}', [DTEController::class, 'generarDTE'])->middleware(['auth'])->name('generarDTE');
-    Route::get('/sendAnularDTE/{idVenta}', [DTEController::class, 'anularDTE'])->middleware(['auth'])->name('sendAnularDTE');
-    Route::get('/printDTETicket/{idVenta}', [DTEController::class, 'printDTETicket'])->middleware(['auth'])->name('printDTETicket');
-    Route::get('/printDTEPdf/{idVenta}', [DTEController::class, 'printDTEPdf'])->middleware(['auth'])->name('printDTEPdf');
-    Route::get('/logDTE/{idVenta}', [DTEController::class, 'logDTE'])->middleware(['auth'])->name('logDTE');
-    Route::get('/sendDTE/{idVenta}', [SenEmailDTEController::class, 'SenEmailDTEController'])->middleware(['auth'])->name('sendDTE');
+    Route::get('/generarDTE/{idVenta}', [DTEController::class, 'generarDTE'])->name('generarDTE');
+    Route::get('/sendAnularDTE/{idVenta}', [DTEController::class, 'anularDTE'])->name('sendAnularDTE');
+    Route::get('/printDTETicket/{idVenta}', [DTEController::class, 'printDTETicket'])->name('printDTETicket');
+    Route::get('/printDTEPdf/{idVenta}', [DTEController::class, 'printDTEPdf'])->name('printDTEPdf');
+    Route::get('/logDTE/{idVenta}', [DTEController::class, 'logDTE'])->name('logDTE');
+    Route::get('/sendDTE/{idVenta}', [SenEmailDTEController::class, 'SenEmailDTEController'])->name('sendDTE');
 
 
     //Catalogos hacienda

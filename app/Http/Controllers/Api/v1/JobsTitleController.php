@@ -19,9 +19,39 @@ class JobsTitleController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
 
-            $jobsTitles = JobsTitle::paginate($perPage);
-            return ApiResponse::success(new JobsTitleCollection($jobsTitles), 'Cargos laborales recuperados', 200);
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc';
+            }
+
+            $query = JobsTitle::query();
+
+            // Búsqueda
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Filtro de estado
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            // Ordenamiento
+            $allowedSortFields = ['id', 'code', 'description', 'is_active', 'created_at', 'updated_at'];
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $jobsTitles = $query->paginate($perPage);
+            return ApiResponse::success($jobsTitles, 'Cargos laborales recuperados', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
@@ -74,6 +104,25 @@ class JobsTitleController extends Controller
             return ApiResponse::error('Cargo laboral no encontrado', 'Cargo laboral no encontrado', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    public function stats(): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $total = JobsTitle::count();
+            $active = JobsTitle::where('is_active', 1)->count();
+            $inactive = JobsTitle::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
         }
     }
 
