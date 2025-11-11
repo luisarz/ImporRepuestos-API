@@ -240,6 +240,10 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('destination-environments/bulk/delete', [DestinationEnvironmentController::class, 'bulkDelete']);
 
     Route::apiResource('destination-environments', DestinationEnvironmentController::class);
+
+    // Estadísticas de company - DEBE IR ANTES del apiResource
+    Route::get('company/stats', [CompanyController::class, 'stats']);
+
     Route::apiResource('company', CompanyController::class);
 
     // Estadísticas y acciones grupales de establishment-types - DEBEN IR ANTES del apiResource

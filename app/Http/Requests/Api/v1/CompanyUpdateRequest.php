@@ -29,10 +29,10 @@ class CompanyUpdateRequest extends FormRequest
             'whatsapp' => ['required', 'string'],
             'email' => ['required', 'email'],
             'address' => ['required', 'string'],
-            'web' => ['required', 'string'],
+            'web' => ['nullable', 'string'],
             'api_key_mh' => ['required', 'string'],
-            'logo' => ['nullable'],
-            'is_active' => ['required'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'], // max 5MB
+            'is_active' => ['nullable'],
         ];
     }
 }

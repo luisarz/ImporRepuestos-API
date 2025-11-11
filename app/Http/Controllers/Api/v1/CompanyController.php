@@ -59,7 +59,27 @@ class CompanyController extends Controller
     {
         try {
             $company = Company::findOrFail($id);
-            $company->update($request->validated());
+            $data = $request->validated();
+
+            // Manejar la carga de logo
+            if ($request->hasFile('logo')) {
+                // Eliminar logo anterior si existe
+                if ($company->logo && isset($company->logo['path'])) {
+                    \Storage::disk('public')->delete($company->logo['path']);
+                }
+
+                $file = $request->file('logo');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('companies/logos', $filename, 'public');
+
+                $data['logo'] = [
+                    'url' => asset('storage/' . $path),
+                    'path' => $path,
+                    'filename' => $filename
+                ];
+            }
+
+            $company->update($data);
             return ApiResponse::success($company, 'Empresa actualizada de manera exitosa', 200);
         }catch (ModelNotFoundException $exception){
             return ApiResponse::error(null, 'Empresa no encontrada', 404);
@@ -68,6 +88,28 @@ class CompanyController extends Controller
             return ApiResponse::error($e->getMessage(), 'Empresa no actualizada', 400);
         }
 
+    }
+
+    /**
+     * Obtener estadísticas de empresas
+     */
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = Company::count();
+            $active = Company::where('is_active', 1)->count();
+            $inactive = Company::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
     }
 
     public function destroy(Request $request, $id): JsonResponse
