@@ -69,7 +69,22 @@ class WarehouseController extends Controller
     public function store(WarehouseStoreRequest $request): JsonResponse
     {
         try {
-            $warehouse = (new Warehouse)->create($request->validated());
+            $data = $request->validated();
+
+            // Manejar la carga de logo
+            if ($request->hasFile('logo')) {
+                $file = $request->file('logo');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('warehouses/logos', $filename, 'public');
+
+                $data['logo'] = [
+                    'url' => asset('storage/' . $path),
+                    'path' => $path,
+                    'filename' => $filename
+                ];
+            }
+
+            $warehouse = (new Warehouse)->create($data);
 
             return ApiResponse::success(new WarehouseResource($warehouse), 'Sucursal aperturada de manera exitosa!', 201);
         } catch (\Exception $e) {
@@ -98,7 +113,28 @@ class WarehouseController extends Controller
             if (!$warehouse) {
                 return ApiResponse::error(null, 'Sucursal no encontrada', 404);
             }
-            $warehouse->update($request->validated());
+
+            $data = $request->validated();
+
+            // Manejar la carga de logo
+            if ($request->hasFile('logo')) {
+                // Eliminar logo anterior si existe
+                if ($warehouse->logo && isset($warehouse->logo['path'])) {
+                    \Storage::disk('public')->delete($warehouse->logo['path']);
+                }
+
+                $file = $request->file('logo');
+                $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                $path = $file->storeAs('warehouses/logos', $filename, 'public');
+
+                $data['logo'] = [
+                    'url' => asset('storage/' . $path),
+                    'path' => $path,
+                    'filename' => $filename
+                ];
+            }
+
+            $warehouse->update($data);
             return ApiResponse::success(new WarehouseResource($warehouse), 'Sucursal actualizada de manera exitosa', 200);
 
         } catch (\Exception $e) {

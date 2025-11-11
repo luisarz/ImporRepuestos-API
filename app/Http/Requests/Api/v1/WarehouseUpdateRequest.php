@@ -31,7 +31,9 @@ class WarehouseUpdateRequest extends FormRequest
             'phone' => ['required', 'string'],
             'email' => ['required', 'email'],
             'product_prices' => ['required', 'integer'],
-            'logo' => ['nullable'],
+            'logo' => ['nullable', 'image', 'mimes:jpeg,jpg,png,gif,webp', 'max:5120'], // max 5MB
+            'establishment_type_code' => ['required', 'string', 'size:4'],
+            'pos_terminal_code' => ['required', 'string', 'size:4'],
             'is_active' => ['required', 'boolean'],
         ];
     }

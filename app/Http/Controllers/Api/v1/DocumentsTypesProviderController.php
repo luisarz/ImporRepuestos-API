@@ -19,8 +19,41 @@ class DocumentsTypesProviderController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            // El DataTable envía 'sortField' y 'sortOrder'
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
 
-            $documentsTypesProviders = (new DocumentsTypesProvider)->paginate($perPage);
+            // Convertir a minúsculas y validar
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc'; // Valor por defecto si no es válido
+            }
+
+            $query = DocumentsTypesProvider::query();
+
+            // Búsqueda por múltiples campos
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Filtro por estado
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            // Aplicar ordenamiento
+            $allowedSortFields = ['id', 'code', 'description', 'is_active', 'created_at', 'updated_at'];
+
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $documentsTypesProviders = $query->paginate($perPage);
             return ApiResponse::success($documentsTypesProviders, 'Tipos de documentos de proveedores obtenidos exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

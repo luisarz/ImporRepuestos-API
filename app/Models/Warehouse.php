@@ -29,6 +29,8 @@ class Warehouse extends Model
         'email',
         'product_prices',
         'logo',
+        'establishment_type_code',
+        'pos_terminal_code',
         'is_active'
     ];
 
@@ -43,7 +45,7 @@ class Warehouse extends Model
         'stablishment_type' => 'integer',
         'district_id' => 'integer',
         'economic_activity_id' => 'integer',
-//        'logo' => 'array',
+        'logo' => 'array',
     ];
 
     public function company(): BelongsTo
