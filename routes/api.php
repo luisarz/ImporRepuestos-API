@@ -293,6 +293,14 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('providers-documents-types', DocumentsTypesProviderController::class);
     Route::apiResource('providers', ProviderController::class);
+
+    // Estadísticas y acciones grupales de provider-address-catalogs - DEBEN IR ANTES del apiResource
+    Route::get('provider-address-catalogs/stats/all', [ProviderAddressCatalogController::class, 'stats']);
+    Route::post('provider-address-catalogs/bulk/get', [ProviderAddressCatalogController::class, 'bulkGet']);
+    Route::post('provider-address-catalogs/bulk/activate', [ProviderAddressCatalogController::class, 'bulkActivate']);
+    Route::post('provider-address-catalogs/bulk/deactivate', [ProviderAddressCatalogController::class, 'bulkDeactivate']);
+    Route::post('provider-address-catalogs/bulk/delete', [ProviderAddressCatalogController::class, 'bulkDelete']);
+
     Route::apiResource('provider-address-catalogs', ProviderAddressCatalogController::class);
 
     #Empleados (Cargos, Empleados)
@@ -441,6 +449,10 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('customers/bulk/delete', [CustomerController::class, 'bulkDelete']);
     Route::apiResource('customers', CustomerController::class);
 
+    // Customer Address Catalogs
+    Route::get('customer-address-catalogs/stats/all', [CustomerAddressCatalogController::class, 'stats']);
+    Route::post('customer-address-catalogs/{id}/set-default', [CustomerAddressCatalogController::class, 'setDefault']);
+    Route::post('customer-address-catalogs/bulk/delete', [CustomerAddressCatalogController::class, 'deleteBatch']);
     Route::apiResource('customer-address-catalogs', CustomerAddressCatalogController::class);
 
     #Sales, Items, DTE, Payment Details

@@ -37,4 +37,12 @@ class ProviderAddressCatalog extends Model
         'district_id' => 'integer',
         'is_active' => 'boolean',
     ];
+
+    /**
+     * Get the provider that owns the address.
+     */
+    public function provider()
+    {
+        return $this->belongsTo(Provider::class);
+    }
 }

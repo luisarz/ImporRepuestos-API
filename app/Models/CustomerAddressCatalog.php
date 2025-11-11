@@ -16,15 +16,11 @@ class CustomerAddressCatalog extends Model
      * @var array
      */
     protected $fillable = [
-        'district_id',
         'customer_id',
-        'address_reference',
-        'is_active',
-        'email',
-        'phone',
-        'contact',
-        'contact_phone',
-        'contact_email',
+        'district_id',
+        'address',
+        'city',
+        'is_default',
     ];
 
     /**
@@ -34,12 +30,14 @@ class CustomerAddressCatalog extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'district_id' => 'integer',
-
-        'is_active' => 'boolean',
+        'customer_id' => 'integer',
+        'is_default' => 'boolean',
     ];
 
-
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
 
     public function district(): BelongsTo
     {

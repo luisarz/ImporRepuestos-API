@@ -20,15 +20,11 @@ class CustomerAddressCatalogStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'district_id' => ['required', 'integer'],
-            'customer_id' => ['required', 'integer','exists:customers,id'],
-            'address_reference' => ['required', 'string'],
-            'is_active' => ['required'],
-            'email' => ['nullable', 'email'],
-            'phone' => ['nullable', 'string'],
-            'contact' => ['nullable', 'string'],
-            'contact_phone' => ['nullable', 'string'],
-            'contact_email' => ['nullable', 'string'],
+            'customer_id' => ['required', 'integer', 'exists:customers,id'],
+            'district_id' => ['nullable', 'integer', 'exists:districts,id'],
+            'address' => ['required', 'string', 'max:500'],
+            'city' => ['required', 'string', 'max:100'],
+            'is_default' => ['nullable', 'boolean'],
         ];
     }
 }
