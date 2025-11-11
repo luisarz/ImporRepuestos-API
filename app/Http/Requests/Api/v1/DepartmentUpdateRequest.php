@@ -21,10 +21,9 @@ class DepartmentUpdateRequest extends FormRequest
     {
         return [
             'country_id' => ['required', 'integer', 'exists:countries,id'],
-            'code' => ['required', 'string', 'max:50'], // Ejemplo de límite de caracteres
-            'description' => ['required', 'string', 'max:255'], // Evitar descripciones demasiado largas
-            'is_active' => ['required']
+            'code' => ['required', 'string', 'max:20'],
+            'description' => ['required', 'string', 'max:100'],
+            'is_active' => ['boolean']
         ];
-
     }
 }

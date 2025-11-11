@@ -20,9 +20,48 @@ class DepartmentController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
-            $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+            $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            $countryFilter = $request->input('country_filter', '');
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
 
-            $departments = Department::with('country')->paginate($perPage);
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc';
+            }
+
+            $query = Department::with('country');
+
+            // Búsqueda
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%")
+                      ->orWhereHas('country', function($q) use ($search) {
+                          $q->where('description', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            // Filtro de estado
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            // Filtro de país
+            if ($countryFilter !== '') {
+                $query->where('country_id', $countryFilter);
+            }
+
+            // Ordenamiento
+            $allowedSortFields = ['id', 'code', 'description', 'country_id', 'is_active', 'created_at', 'updated_at'];
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $departments = $query->paginate($perPage);
             return ApiResponse::success($departments, 'Departamentos recuperados exitosamente', 200);
         }catch (\Exception $e){
            return ApiResponse::error($e->getMessage(),'Ocurrió un error al recuperar la información', 500);
