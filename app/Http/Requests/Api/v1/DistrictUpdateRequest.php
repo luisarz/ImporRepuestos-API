@@ -20,10 +20,10 @@ class DistrictUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'municipality_id' => ['required', 'integer'],
-            'code' => ['required', 'string'],
-            'description' => ['required', 'string'],
-            'is_active' => ['required'],
+            'municipality_id' => ['required', 'integer', 'exists:municipalities,id'],
+            'code' => ['required', 'string', 'max:20'],
+            'description' => ['required', 'string', 'max:100'],
+            'is_active' => ['boolean'],
         ];
     }
 }

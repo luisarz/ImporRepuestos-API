@@ -210,6 +210,14 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('municipalities/bulk/delete', [MunicipalityController::class, 'bulkDelete']);
 
     Route::apiResource('municipalities', MunicipalityController::class);
+
+    // Estadísticas y acciones grupales de districts - DEBEN IR ANTES del apiResource
+    Route::get('districts/stats/all', [DistrictController::class, 'stats']);
+    Route::post('districts/bulk/get', [DistrictController::class, 'bulkGet']);
+    Route::post('districts/bulk/activate', [DistrictController::class, 'bulkActivate']);
+    Route::post('districts/bulk/deactivate', [DistrictController::class, 'bulkDeactivate']);
+    Route::post('districts/bulk/delete', [DistrictController::class, 'bulkDelete']);
+
     Route::apiResource('districts', DistrictController::class);
 
 
