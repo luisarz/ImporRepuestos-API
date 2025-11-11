@@ -121,6 +121,23 @@ class WarehouseController extends Controller
         }
     }
 
+    /**
+     * Obtener todas las sucursales activas (sin paginar)
+     * Para uso en selects y formularios
+     */
+    public function getAll(Request $request): JsonResponse
+    {
+        try {
+            $warehouses = Warehouse::where('is_active', 1)
+                ->select('id', 'name', 'phone', 'email')
+                ->orderBy('name')
+                ->get();
+            return ApiResponse::success($warehouses, 'Sucursales recuperadas exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
     // Estadísticas
     public function stats(): JsonResponse
     {

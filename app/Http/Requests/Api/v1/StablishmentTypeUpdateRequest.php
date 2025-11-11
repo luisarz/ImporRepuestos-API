@@ -20,9 +20,9 @@ class StablishmentTypeUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'code' => ['required', 'string'],
-            'description' => ['required', 'string'],
-            'is_active' => ['required'],
+            'code' => ['required', 'string', 'max:20'],
+            'description' => ['required', 'string', 'max:100'],
+            'is_active' => ['boolean'],
         ];
     }
 }

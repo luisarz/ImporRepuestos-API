@@ -57,7 +57,13 @@ class Employee extends Model
 
     public function jobTitle(): BelongsTo
     {
-        return $this->belongsTo(JobsTitle::class);
+        return $this->belongsTo(JobsTitle::class, 'job_title_id');
+    }
+
+    // Alias para compatibilidad con frontend
+    public function job_title(): BelongsTo
+    {
+        return $this->jobTitle();
     }
 
     public function district(): BelongsTo

@@ -107,6 +107,23 @@ class JobsTitleController extends Controller
         }
     }
 
+    /**
+     * Obtener todos los puestos de trabajo activos (sin paginar)
+     * Para uso en selects y formularios
+     */
+    public function getAll(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $jobsTitles = JobsTitle::where('is_active', 1)
+                ->select('id', 'code', 'description')
+                ->orderBy('description')
+                ->get();
+            return ApiResponse::success($jobsTitles, 'Cargos laborales recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
     public function stats(): \Illuminate\Http\JsonResponse
     {
         try {

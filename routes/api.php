@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\v1\BatchController;
 use App\Http\Controllers\Api\v1\BrandController;
 use App\Http\Controllers\Api\v1\CategoryController;
 use App\Http\Controllers\Api\v1\CompanyController;
+use App\Http\Controllers\Api\v1\ContingencyTypeController;
 use App\Http\Controllers\Api\v1\CountryController;
 use App\Http\Controllers\Api\v1\CustomerAddressCatalogController;
 use App\Http\Controllers\Api\v1\CustomerController;
@@ -240,10 +241,28 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('destination-environments', DestinationEnvironmentController::class);
     Route::apiResource('company', CompanyController::class);
+
+    // Estadísticas y acciones grupales de establishment-types - DEBEN IR ANTES del apiResource
+    Route::get('establishment-types/stats/all', [StablishmentTypeController::class, 'stats']);
+    Route::post('establishment-types/bulk/get', [StablishmentTypeController::class, 'bulkGet']);
+    Route::post('establishment-types/bulk/activate', [StablishmentTypeController::class, 'bulkActivate']);
+    Route::post('establishment-types/bulk/deactivate', [StablishmentTypeController::class, 'bulkDeactivate']);
+    Route::post('establishment-types/bulk/delete', [StablishmentTypeController::class, 'bulkDelete']);
+
     Route::apiResource('establishment-types', StablishmentTypeController::class);
+
+    // Estadísticas y acciones grupales de contingency-types - DEBEN IR ANTES del apiResource
+    Route::get('contingency-types/stats/all', [ContingencyTypeController::class, 'stats']);
+    Route::post('contingency-types/bulk/get', [ContingencyTypeController::class, 'bulkGet']);
+    Route::post('contingency-types/bulk/activate', [ContingencyTypeController::class, 'bulkActivate']);
+    Route::post('contingency-types/bulk/deactivate', [ContingencyTypeController::class, 'bulkDeactivate']);
+    Route::post('contingency-types/bulk/delete', [ContingencyTypeController::class, 'bulkDelete']);
+
+    Route::apiResource('contingency-types', ContingencyTypeController::class);
 
     // Estadísticas y acciones grupales de warehouses - DEBEN IR ANTES del apiResource
     Route::get('warehouses/stats/all', [WarehouseController::class, 'stats']);
+    Route::get('warehouses/all/list', [WarehouseController::class, 'getAll']);
     Route::post('warehouses/bulk/get', [WarehouseController::class, 'bulkGet']);
     Route::post('warehouses/bulk/activate', [WarehouseController::class, 'bulkActivate']);
     Route::post('warehouses/bulk/deactivate', [WarehouseController::class, 'bulkDeactivate']);
@@ -274,11 +293,18 @@ Route::middleware(['jwt'])->group(function () {
 
     #Empleados (Cargos, Empleados)
     Route::get('jobs-titles/stats/all', [JobsTitleController::class, 'stats']);
+    Route::get('jobs-titles/all/list', [JobsTitleController::class, 'getAll']);
     Route::post('jobs-titles/bulk/get', [JobsTitleController::class, 'bulkGet']);
     Route::post('jobs-titles/bulk/activate', [JobsTitleController::class, 'bulkActivate']);
     Route::post('jobs-titles/bulk/deactivate', [JobsTitleController::class, 'bulkDeactivate']);
     Route::post('jobs-titles/bulk/delete', [JobsTitleController::class, 'bulkDelete']);
     Route::apiResource('jobs-titles', JobsTitleController::class);
+
+    // Estadísticas y acciones grupales de employees - DEBEN IR ANTES del apiResource
+    Route::get('employees/stats/all', [EmployeeController::class, 'stats']);
+    Route::post('employees/bulk/activate', [EmployeeController::class, 'bulkActivate']);
+    Route::post('employees/bulk/deactivate', [EmployeeController::class, 'bulkDeactivate']);
+    Route::post('employees/bulk/delete', [EmployeeController::class, 'bulkDelete']);
     Route::get('employees/all/list', [EmployeeController::class, 'getAll']);
     Route::apiResource('employees', EmployeeController::class);
 
