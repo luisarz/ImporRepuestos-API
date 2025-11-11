@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\v1\DashboardController;
 use App\Http\Controllers\Api\v1\ReportsController;
 use App\Http\Controllers\Api\v1\CustomerTypeController;
 use App\Http\Controllers\Api\v1\DepartmentController;
+use App\Http\Controllers\Api\v1\DestinationEnvironmentController;
 use App\Http\Controllers\Api\v1\DistrictController;
 use App\Http\Controllers\Api\v1\DocumentsTypesProviderController;
 use App\Http\Controllers\Api\v1\EconomicActivityController;
@@ -221,6 +222,15 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('economic-activities/bulk/delete', [EconomicActivityController::class, 'bulkDelete']);
 
     Route::apiResource('economic-activities', EconomicActivityController::class);
+
+    // Estadísticas y acciones grupales de destination-environments - DEBEN IR ANTES del apiResource
+    Route::get('destination-environments/stats/all', [DestinationEnvironmentController::class, 'stats']);
+    Route::post('destination-environments/bulk/get', [DestinationEnvironmentController::class, 'bulkGet']);
+    Route::post('destination-environments/bulk/activate', [DestinationEnvironmentController::class, 'bulkActivate']);
+    Route::post('destination-environments/bulk/deactivate', [DestinationEnvironmentController::class, 'bulkDeactivate']);
+    Route::post('destination-environments/bulk/delete', [DestinationEnvironmentController::class, 'bulkDelete']);
+
+    Route::apiResource('destination-environments', DestinationEnvironmentController::class);
     Route::apiResource('company', CompanyController::class);
     Route::apiResource('establishment-types', StablishmentTypeController::class);
 
