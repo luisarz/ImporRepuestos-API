@@ -18,11 +18,65 @@ class HistoryDteController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $historyDtes = HistoryDte::paginate($perPage);
-           return ApiResponse::success($historyDtes,'Detalle de ventas', 200);
+            $query = HistoryDte::with(['salesHeader.customer']);
+
+            // Filtros
+            if ($request->has('search')) {
+                $search = $request->input('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('codigo_generacion', 'like', "%{$search}%")
+                      ->orWhere('numero_control', 'like', "%{$search}%")
+                      ->orWhereHas('salesHeader.customer', function($sq) use ($search) {
+                          $sq->where('name', 'like', "%{$search}%");
+                      });
+                });
+            }
+
+            if ($request->has('status')) {
+                $query->where('status', $request->input('status'));
+            }
+
+            if ($request->has('date_from')) {
+                $query->whereDate('fecha_emision', '>=', $request->input('date_from'));
+            }
+
+            if ($request->has('date_to')) {
+                $query->whereDate('fecha_emision', '<=', $request->input('date_to'));
+            }
+
+            if ($request->has('ambiente')) {
+                $query->where('ambiente', $request->input('ambiente'));
+            }
+
+            $historyDtes = $query->orderBy('fecha_emision', 'desc')->paginate($perPage);
+           return ApiResponse::success($historyDtes,'Historial de DTEs recuperado', 200);
 
         }catch (\Exception $e){
-            return ApiResponse::success(null,$e->getMessage(),500);
+            return ApiResponse::error(null,$e->getMessage(),500);
+        }
+    }
+
+    /**
+     * Obtener estadísticas de DTEs
+     */
+    public function getStats(): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $stats = [
+                'total' => HistoryDte::count(),
+                'aprobados' => HistoryDte::where('status', 'APROBADO')->count(),
+                'rechazados' => HistoryDte::where('status', 'RECHAZADO')->count(),
+                'observados' => HistoryDte::where('status', 'OBSERVADO')->count(),
+                'pendientes' => HistoryDte::where('status', 'PENDIENTE')->count(),
+                'total_facturado' => HistoryDte::where('status', 'APROBADO')->sum('total'),
+                'ultimo_mes' => HistoryDte::whereMonth('fecha_emision', now()->month)
+                                          ->whereYear('fecha_emision', now()->year)
+                                          ->count(),
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas de DTEs', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
         }
     }
 

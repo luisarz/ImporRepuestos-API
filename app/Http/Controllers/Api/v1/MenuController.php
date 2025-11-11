@@ -12,52 +12,42 @@ use Illuminate\Http\Request;
 class MenuController extends Controller
 {
     /**
-     * GET /api/v1/menu?employee_id={id}
-     * Obtener módulos permitidos para el usuario
-     * Reemplaza el endpoint anterior que usaba modulo_rol
+     * GET /api/v1/menu
+     * Obtener módulos permitidos para el usuario autenticado
+     * Usa el usuario del token JWT
      */
     public function index(Request $request): JsonResponse
     {
         try {
-            $request->validate([
-                'employee_id' => 'required|exists:employees,id'
-            ]);
-
-            $employee = Employee::findOrFail($request->employee_id);
-            $user = User::where('employee_id', $employee->id)->first();
+            // Obtener el usuario autenticado del token JWT
+            $user = auth()->user();
 
             if (!$user) {
-                return ApiResponse::error('Usuario no encontrado para este empleado', 'Error', 404);
+                return ApiResponse::error('Usuario no autenticado', 'Error', 401);
             }
 
             // Obtener módulos permitidos basados en permisos de Spatie
             $allowedModules = $user->getAllowedModules();
 
             return ApiResponse::success($allowedModules, 'Menú recuperado exitosamente', 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return ApiResponse::error($e->errors(), 'Error de validación', 422);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al obtener menú', 500);
         }
     }
 
     /**
-     * GET /api/v1/menu/permissions?employee_id={id}
-     * Obtener permisos del usuario
-     * Útil para guardar en localStorage y verificar permisos en el frontend
+     * GET /api/v1/menu/permissions
+     * Obtener permisos del usuario autenticado
+     * Útil para verificar permisos en el frontend
      */
     public function permissions(Request $request): JsonResponse
     {
         try {
-            $request->validate([
-                'employee_id' => 'required|exists:employees,id'
-            ]);
-
-            $employee = Employee::findOrFail($request->employee_id);
-            $user = User::where('employee_id', $employee->id)->first();
+            // Obtener el usuario autenticado del token JWT
+            $user = auth()->user();
 
             if (!$user) {
-                return ApiResponse::error('Usuario no encontrado para este empleado', 'Error', 404);
+                return ApiResponse::error('Usuario no autenticado', 'Error', 401);
             }
 
             $permissions = $user->getAllPermissions();
@@ -69,8 +59,6 @@ class MenuController extends Controller
             ];
 
             return ApiResponse::success($response, 'Permisos recuperados exitosamente', 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return ApiResponse::error($e->errors(), 'Error de validación', 422);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al obtener permisos', 500);
         }

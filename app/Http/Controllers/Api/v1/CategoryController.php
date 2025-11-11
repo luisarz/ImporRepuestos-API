@@ -30,7 +30,7 @@ class CategoryController extends Controller
                 $sortOrder = 'asc';
             }
 
-            $query = Category::query()->withCount('products');
+            $query = Category::query()->with('categoryParent')->withCount('products');
 
             if (!empty($search)) {
                 $query->where(function($q) use ($search) {
@@ -165,6 +165,37 @@ class CategoryController extends Controller
             return ApiResponse::success(null, 'Categorías eliminadas de manera exitosa', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(),'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Obtener datos para exportar con filtros opcionales
+     */
+    public function getExportData(Request $request): JsonResponse
+    {
+        try {
+            $categoryParentId = $request->input('category_parent_id', null);
+            $statusFilter = $request->input('status_filter', '');
+
+            $query = Category::query()->with('categoryParent');
+
+            // Filtrar por categoría padre si se proporciona
+            if ($categoryParentId !== null && $categoryParentId !== '') {
+                $query->where('category_parent_id', $categoryParentId);
+            }
+
+            // Filtrar por estado si se proporciona
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            // Ordenar por ID
+            $query->orderBy('id', 'asc');
+
+            $categories = $query->get();
+            return ApiResponse::success($categories, 'Datos para exportar obtenidos exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
 }

@@ -20,13 +20,42 @@ class CustomerTypeController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
 
-            $customerTypes = CustomerType::paginate($perPage);
-            return ApiResponse::success($customerTypes, 'Tipos de clientes, recuperados de manera exitosamente', 200);
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc';
+            }
+
+            $query = CustomerType::query();
+
+            // Búsqueda
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('code', 'like', "%{$search}%")
+                      ->orWhere('description', 'like', "%{$search}%");
+                });
+            }
+
+            // Filtro de estado
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            // Ordenamiento
+            $allowedSortFields = ['id', 'code', 'description', 'is_active', 'created_at', 'updated_at'];
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $customerTypes = $query->paginate($perPage);
+            return ApiResponse::success($customerTypes, 'Tipos de clientes recuperados exitosamente', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
-
     }
 
     public function store(CustomerTypeStoreRequest $request): JsonResponse

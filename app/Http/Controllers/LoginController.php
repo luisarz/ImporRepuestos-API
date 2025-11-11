@@ -72,9 +72,30 @@ class LoginController extends Controller
     protected function respondWithToken($token)
     {
         $user = auth()->user();
-        $employee = Employee::with('warehouse')->findOrFail($user->employee_id);
-
         $expiresIn = auth()->factory()->getTTL(); // En minutos
+
+        // Obtener información del empleado si existe
+        $employee = null;
+        $warehouseId = null;
+        $employeeId = null;
+        $employeeName = $user->name;
+        $warehouseName = null;
+
+        if ($user->employee_id) {
+            try {
+                $employee = Employee::with('warehouse')->findOrFail($user->employee_id);
+                $warehouseId = $employee->warehouse_id;
+                $employeeId = $employee->id;
+                $employeeName = $employee->name . ' ' . $employee->last_name;
+                $warehouseName = $employee->warehouse->name;
+            } catch (\Exception $e) {
+                // Si no se encuentra el empleado, continuar sin datos de empleado
+            }
+        }
+
+        // Obtener roles y permisos del usuario (Spatie Permission)
+        $roles = $user->roles->pluck('name');
+        $permissions = $user->getAllPermissions()->pluck('name');
 
         // Crear cookie httpOnly con el token
         // Para localhost, NO especificar dominio (null) permite compartir entre puertos del mismo host
@@ -92,10 +113,20 @@ class LoginController extends Controller
 
         return response()->json([
             'logged_status' => true,
-            'warehouse_id' => $employee->warehouse_id,
-            'employee_id' => $employee->id,
-            'employee_name' => $employee->name . ' ' . $employee->last_name,
-            'warehouse_name' => $employee->warehouse->name,
+            'token' => $token,
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'roles' => $roles,
+                'permissions' => $permissions,
+            ],
+            'roles' => $roles,
+            'permissions' => $permissions,
+            'warehouse_id' => $warehouseId,
+            'employee_id' => $employeeId,
+            'employee_name' => $employeeName,
+            'warehouse_name' => $warehouseName,
             'token_type' => 'bearer',
             'expires_in' => $expiresIn
         ])->cookie($cookie);
@@ -123,6 +154,11 @@ class LoginController extends Controller
 
     public function refresh(): JsonResponse
     {
-        return $this->respondWithToken(auth()->refresh());
+        $token = auth()->refresh();
+        return response()->json([
+            'token' => $token,
+            'token_type' => 'bearer',
+            'expires_in' => auth()->factory()->getTTL()
+        ]);
     }
 }

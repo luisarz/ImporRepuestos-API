@@ -19,11 +19,121 @@ class SalePaymentDetailController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $salePaymentDetails = SalePaymentDetail::paginate($perPage);
-            return ApiResponse::success($salePaymentDetails,'Detalle de ventas', 200);
+            $query = SalePaymentDetail::with(['salesHeader', 'paymentMethod']);
+
+            // Filtro por venta
+            if ($request->has('sale_id')) {
+                $query->where('id_sale', $request->input('sale_id'));
+            }
+
+            // Filtro por método de pago
+            if ($request->has('payment_method_id')) {
+                $query->where('id_payment_method', $request->input('payment_method_id'));
+            }
+
+            // Filtro por rango de fechas
+            if ($request->has('date_from')) {
+                $query->whereHas('salesHeader', function($q) use ($request) {
+                    $q->whereDate('date', '>=', $request->input('date_from'));
+                });
+            }
+
+            if ($request->has('date_to')) {
+                $query->whereHas('salesHeader', function($q) use ($request) {
+                    $q->whereDate('date', '<=', $request->input('date_to'));
+                });
+            }
+
+            $salePaymentDetails = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            return ApiResponse::success($salePaymentDetails,'Detalles de pago recuperados', 200);
 
         }catch (\Exception $exception){
             return ApiResponse::error(null,$exception->getMessage(),500);
+        }
+    }
+
+    /**
+     * Obtener detalles de pago por venta
+     */
+    public function getBySale(Request $request, $saleId): JsonResponse
+    {
+        try {
+            $payments = SalePaymentDetail::with(['paymentMethod'])
+                ->where('id_sale', $saleId)
+                ->get();
+
+            return ApiResponse::success($payments, 'Detalles de pago por venta', 200);
+        } catch (\Exception $exception) {
+            return ApiResponse::error(null, $exception->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Crear múltiples detalles de pago
+     */
+    public function createMultiple(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'id_sale' => 'required|exists:sales_headers,id',
+                'payments' => 'required|array|min:1',
+                'payments.*.id_payment_method' => 'required|exists:payment_methods,id',
+                'payments.*.amount' => 'required|numeric|min:0.01',
+                'payments.*.reference' => 'nullable|string|max:255',
+            ]);
+
+            $payments = [];
+            foreach ($request->payments as $paymentData) {
+                $payment = SalePaymentDetail::create([
+                    'id_sale' => $request->id_sale,
+                    'id_payment_method' => $paymentData['id_payment_method'],
+                    'amount' => $paymentData['amount'],
+                    'reference' => $paymentData['reference'] ?? null,
+                ]);
+                $payments[] = $payment;
+            }
+
+            return ApiResponse::success($payments, 'Detalles de pago creados exitosamente', 201);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::error($e->errors(), 'Error de validación', 422);
+        } catch (\Exception $exception) {
+            return ApiResponse::error(null, $exception->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Validar que los pagos cubran el total de la venta
+     */
+    public function validatePayments(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'id_sale' => 'required|exists:sales_headers,id',
+                'payments' => 'required|array|min:1',
+                'payments.*.amount' => 'required|numeric|min:0.01',
+            ]);
+
+            // Obtener el total de la venta
+            $sale = \App\Models\SalesHeader::findOrFail($request->id_sale);
+            $saleTotal = $sale->total;
+
+            // Calcular el total de los pagos
+            $paymentsTotal = collect($request->payments)->sum('amount');
+
+            $validation = [
+                'sale_total' => $saleTotal,
+                'payments_total' => $paymentsTotal,
+                'difference' => $paymentsTotal - $saleTotal,
+                'is_valid' => abs($paymentsTotal - $saleTotal) < 0.01, // Tolerancia de 1 centavo
+                'is_complete' => $paymentsTotal >= $saleTotal,
+                'change' => max(0, $paymentsTotal - $saleTotal),
+            ];
+
+            return ApiResponse::success($validation, 'Validación de pagos', 200);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return ApiResponse::error($e->errors(), 'Error de validación', 422);
+        } catch (\Exception $exception) {
+            return ApiResponse::error(null, $exception->getMessage(), 500);
         }
     }
 

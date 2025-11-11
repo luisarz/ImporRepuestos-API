@@ -21,7 +21,44 @@ class WarehouseController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $warehouses = Warehouse::with('stablishmentType', 'district', 'economicActivity')->paginate(10);
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            // El DataTable envía 'sortField' y 'sortOrder'
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
+
+            // Convertir a minúsculas y validar
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc'; // Valor por defecto si no es válido
+            }
+
+            $query = Warehouse::query()->with('stablishmentType', 'district', 'economicActivity');
+
+            // Búsqueda por múltiples campos
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('nrc', 'like', "%{$search}%")
+                      ->orWhere('phone', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhere('address', 'like', "%{$search}%");
+                });
+            }
+
+            // Filtro por estado
+            if ($statusFilter !== '') {
+                $query->where('is_active', $statusFilter);
+            }
+
+            // Aplicar ordenamiento - solo campos propios del modelo
+            $allowedSortFields = ['id', 'name', 'nrc', 'phone', 'email', 'is_active', 'created_at', 'updated_at'];
+
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
+            }
+
+            $warehouses = $query->paginate($perPage);
             return ApiResponse::success($warehouses, 'Lista de sucursales', 200);
         }catch (\Exception $e){
             return ApiResponse::error(null,$e->getMessage(),500);
@@ -81,6 +118,26 @@ class WarehouseController extends Controller
             return ApiResponse::error(null, 'Sucursal no encontrada', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Sucursal no eliminada', 400);
+        }
+    }
+
+    // Estadísticas
+    public function stats(): JsonResponse
+    {
+        try {
+            $total = Warehouse::count();
+            $active = Warehouse::where('is_active', 1)->count();
+            $inactive = Warehouse::where('is_active', 0)->count();
+
+            $stats = [
+                'total' => $total,
+                'active' => $active,
+                'inactive' => $inactive,
+            ];
+
+            return ApiResponse::success($stats, 'Estadísticas de almacenes obtenidas exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al obtener estadísticas', 500);
         }
     }
 

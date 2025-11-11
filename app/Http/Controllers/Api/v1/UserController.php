@@ -21,13 +21,45 @@ class UserController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10); // Si no envía per_page, usa 10 por defecto
+            $search = $request->input('search', '');
+            $statusFilter = $request->input('status_filter', '');
+            // El DataTable envía 'sortField' y 'sortOrder'
+            $sortBy = $request->input('sortField', 'id');
+            $sortOrderRaw = $request->input('sortOrder', 'asc');
+
+            // Convertir a minúsculas y validar
+            $sortOrder = strtolower($sortOrderRaw);
+            if (!in_array($sortOrder, ['asc', 'desc'])) {
+                $sortOrder = 'asc'; // Valor por defecto si no es válido
+            }
 
             $query = User::with(['employee', 'roles']);
 
+            // Búsqueda por múltiples campos
+            if (!empty($search)) {
+                $query->where(function($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                      ->orWhere('email', 'like', "%{$search}%")
+                      ->orWhereHas('employee', function($q) use ($search) {
+                          $q->where('name', 'like', "%{$search}%")
+                            ->orWhere('last_name', 'like', "%{$search}%")
+                            ->orWhere('dui', 'like', "%{$search}%")
+                            ->orWhere('nit', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%");
+                      });
+                });
+            }
+
             // Aplicar filtro de estado si se proporciona
-            if ($request->has('status_filter') && $request->input('status_filter') !== '') {
-                $statusFilter = $request->input('status_filter');
+            if ($statusFilter !== '') {
                 $query->where('is_active', $statusFilter);
+            }
+
+            // Aplicar ordenamiento - solo campos propios del modelo
+            $allowedSortFields = ['id', 'name', 'email', 'is_active', 'created_at', 'updated_at'];
+
+            if (in_array($sortBy, $allowedSortFields)) {
+                $query->orderBy($sortBy, $sortOrder);
             }
 
             $users = $query->paginate($perPage);
