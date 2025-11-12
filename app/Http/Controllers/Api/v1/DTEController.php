@@ -1123,7 +1123,7 @@ class DTEController extends Controller
     function processDTE(array $dte, $idVenta): array|jsonResponse
     {
         // Obtener la venta para asignar correlativo si es necesario
-        $venta = SalesHeader::with(['cashRegister', 'documentType', 'cashOpening'])->findOrFail($idVenta);
+        $venta = SalesHeader::with(['cashRegister', 'documentType', 'cashOpening', 'warehouse'])->findOrFail($idVenta);
 
         // Validar que la venta tenga una apertura de caja asociada
         if (!$venta->cashbox_open_id) {
@@ -1133,7 +1133,7 @@ class DTEController extends Controller
             ];
         }
 
-        // Validar que la apertura de caja exista y esté abierta
+        // Verificar el estado de la apertura de caja asociada
         $cashOpening = \App\Models\CashOpening::find($venta->cashbox_open_id);
         if (!$cashOpening) {
             return [
@@ -1142,11 +1142,40 @@ class DTEController extends Controller
             ];
         }
 
+        // Si la caja está cerrada, buscar una caja abierta en la misma sucursal y actualizar
         if ($cashOpening->status !== 'open') {
-            return [
-                'estado' => 'FALLO',
-                'mensaje' => 'No se puede enviar el DTE. La caja registradora está cerrada. Por favor, abra una caja para poder enviar documentos a Hacienda.',
-            ];
+            // Buscar una caja abierta en la sucursal de la venta
+            $openCashRegister = \App\Models\CashRegister::where('warehouse_id', $venta->warehouse_id)
+                ->where('is_active', 1)
+                ->whereHas('currentOpening')
+                ->with('currentOpening')
+                ->first();
+
+            if (!$openCashRegister || !$openCashRegister->currentOpening) {
+                return [
+                    'estado' => 'FALLO',
+                    'mensaje' => 'No se puede enviar el DTE. No hay una caja registradora abierta en esta sucursal. Por favor, abra una caja para poder enviar documentos a Hacienda.',
+                ];
+            }
+
+            // Actualizar el cashbox_open_id de la venta a la caja actualmente abierta
+            DB::beginTransaction();
+            try {
+                $venta->cashbox_open_id = $openCashRegister->currentOpening->id;
+                $venta->save();
+                DB::commit();
+
+                // Actualizar la referencia local
+                $cashOpening = $openCashRegister->currentOpening;
+
+                \Log::info("Venta {$idVenta}: cashbox_open_id actualizado de {$venta->getOriginal('cashbox_open_id')} a {$cashOpening->id} para el envío de DTE");
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return [
+                    'estado' => 'FALLO',
+                    'mensaje' => 'Error al actualizar la apertura de caja: ' . $e->getMessage(),
+                ];
+            }
         }
 
         // Si no tiene document_internal_number asignado, asignar el correlativo
