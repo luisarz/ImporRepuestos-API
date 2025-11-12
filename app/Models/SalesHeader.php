@@ -125,5 +125,15 @@ class SalesHeader extends Model
 
     }
 
+    public function cashOpening(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CashOpening::class, 'cashbox_open_id');
+    }
+
+    public function cashRegister(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\CashRegister::class, 'cash_register_id');
+    }
+
 
 }

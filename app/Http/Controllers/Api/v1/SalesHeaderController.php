@@ -115,7 +115,28 @@ class SalesHeaderController extends Controller
     public function store(SalesHeaderStoreRequest $request): JsonResponse
     {
         try {
-            $salesHeader = SalesHeader::create($request->validated());
+            $validated = $request->validated();
+
+            // Validar que exista una caja abierta en la sucursal
+            $warehouseId = $validated['warehouse_id'];
+            $openCashRegister = \App\Models\CashRegister::where('warehouse_id', $warehouseId)
+                ->where('is_active', 1)
+                ->whereHas('currentOpening')
+                ->with('currentOpening')
+                ->first();
+
+            if (!$openCashRegister) {
+                return ApiResponse::error(
+                    null,
+                    'No hay una caja registradora abierta en esta sucursal. Por favor, abra una caja antes de realizar ventas.',
+                    400
+                );
+            }
+
+            // Asignar el cashbox_open_id automáticamente
+            $validated['cashbox_open_id'] = $openCashRegister->currentOpening->id;
+
+            $salesHeader = SalesHeader::create($validated);
             return ApiResponse::success($salesHeader, 'Venta creada con éxito', 201);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);

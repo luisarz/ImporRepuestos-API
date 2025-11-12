@@ -1122,9 +1122,51 @@ class DTEController extends Controller
     public
     function processDTE(array $dte, $idVenta): array|jsonResponse
     {
+        // Obtener la venta para asignar correlativo si es necesario
+        $venta = SalesHeader::with(['cashRegister', 'documentType'])->findOrFail($idVenta);
+
+        // Si no tiene document_internal_number asignado, asignar el correlativo
+        if (!$venta->document_internal_number) {
+            try {
+                // Obtener la caja registradora desde la apertura de caja
+                $cashOpening = \App\Models\CashOpening::with('cashRegister')->findOrFail($venta->cashbox_open_id);
+                $cashRegisterId = $cashOpening->cash_register_id;
+
+                // Obtener el correlativo activo para esta caja y tipo de documento
+                $correlative = \App\Models\Correlative::getActiveCorrelative($cashRegisterId, $venta->document_type_id);
+
+                if (!$correlative) {
+                    return [
+                        'estado' => 'FALLO',
+                        'mensaje' => 'No hay un correlativo activo configurado para este tipo de documento en la caja registradora',
+                    ];
+                }
+
+                // Generar y asignar el siguiente número correlativo
+                DB::beginTransaction();
+                $nextNumber = $correlative->current_number + 1;
+                $correlative->incrementCorrelative();
+                $venta->document_internal_number = $nextNumber;
+                $venta->save();
+                DB::commit();
+
+                // Actualizar el invoiceId en el DTE con el nuevo número
+                $dte['invoiceId'] = intval($nextNumber);
+
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return [
+                    'estado' => 'FALLO',
+                    'mensaje' => 'Error al asignar correlativo: ' . $e->getMessage(),
+                ];
+            }
+        } else {
+            // Si ya tiene correlativo asignado (reintento), usar el existente
+            $dte['invoiceId'] = intval($venta->document_internal_number);
+        }
 
         $responseData = $this->SendDTE($dte, $idVenta);
-     
+
 //    dd($responseData['respuestaHacienda']);
 //    if (isset($responseData['respuestaHacienda']['estado']) && $responseData['respuestaHacienda']["estado"] === "RECHAZADO" || $responseData["estado"] === "RECHAZADO") {
         if (
