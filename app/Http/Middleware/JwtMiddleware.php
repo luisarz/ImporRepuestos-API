@@ -21,6 +21,13 @@ class JwtMiddleware
                 ], 401);
             }
         } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            // Permitir tokens expirados SOLO en la ruta de refresh
+            if ($request->is('api/v1/refresh') || $request->is('refresh')) {
+                // El token está expirado pero es válido para refresh
+                // JWT permite refrescar tokens expirados automáticamente
+                return $next($request);
+            }
+
             return response()->json([
                 'error' => 'Token expired',
                 'message' => 'Your session has expired. Please login again.'

@@ -21,8 +21,6 @@ class KardexService
     public function registerSaleMovement(SaleItem $saleItem): Kardex
     {
         try {
-            DB::beginTransaction();
-
             $sale = SalesHeader::with(['customer', 'warehouse', 'documentType'])
                 ->findOrFail($saleItem->sale_id);
 
@@ -65,8 +63,6 @@ class KardexService
                 'promedial_cost' => $previousCost,
             ]);
 
-            DB::commit();
-
             Log::info("Kardex registrado - SALE", [
                 'kardex_id' => $kardex->id,
                 'sale_id' => $sale->id,
@@ -78,7 +74,6 @@ class KardexService
             return $kardex;
 
         } catch (Exception $e) {
-            DB::rollBack();
             Log::error("Error al registrar kardex SALE: " . $e->getMessage());
             throw $e;
         }
@@ -94,8 +89,6 @@ class KardexService
     public function registerSaleCancellation(SaleItem $saleItem): Kardex
     {
         try {
-            DB::beginTransaction();
-
             $sale = SalesHeader::with(['customer', 'warehouse', 'documentType'])
                 ->findOrFail($saleItem->sale_id);
 
@@ -138,8 +131,6 @@ class KardexService
                 'promedial_cost' => $previousCost,
             ]);
 
-            DB::commit();
-
             Log::info("Kardex registrado - SALE_CANCELLATION", [
                 'kardex_id' => $kardex->id,
                 'sale_id' => $sale->id,
@@ -151,7 +142,6 @@ class KardexService
             return $kardex;
 
         } catch (Exception $e) {
-            DB::rollBack();
             Log::error("Error al registrar kardex SALE_CANCELLATION: " . $e->getMessage());
             throw $e;
         }

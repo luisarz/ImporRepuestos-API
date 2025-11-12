@@ -21,8 +21,6 @@ class InventoryService
     public function decreaseStock(SaleItem $saleItem): bool
     {
         try {
-            DB::beginTransaction();
-
             // Buscar el registro en inventories_batches
             $inventoryBatch = InventoriesBatch::where('id_inventory', $saleItem->inventory_id)
                 ->where('id_batch', $saleItem->batch_id)
@@ -48,8 +46,6 @@ class InventoryService
                 $batch->save();
             }
 
-            DB::commit();
-
             Log::info("Stock descontado", [
                 'sale_item_id' => $saleItem->id,
                 'inventory_id' => $saleItem->inventory_id,
@@ -61,7 +57,6 @@ class InventoryService
             return true;
 
         } catch (Exception $e) {
-            DB::rollBack();
             Log::error("Error al descontar stock: " . $e->getMessage());
             throw $e;
         }
@@ -77,8 +72,6 @@ class InventoryService
     public function increaseStock(SaleItem $saleItem): bool
     {
         try {
-            DB::beginTransaction();
-
             // Buscar el registro en inventories_batches
             $inventoryBatch = InventoriesBatch::where('id_inventory', $saleItem->inventory_id)
                 ->where('id_batch', $saleItem->batch_id)
@@ -99,8 +92,6 @@ class InventoryService
                 $batch->save();
             }
 
-            DB::commit();
-
             Log::info("Stock devuelto", [
                 'sale_item_id' => $saleItem->id,
                 'inventory_id' => $saleItem->inventory_id,
@@ -112,7 +103,6 @@ class InventoryService
             return true;
 
         } catch (Exception $e) {
-            DB::rollBack();
             Log::error("Error al devolver stock: " . $e->getMessage());
             throw $e;
         }

@@ -69,9 +69,9 @@ use App\Http\Controllers\Api\v1\SenEmailDTEController;
 
 
 Route::post('login', [LoginController::class, 'login']);
-Route::post('refresh', [LoginController::class, 'refresh']); // ✅ Fuera del middleware
 
 Route::middleware(['jwt'])->group(function () {
+    Route::post('refresh', [LoginController::class, 'refresh']); // ✅ Acepta tokens expirados (ver JwtMiddleware)
     Route::post('logout', [LoginController::class, 'logout']);
 
     // ========== MENU (NUEVO - Basado en permisos de Spatie) ==========
@@ -492,6 +492,11 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('quote-purchase-items', QuotePurchaseItemController::class);
 
 //    facturacion electronica
+    // NOTA: Estos endpoints NO tienen middleware de permisos porque:
+    // 1. generateDTE y sendDTE se llaman AUTOMÁTICAMENTE al finalizar una venta en el POS
+    // 2. Cualquier usuario con permiso 'ventas.create' debe poder finalizar ventas
+    // 3. La validación de permisos se hace en el FRONTEND (botones de la lista)
+    // 4. Los permisos específicos (ventas.generate_dte, etc.) solo controlan la VISIBILIDAD de botones manuales
     Route::get('/generarDTE/{idVenta}', [DTEController::class, 'generarDTE'])->name('generarDTE');
     Route::get('/sendAnularDTE/{idVenta}', [DTEController::class, 'anularDTE'])->name('sendAnularDTE');
     Route::get('/printDTETicket/{idVenta}', [DTEController::class, 'printDTETicket'])->name('printDTETicket');
