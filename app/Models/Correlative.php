@@ -16,8 +16,8 @@ class Correlative extends Model
      * @var array
      */
     protected $fillable = [
-        'warehouse_id',
-        'document_type',
+        'cash_register_id',
+        'document_type_id',
         'prefix',
         'current_number',
         'start_number',
@@ -33,7 +33,8 @@ class Correlative extends Model
      */
     protected $casts = [
         'id' => 'integer',
-        'warehouse_id' => 'integer',
+        'cash_register_id' => 'integer',
+        'document_type_id' => 'integer',
         'current_number' => 'integer',
         'start_number' => 'integer',
         'padding_length' => 'integer',
@@ -41,11 +42,19 @@ class Correlative extends Model
     ];
 
     /**
-     * Relación con Warehouse (Sucursal)
+     * Relación con CashRegister (Caja Registradora)
      */
-    public function warehouse(): BelongsTo
+    public function cashRegister(): BelongsTo
     {
-        return $this->belongsTo(Warehouse::class);
+        return $this->belongsTo(CashRegister::class);
+    }
+
+    /**
+     * Relación con DocumentType (Tipo de Documento DTE)
+     */
+    public function documentType(): BelongsTo
+    {
+        return $this->belongsTo(DocumentType::class, 'document_type_id');
     }
 
     /**
@@ -70,7 +79,7 @@ class Correlative extends Model
     /**
      * Incrementar el correlativo
      */
-    public function increment(): bool
+    public function incrementCorrelative(): bool
     {
         $this->current_number += 1;
         return $this->save();
@@ -94,28 +103,28 @@ class Correlative extends Model
     }
 
     /**
-     * Scope para filtrar por sucursal
+     * Scope para filtrar por caja registradora
      */
-    public function scopeByWarehouse($query, $warehouseId)
+    public function scopeByCashRegister($query, $cashRegisterId)
     {
-        return $query->where('warehouse_id', $warehouseId);
+        return $query->where('cash_register_id', $cashRegisterId);
     }
 
     /**
      * Scope para filtrar por tipo de documento
      */
-    public function scopeByDocumentType($query, $documentType)
+    public function scopeByDocumentType($query, $documentTypeId)
     {
-        return $query->where('document_type', $documentType);
+        return $query->where('document_type_id', $documentTypeId);
     }
 
     /**
-     * Obtener el correlativo activo para una sucursal y tipo de documento
+     * Obtener el correlativo activo para una caja registradora y tipo de documento
      */
-    public static function getActiveCorrelative($warehouseId, $documentType)
+    public static function getActiveCorrelative($cashRegisterId, $documentTypeId)
     {
-        return self::where('warehouse_id', $warehouseId)
-            ->where('document_type', $documentType)
+        return self::where('cash_register_id', $cashRegisterId)
+            ->where('document_type_id', $documentTypeId)
             ->where('is_active', true)
             ->first();
     }

@@ -90,6 +90,22 @@ class DocumentTypeController extends Controller
         }
     }
 
+    /**
+     * Obtener todos los tipos de documento activos (sin paginar)
+     */
+    public function activeList(): JsonResponse
+    {
+        try {
+            $documentTypes = DocumentType::where('is_active', 1)
+                ->select('id', 'code', 'name')
+                ->orderBy('name')
+                ->get();
+            return ApiResponse::success($documentTypes, 'Tipos de documento activos recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al obtener los tipos de documento', 500);
+        }
+    }
+
     // Acciones grupales
     public function bulkGet(Request $request): JsonResponse
     {

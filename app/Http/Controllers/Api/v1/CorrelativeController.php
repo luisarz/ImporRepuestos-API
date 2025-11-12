@@ -37,7 +37,7 @@ class CorrelativeController extends Controller
                 $sortOrder = 'asc';
             }
 
-            $query = Correlative::query()->with('warehouse');
+            $query = Correlative::query()->with('cashRegister.warehouse');
 
             // Búsqueda
             if (!empty($search)) {
@@ -53,16 +53,12 @@ class CorrelativeController extends Controller
                 $query->where('is_active', $statusFilter);
             }
 
-            if ($warehouseFilter !== '') {
-                $query->where('warehouse_id', $warehouseFilter);
-            }
-
             if ($documentTypeFilter !== '') {
                 $query->where('document_type', $documentTypeFilter);
             }
 
             // Ordenamiento
-            $allowedSortFields = ['id', 'warehouse_id', 'document_type', 'prefix', 'current_number', 'is_active', 'created_at'];
+            $allowedSortFields = ['id', 'cash_register_id', 'document_type', 'prefix', 'current_number', 'is_active', 'created_at'];
             if (in_array($sortBy, $allowedSortFields)) {
                 $query->orderBy($sortBy, $sortOrder);
             }
@@ -78,18 +74,31 @@ class CorrelativeController extends Controller
     {
         try {
             $validated = $request->validate([
-                'warehouse_id' => 'required|exists:warehouses,id',
-                'document_type' => 'required|string|max:50',
-                'prefix' => 'required|string|max:20',
+                'cash_register_id' => 'required|exists:cash_registers,id',
+                'document_type_id' => 'required|exists:dte_document_types,id',
+                'prefix' => 'nullable|string|max:20',
+                'current_number' => 'nullable|integer|min:1',
                 'start_number' => 'nullable|integer|min:1',
-                'padding_length' => 'nullable|integer|min:1|max:10',
+                'padding_length' => 'nullable|integer|min:1|max:20',
                 'is_active' => 'boolean',
                 'description' => 'nullable|string',
             ]);
 
-            $correlative = $this->correlativeService->createCorrelative($validated);
+            // Establecer valores por defecto
+            $validated['current_number'] = $validated['current_number'] ?? $validated['start_number'] ?? 1;
+            $validated['start_number'] = $validated['start_number'] ?? 1;
+            $validated['padding_length'] = $validated['padding_length'] ?? 8;
+
+            $correlative = Correlative::create($validated);
+            $correlative->load(['documentType', 'cashRegister.warehouse']);
 
             return ApiResponse::success($correlative, 'Correlativo creado exitosamente', 201);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Verificar si es un error de constraint único
+            if ($e->getCode() == 23000 || str_contains($e->getMessage(), 'Duplicate entry')) {
+                return ApiResponse::error(null, 'Ya existe un correlativo activo para este tipo de documento en esta caja registradora', 400);
+            }
+            return ApiResponse::error($e->getMessage(), 'Error al crear el correlativo', 400);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al crear el correlativo', 400);
         }
@@ -98,7 +107,7 @@ class CorrelativeController extends Controller
     public function show($id): JsonResponse
     {
         try {
-            $correlative = Correlative::with('warehouse')->findOrFail($id);
+            $correlative = Correlative::with('cashRegister.warehouse')->findOrFail($id);
 
             // Agregar el formato actual
             $result = $correlative->toArray();
@@ -116,22 +125,31 @@ class CorrelativeController extends Controller
     public function update(Request $request, $id): JsonResponse
     {
         try {
+            $correlative = Correlative::findOrFail($id);
+
             $validated = $request->validate([
-                'warehouse_id' => 'sometimes|exists:warehouses,id',
-                'document_type' => 'sometimes|string|max:50',
-                'prefix' => 'sometimes|string|max:20',
+                'cash_register_id' => 'sometimes|exists:cash_registers,id',
+                'document_type_id' => 'sometimes|exists:dte_document_types,id',
+                'prefix' => 'nullable|string|max:20',
                 'current_number' => 'sometimes|integer|min:0',
                 'start_number' => 'sometimes|integer|min:1',
-                'padding_length' => 'sometimes|integer|min:1|max:10',
+                'padding_length' => 'sometimes|integer|min:1|max:20',
                 'is_active' => 'boolean',
                 'description' => 'nullable|string',
             ]);
 
-            $correlative = $this->correlativeService->updateCorrelative($id, $validated);
+            $correlative->update($validated);
+            $correlative->load(['documentType', 'cashRegister.warehouse']);
 
             return ApiResponse::success($correlative, 'Correlativo actualizado exitosamente', 200);
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'Correlativo no encontrado', 404);
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Verificar si es un error de constraint único
+            if ($e->getCode() == 23000 || str_contains($e->getMessage(), 'Duplicate entry')) {
+                return ApiResponse::error(null, 'Ya existe un correlativo activo para este tipo de documento en esta caja registradora', 400);
+            }
+            return ApiResponse::error($e->getMessage(), 'Error al actualizar el correlativo', 400);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al actualizar el correlativo', 400);
         }
@@ -200,6 +218,22 @@ class CorrelativeController extends Controller
             return ApiResponse::success($correlative, 'Estado del correlativo actualizado', 200);
         } catch (Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al actualizar el estado', 400);
+        }
+    }
+
+    /**
+     * Obtener correlativos por caja registradora
+     */
+    public function getByRegister($registerId): JsonResponse
+    {
+        try {
+            $correlatives = Correlative::where('cash_register_id', $registerId)
+                ->with(['cashRegister.warehouse', 'documentType'])
+                ->orderBy('id', 'desc')
+                ->get();
+            return ApiResponse::success($correlatives, 'Correlativos obtenidos exitosamente', 200);
+        } catch (Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al obtener los correlativos', 500);
         }
     }
 

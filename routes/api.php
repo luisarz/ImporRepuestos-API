@@ -519,6 +519,11 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('document-tax', DocumentTypeController::class);
 
+    // ========== DTE DOCUMENT TYPES (Tipos de Documentos DTE) ==========
+    // Alias routes for dte-document-types (same controller as document-tax)
+    Route::get('dte-document-types/active/list', [DocumentTypeController::class, 'activeList']);
+    Route::get('dte-document-types/all/list', [DocumentTypeController::class, 'index']);
+
     // ========== CASH REGISTERS (Cajas Registradoras) ==========
     Route::get('cash-registers/stats/all', [CashRegisterController::class, 'stats']);
     Route::get('cash-registers/all/list', [CashRegisterController::class, 'getAll']);
@@ -545,6 +550,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('correlatives/stats/all', [CorrelativeController::class, 'stats']);
     Route::get('correlatives/document-types', [CorrelativeController::class, 'getDocumentTypes']);
     Route::get('correlatives/by-warehouse/{warehouseId}', [CorrelativeController::class, 'getByWarehouse']);
+    Route::get('correlatives/by-register/{registerId}', [CorrelativeController::class, 'getByRegister']);
     Route::post('correlatives/get-next', [CorrelativeController::class, 'getNext']);
     Route::post('correlatives/{id}/reset', [CorrelativeController::class, 'reset']);
     Route::post('correlatives/{id}/toggle', [CorrelativeController::class, 'toggle']);
