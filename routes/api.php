@@ -65,6 +65,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\v1\DTEController;
 use App\Http\Controllers\Api\v1\SenEmailDTEController;
+use App\Http\Controllers\Api\v1\CashRegisterController;
+use App\Http\Controllers\Api\v1\CashOpeningController;
+use App\Http\Controllers\Api\v1\CashMovementController;
+use App\Http\Controllers\Api\v1\CorrelativeController;
 
 
 
@@ -515,6 +519,39 @@ Route::middleware(['jwt'])->group(function () {
 
     Route::apiResource('document-tax', DocumentTypeController::class);
 
+    // ========== CASH REGISTERS (Cajas Registradoras) ==========
+    Route::get('cash-registers/stats/all', [CashRegisterController::class, 'stats']);
+    Route::get('cash-registers/all/list', [CashRegisterController::class, 'getAll']);
+    Route::post('cash-registers/bulk/get', [CashRegisterController::class, 'bulkGet']);
+    Route::post('cash-registers/bulk/activate', [CashRegisterController::class, 'bulkActivate']);
+    Route::post('cash-registers/bulk/deactivate', [CashRegisterController::class, 'bulkDeactivate']);
+    Route::post('cash-registers/bulk/delete', [CashRegisterController::class, 'bulkDelete']);
+    Route::apiResource('cash-registers', CashRegisterController::class);
+
+    // ========== CASH OPENINGS (Aperturas de Caja) ==========
+    Route::get('cash-openings/stats/all', [CashOpeningController::class, 'stats']);
+    Route::get('cash-openings/current-by-user', [CashOpeningController::class, 'getCurrentByUser']);
+    Route::get('cash-openings/{id}/report', [CashOpeningController::class, 'report']);
+    Route::post('cash-openings/{id}/close', [CashOpeningController::class, 'close']);
+    Route::post('cash-openings/stats-by-date-range', [CashOpeningController::class, 'statsByDateRange']);
+    Route::apiResource('cash-openings', CashOpeningController::class);
+
+    // ========== CASH MOVEMENTS (Movimientos de Caja) ==========
+    Route::get('cash-movements/stats/all', [CashMovementController::class, 'stats']);
+    Route::get('cash-movements/by-opening/{openingId}', [CashMovementController::class, 'getByOpening']);
+    Route::apiResource('cash-movements', CashMovementController::class);
+
+    // ========== CORRELATIVES (Correlativos) ==========
+    Route::get('correlatives/stats/all', [CorrelativeController::class, 'stats']);
+    Route::get('correlatives/document-types', [CorrelativeController::class, 'getDocumentTypes']);
+    Route::get('correlatives/by-warehouse/{warehouseId}', [CorrelativeController::class, 'getByWarehouse']);
+    Route::post('correlatives/get-next', [CorrelativeController::class, 'getNext']);
+    Route::post('correlatives/{id}/reset', [CorrelativeController::class, 'reset']);
+    Route::post('correlatives/{id}/toggle', [CorrelativeController::class, 'toggle']);
+    Route::post('correlatives/bulk/activate', [CorrelativeController::class, 'bulkActivate']);
+    Route::post('correlatives/bulk/deactivate', [CorrelativeController::class, 'bulkDeactivate']);
+    Route::post('correlatives/bulk/delete', [CorrelativeController::class, 'bulkDelete']);
+    Route::apiResource('correlatives', CorrelativeController::class);
 
 });
 
