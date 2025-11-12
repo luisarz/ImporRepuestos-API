@@ -1123,7 +1123,31 @@ class DTEController extends Controller
     function processDTE(array $dte, $idVenta): array|jsonResponse
     {
         // Obtener la venta para asignar correlativo si es necesario
-        $venta = SalesHeader::with(['cashRegister', 'documentType'])->findOrFail($idVenta);
+        $venta = SalesHeader::with(['cashRegister', 'documentType', 'cashOpening'])->findOrFail($idVenta);
+
+        // Validar que la venta tenga una apertura de caja asociada
+        if (!$venta->cashbox_open_id) {
+            return [
+                'estado' => 'FALLO',
+                'mensaje' => 'No se puede enviar el DTE. La venta no tiene una caja registradora asociada.',
+            ];
+        }
+
+        // Validar que la apertura de caja exista y esté abierta
+        $cashOpening = \App\Models\CashOpening::find($venta->cashbox_open_id);
+        if (!$cashOpening) {
+            return [
+                'estado' => 'FALLO',
+                'mensaje' => 'No se puede enviar el DTE. La apertura de caja asociada no existe.',
+            ];
+        }
+
+        if ($cashOpening->status !== 'open') {
+            return [
+                'estado' => 'FALLO',
+                'mensaje' => 'No se puede enviar el DTE. La caja registradora está cerrada. Por favor, abra una caja para poder enviar documentos a Hacienda.',
+            ];
+        }
 
         // Si no tiene document_internal_number asignado, asignar el correlativo
         if (!$venta->document_internal_number) {
