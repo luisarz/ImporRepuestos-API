@@ -56,7 +56,7 @@ class Vehicle extends Model
 
     public function model(): BelongsTo
     {
-        return $this->belongsTo(VehicleModel::class);
+        return $this->belongsTo(VehicleModel::class, 'model_id');
     }
 
     public function fuelType(): BelongsTo

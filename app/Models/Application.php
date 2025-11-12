@@ -40,8 +40,8 @@ class Application extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function vehicle(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function vehicle(): BelongsTo
     {
-        return $this->hasMany(Vehicle::class,'id','vehicle_id');
+        return $this->belongsTo(Vehicle::class, 'vehicle_id', 'id');
     }
 }

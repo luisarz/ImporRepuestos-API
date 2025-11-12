@@ -31,11 +31,12 @@ class InventoryController extends Controller
 
             $inventories = Inventory::with([
                 'warehouse:id,name',
-                'product:id,code,original_code,description,category_id,unit_measurement_id,image,barcode,description_measurement_id',
+                'product:id,code,original_code,description,category_id,unit_measurement_id,image,barcode,description_measurement_id,brand_id',
                 'prices',
                 'product.category',
+                'product.brand',
                 'product.unitMeasurement',
-                'product.images'
+                'product.images',
             ])
                 ->withSum('inventoryBatches', 'quantity')
                 ->whereHas('product', function ($query) use ($search) {
@@ -167,6 +168,194 @@ class InventoryController extends Controller
             return ApiResponse::error(null, 'Inventario no encontrado', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Obtiene información detallada del inventario incluyendo:
+     * - Datos del inventario actual
+     * - Información completa del producto (imágenes, aplicaciones, intercambios, equivalentes)
+     * - Existencias en otras sucursales
+     *
+     * @param int $id ID del inventario
+     * @return JsonResponse
+     */
+    public function getDetails($id): JsonResponse
+    {
+        try {
+            // 1. Obtener el inventario actual con sus relaciones básicas
+            $inventory = Inventory::with([
+                'warehouse:id,name,address,phone',
+                'product:id,code,original_code,description,category_id,unit_measurement_id,image,barcode,description_measurement_id,brand_id',
+                'prices',
+                'product.category:id,description',
+                'product.brand:id,description',
+                'product.unitMeasurement:id,description',
+                'product.images',
+            ])
+            ->withSum('inventoryBatches', 'quantity')
+            ->findOrFail($id);
+
+            // Calcular stock actual
+            $inventory->actual_stock = $inventory->inventory_batches_sum_quantity ?? 0;
+
+            // 2. Obtener información completa del producto
+            $productId = $inventory->product_id;
+
+            // Aplicaciones (vehículos compatibles)
+            try {
+                $applications = \App\Models\Application::where('product_id', $productId)
+                    ->where('is_active', 1)
+                    ->with(['vehicle'])
+                    ->get()
+                    ->map(function ($app) {
+                        $vehicle = $app->vehicle;
+
+                        // Si no hay vehículo asociado, solo usar los datos del application
+                        if (!$vehicle) {
+                            return [
+                                'id' => $app->id,
+                                'application_name' => $app->name ?? '',
+                                'application_brand' => $app->brand ?? '',
+                                'year' => null,
+                                'motor' => null,
+                                'motor_type' => null,
+                                'vehicle_model_description' => null,
+                                'vehicle_brand_description' => null,
+                            ];
+                        }
+
+                        // Cargar modelo y marca manualmente si existen
+                        $model = null;
+                        $brand = null;
+
+                        if ($vehicle->model_id) {
+                            $model = \App\Models\VehicleModel::find($vehicle->model_id);
+                            if ($model && $model->brand_id) {
+                                $brand = \App\Models\Brand::find($model->brand_id);
+                            }
+                        }
+
+                        return [
+                            'id' => $app->id,
+                            'application_name' => $app->name ?? '',
+                            'application_brand' => $app->brand ?? '',
+                            'year' => $vehicle->year ?? null,
+                            'motor' => $vehicle->motor ?? null,
+                            'motor_type' => $vehicle->motor_type ?? null,
+                            'vehicle_model_description' => $model->description ?? null,
+                            'vehicle_brand_description' => $brand->description ?? null,
+                        ];
+                    });
+            } catch (\Exception $e) {
+                Log::error('Error al obtener aplicaciones', [
+                    'product_id' => $productId,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString()
+                ]);
+                $applications = collect([]);
+            }
+
+            // Intercambios
+            try {
+                $interchanges = \DB::table('interchanges')
+                    ->leftJoin('brands', 'interchanges.brand_id', '=', 'brands.id')
+                    ->where('interchanges.product_id', $productId)
+                    ->select(
+                        'interchanges.id',
+                        'interchanges.interchange_code',
+                        'brands.description as brand_description'
+                    )
+                    ->limit(10)
+                    ->get();
+            } catch (\Exception $e) {
+                Log::error('Error al obtener intercambios', [
+                    'product_id' => $productId,
+                    'error' => $e->getMessage()
+                ]);
+                $interchanges = collect([]);
+            }
+
+            // Equivalentes
+            try {
+                $equivalents = \DB::table('equivalents')
+                    ->join('products as equivalent_products', 'equivalents.equivalent_product_id', '=', 'equivalent_products.id')
+                    ->where('equivalents.product_id', $productId)
+                    ->select(
+                        'equivalents.id',
+                        'equivalent_products.code',
+                        'equivalent_products.description'
+                    )
+                    ->limit(10)
+                    ->get();
+            } catch (\Exception $e) {
+                Log::error('Error al obtener equivalentes', [
+                    'product_id' => $productId,
+                    'error' => $e->getMessage()
+                ]);
+                $equivalents = collect([]);
+            }
+
+            // 3. Obtener existencias en otras sucursales
+            try {
+                $otherInventories = Inventory::with('warehouse:id,name,address')
+                    ->where('product_id', $productId)
+                    ->where('is_active', true)
+                    ->where('is_temp', false)
+                    ->withSum('inventoryBatches', 'quantity')
+                    ->get()
+                    ->map(function ($inv) use ($id) {
+                        return [
+                            'id' => $inv->id,
+                            'warehouse_id' => $inv->warehouse_id,
+                            'warehouse' => $inv->warehouse,
+                            'stock' => $inv->inventory_batches_sum_quantity ?? 0,
+                            'is_current' => $inv->id == $id,
+                            'stock_min' => $inv->stock_min,
+                            'stock_max' => $inv->stock_max,
+                        ];
+                    });
+            } catch (\Exception $e) {
+                Log::error('Error al obtener inventarios de otras sucursales', [
+                    'product_id' => $productId,
+                    'error' => $e->getMessage()
+                ]);
+                $otherInventories = collect([]);
+            }
+
+            // 4. Construir respuesta
+            $response = [
+                'inventory' => $inventory,
+                'product_details' => [
+                    'applications' => $applications,
+                    'interchanges' => $interchanges,
+                    'equivalents' => $equivalents,
+                ],
+                'other_warehouses' => $otherInventories,
+                'summary' => [
+                    'total_stock_all_warehouses' => $otherInventories->sum('stock'),
+                    'warehouses_count' => $otherInventories->count(),
+                    'applications_count' => $applications->count(),
+                    'interchanges_count' => $interchanges->count(),
+                    'equivalents_count' => $equivalents->count(),
+                ]
+            ];
+
+            Log::info('Detalles de inventario recuperados', [
+                'inventory_id' => $id,
+                'product_id' => $productId,
+            ]);
+
+            return ApiResponse::success($response, 'Detalles del inventario recuperados exitosamente', 200);
+        } catch (ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'Inventario no encontrado', 404);
+        } catch (\Exception $e) {
+            Log::error('Error al obtener detalles del inventario', [
+                'inventory_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error al obtener los detalles', 500);
         }
     }
 

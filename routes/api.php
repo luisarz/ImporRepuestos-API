@@ -360,6 +360,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('products/{id}', [ProductController::class, 'update']);
 
     Route::get('prices/inventory/{idInventory}', [InventoryController::class, 'getPrices']);
+    Route::get('inventories/{id}/details', [InventoryController::class, 'getDetails']);
     Route::get('inventories/product/{productId}', [InventoryController::class, 'getByProduct']);
     Route::apiResource('inventories', InventoryController::class);
     Route::apiResource('prices', PriceController::class);
@@ -408,6 +409,7 @@ Route::middleware(['jwt'])->group(function () {
 
     # Batches individual and batch CODE Cp,CL, J
     Route::apiResource('batch-code-origens', BatchCodeOrigenController::class);
+    Route::get('batches/stats/all', [BatchController::class, 'stats']);
     Route::apiResource('batches', BatchController::class);
 
     #Se EJECUTARÁ el registro al momento de finalizar el registro de un lote en compras o realizar una venta o traslado
