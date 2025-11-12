@@ -1236,11 +1236,36 @@ class DTEController extends Controller
             (isset($responseData['respuestaHacienda']['estado']) && $responseData['respuestaHacienda']['estado'] === "RECHAZADO")
             || (isset($responseData["estado"]) && $responseData["estado"] === "RECHAZADO")
         ) {
+            // Construir mensaje detallado del error de Hacienda
+            $errorDetails = [];
+
+            // Obtener información de la respuesta
+            $haciendaResponse = $responseData['respuestaHacienda'] ?? $responseData;
+
+            if (isset($haciendaResponse['descripcionMsg'])) {
+                if (is_array($haciendaResponse['descripcionMsg'])) {
+                    $errorDetails[] = implode(', ', $haciendaResponse['descripcionMsg']);
+                } else {
+                    $errorDetails[] = $haciendaResponse['descripcionMsg'];
+                }
+            }
+
+            if (isset($haciendaResponse['observaciones'])) {
+                if (is_array($haciendaResponse['observaciones'])) {
+                    $errorDetails[] = implode(', ', $haciendaResponse['observaciones']);
+                } else {
+                    $errorDetails[] = $haciendaResponse['observaciones'];
+                }
+            }
+
+            $mensaje = !empty($errorDetails)
+                ? 'DTE rechazado por Hacienda: ' . implode(' | ', $errorDetails)
+                : 'DTE rechazado por Hacienda';
 
             return [
-                'estado' => 'FALLO', // o 'ERROR'
+                'estado' => 'FALLO',
                 'response' => $responseData,
-                'mensaje' => 'DTE falló al enviarse: ' . implode(', ', $responseData['descripcionMsg'] ?? []), // Concatenar observaciones
+                'mensaje' => $mensaje,
             ];
         } else if (isset($responseData['respuestaHacienda']["estado"]) && $responseData['respuestaHacienda']["estado"] == "PENDIENTE") {
             $this->saveJson($responseData, $idVenta, false);
