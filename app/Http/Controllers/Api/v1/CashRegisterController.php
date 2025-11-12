@@ -28,7 +28,7 @@ class CashRegisterController extends Controller
                 $sortOrder = 'asc';
             }
 
-            $query = CashRegister::query()->with('warehouse');
+            $query = CashRegister::query()->with(['warehouse', 'currentOpening']);
 
             // Búsqueda
             if (!empty($search)) {
@@ -99,6 +99,11 @@ class CashRegisterController extends Controller
         try {
             $cashRegister = CashRegister::findOrFail($id);
 
+            // Verificar si la caja tiene una apertura activa
+            if ($cashRegister->hasOpenCash()) {
+                return ApiResponse::error(null, 'No se puede modificar una caja registradora con apertura activa. Por favor, cierre la caja antes de realizar cambios.', 400);
+            }
+
             $validated = $request->validate([
                 'code' => ['sometimes', 'string', 'max:20', Rule::unique('cash_registers')->ignore($id)],
                 'name' => 'sometimes|string|max:100',
@@ -123,6 +128,11 @@ class CashRegisterController extends Controller
         try {
             $cashRegister = CashRegister::findOrFail($id);
 
+            // Verificar si la caja tiene una apertura activa
+            if ($cashRegister->hasOpenCash()) {
+                return ApiResponse::error(null, 'No se puede eliminar una caja registradora con apertura activa. Por favor, cierre la caja antes de eliminarla.', 400);
+            }
+
             // Verificar que no tenga aperturas
             if ($cashRegister->cashOpenings()->exists()) {
                 return ApiResponse::error(null, 'No se puede eliminar una caja con aperturas registradas', 400);
@@ -146,7 +156,7 @@ class CashRegisterController extends Controller
             $warehouseId = $request->input('warehouse_id');
 
             $query = CashRegister::where('is_active', 1)
-                ->select('id', 'code', 'name', 'warehouse_id')
+                ->select('id', 'code', 'name', 'warehouse_id', 'is_active')
                 ->with('warehouse:id,name');
 
             if ($warehouseId) {
@@ -204,6 +214,16 @@ class CashRegisterController extends Controller
     {
         try {
             $ids = $request->input('ids', []);
+
+            // Verificar que ninguna tenga apertura activa
+            $withOpenCash = CashRegister::whereIn('id', $ids)
+                ->whereHas('currentOpening')
+                ->exists();
+
+            if ($withOpenCash) {
+                return ApiResponse::error(null, 'No se pueden activar cajas con apertura activa. Por favor, cierre las cajas primero.', 400);
+            }
+
             CashRegister::whereIn('id', $ids)->update(['is_active' => 1]);
             return ApiResponse::success(null, 'Cajas activadas exitosamente', 200);
         } catch (Exception $e) {
@@ -215,6 +235,16 @@ class CashRegisterController extends Controller
     {
         try {
             $ids = $request->input('ids', []);
+
+            // Verificar que ninguna tenga apertura activa
+            $withOpenCash = CashRegister::whereIn('id', $ids)
+                ->whereHas('currentOpening')
+                ->exists();
+
+            if ($withOpenCash) {
+                return ApiResponse::error(null, 'No se pueden desactivar cajas con apertura activa. Por favor, cierre las cajas primero.', 400);
+            }
+
             CashRegister::whereIn('id', $ids)->update(['is_active' => 0]);
             return ApiResponse::success(null, 'Cajas desactivadas exitosamente', 200);
         } catch (Exception $e) {
@@ -227,7 +257,16 @@ class CashRegisterController extends Controller
         try {
             $ids = $request->input('ids', []);
 
-            // Verificar que ninguna tenga aperturas
+            // Verificar que ninguna tenga apertura activa
+            $withOpenCash = CashRegister::whereIn('id', $ids)
+                ->whereHas('currentOpening')
+                ->exists();
+
+            if ($withOpenCash) {
+                return ApiResponse::error(null, 'No se pueden eliminar cajas con apertura activa. Por favor, cierre las cajas primero.', 400);
+            }
+
+            // Verificar que ninguna tenga aperturas registradas
             $withOpenings = CashRegister::whereIn('id', $ids)
                 ->whereHas('cashOpenings')
                 ->exists();

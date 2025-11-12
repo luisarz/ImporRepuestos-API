@@ -84,6 +84,12 @@ class CorrelativeController extends Controller
                 'description' => 'nullable|string',
             ]);
 
+            // Verificar si la caja tiene una apertura activa
+            $cashRegister = \App\Models\CashRegister::findOrFail($validated['cash_register_id']);
+            if ($cashRegister->hasOpenCash()) {
+                return ApiResponse::error(null, 'No se puede crear un correlativo mientras la caja tenga una apertura activa. Por favor, cierre la caja primero.', 400);
+            }
+
             // Establecer valores por defecto
             $validated['current_number'] = $validated['current_number'] ?? $validated['start_number'] ?? 1;
             $validated['start_number'] = $validated['start_number'] ?? 1;
@@ -127,6 +133,11 @@ class CorrelativeController extends Controller
         try {
             $correlative = Correlative::findOrFail($id);
 
+            // Verificar si la caja tiene una apertura activa
+            if ($correlative->cashRegister->hasOpenCash()) {
+                return ApiResponse::error(null, 'No se puede modificar un correlativo mientras la caja tenga una apertura activa. Por favor, cierre la caja primero.', 400);
+            }
+
             $validated = $request->validate([
                 'cash_register_id' => 'sometimes|exists:cash_registers,id',
                 'document_type_id' => 'sometimes|exists:dte_document_types,id',
@@ -159,6 +170,12 @@ class CorrelativeController extends Controller
     {
         try {
             $correlative = Correlative::findOrFail($id);
+
+            // Verificar si la caja tiene una apertura activa
+            if ($correlative->cashRegister->hasOpenCash()) {
+                return ApiResponse::error(null, 'No se puede eliminar un correlativo mientras la caja tenga una apertura activa. Por favor, cierre la caja primero.', 400);
+            }
+
             $correlative->delete();
 
             return ApiResponse::success(null, 'Correlativo eliminado exitosamente', 200);
@@ -197,6 +214,13 @@ class CorrelativeController extends Controller
     public function reset($id): JsonResponse
     {
         try {
+            $correlative = Correlative::findOrFail($id);
+
+            // Verificar si la caja tiene una apertura activa
+            if ($correlative->cashRegister->hasOpenCash()) {
+                return ApiResponse::error(null, 'No se puede resetear un correlativo mientras la caja tenga una apertura activa. Por favor, cierre la caja primero.', 400);
+            }
+
             $correlative = $this->correlativeService->resetCorrelative($id);
             return ApiResponse::success($correlative, 'Correlativo reseteado exitosamente', 200);
         } catch (Exception $e) {
