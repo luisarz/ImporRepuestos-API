@@ -43,6 +43,7 @@ class ProductController extends Controller
                 'category' => 'category_id',
                 'brand' => 'brand_id',
                 'unitMeasurement' => 'unit_measurement_id',
+                'product_id' => 'id', // Mapear product_id a id
             ];
 
             // Si el campo está en el mapeo, usar el campo mapeado

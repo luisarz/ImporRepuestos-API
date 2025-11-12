@@ -61,12 +61,17 @@ class SaleItemController extends Controller
                 'inventory',
                 'inventory.product',
                 'inventory.product.category',
+                'inventory.warehouse', // Agregar bodega
+                'batch', // Agregar lote
             ])
                 ->where('sale_id', $id)
+                ->where('is_active', true) // Solo items activos
+                ->orderBy('created_at', 'desc') // Más recientes primero
                 ->paginate($perPage)
                 ->through(function ($item) {
                     $item->formatted_price = '$' . number_format($item->price, 2);
                     $item->formatted_total = '$' . number_format($item->total, 2);
+                    $item->formatted_discount = '$' . number_format($item->discount, 2);
                     return $item;
                 });
 

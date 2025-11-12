@@ -66,31 +66,32 @@ class ModuloController extends Controller
 
             $modulo = Modulo::create($request->validated());
             //Crear todos los permisos para el modulo
-            $module_name=str_replace(' ','_',strtolower($modulo->nombre)).'_';
+            $module_name = str_replace(' ', '_', strtolower($modulo->nombre));
             $is_parent = $request->is_padre;
 
             if(!$is_parent){
-                $permissions = [
-                    $module_name.'view',
-                    $module_name.'view_any',
-                    $module_name.'create',
-                    $module_name.'update',
-                    $module_name.'restore',
-                    $module_name.'restore_any',
-                    $module_name.'replicate',
-                    $module_name.'reorder',
-                    $module_name.'delete',
-                    $module_name.'delete_any',
-                    $module_name.'force_delete',
-                    $module_name.'force_delete_any',
-                ];
+                // Determinar tipos de permisos según el tipo de módulo
+                $permissionTypes = $this->getPermissionTypesForModule($modulo);
+                $category = $this->getCategoryForModule($modulo);
 
-                foreach ($permissions as $permission) {
-                    Permission::create(['name'=>$permission,'guard_name'=>'api','module_id'=>$modulo->id]);
+                $createdPermissions = [];
+                foreach ($permissionTypes as $type => $friendlyName) {
+                    $permissionName = "{$module_name}.{$type}";
+
+                    $permission = Permission::create([
+                        'name' => $permissionName,
+                        'guard_name' => 'api',
+                        'module_id' => $modulo->id,
+                        'category' => $category,
+                        'friendly_name' => $friendlyName,
+                    ]);
+
+                    $createdPermissions[] = $permission;
                 }
+
                 $response=[
                     'module'=>$modulo,
-                    'permissions'=>$permissions
+                    'permissions'=>$createdPermissions
                 ];
                 return ApiResponse::success($response, 'Modulo creado exitosamente',200);
             }
@@ -120,37 +121,36 @@ class ModuloController extends Controller
         try {
             $modulo=Modulo::findOrFail($id);
             $modulo->update($request->validated());
-            $module_name = str_replace(' ', '_', strtolower($modulo->nombre)) . '_';
+            $module_name = str_replace(' ', '_', strtolower($modulo->nombre));
             $is_parent = $request->is_padre;
 
             if (!$is_parent) {
-                // Definir los permisos estándar
-                $permissions = [
-                    $module_name . 'view',
-                    $module_name . 'view_any',
-                    $module_name . 'create',
-                    $module_name . 'update',
-                    $module_name . 'restore',
-                    $module_name . 'restore_any',
-                    $module_name . 'replicate',
-                    $module_name . 'reorder',
-                    $module_name . 'delete',
-                    $module_name . 'delete_any',
-                    $module_name . 'force_delete',
-                    $module_name . 'force_delete_any',
-                ];
+                // Determinar tipos de permisos según el tipo de módulo
+                $permissionTypes = $this->getPermissionTypesForModule($modulo);
+                $category = $this->getCategoryForModule($modulo);
 
                 // Eliminar los permisos antiguos asociados al módulo
                 Permission::where('module_id',$id)->delete();
 
-                // Crear los nuevos permisos
-                foreach ($permissions as $permission) {
-                    Permission::create(['name' => $permission, 'guard_name' => 'api', 'module_id' => $modulo->id]);
+                // Crear los nuevos permisos con formato correcto y friendly_name
+                $createdPermissions = [];
+                foreach ($permissionTypes as $type => $friendlyName) {
+                    $permissionName = "{$module_name}.{$type}";
+
+                    $permission = Permission::create([
+                        'name' => $permissionName,
+                        'guard_name' => 'api',
+                        'module_id' => $modulo->id,
+                        'category' => $category,
+                        'friendly_name' => $friendlyName,
+                    ]);
+
+                    $createdPermissions[] = $permission;
                 }
 
                 $response = [
                     'module' => $modulo,
-                    'permissions' => $permissions
+                    'permissions' => $createdPermissions
                 ];
                 return ApiResponse::success($response, 'Módulo actualizado exitosamente con sus permisos', 200);
             }
@@ -264,5 +264,91 @@ class ModuloController extends Controller
         } catch (\Exception $e) {
             return ApiResponse::error(null, $e->getMessage(), 500);
         }
+    }
+
+    /**
+     * Determinar tipos de permisos según el tipo de módulo
+     */
+    private function getPermissionTypesForModule($module): array
+    {
+        $routeLower = strtolower($module->ruta);
+
+        // Módulos de reportes
+        if (str_contains($routeLower, 'report') || str_contains($routeLower, 'reporte')) {
+            return [
+                'view' => 'Ver',
+                'export' => 'Exportar',
+                'generate' => 'Generar',
+            ];
+        }
+
+        // Módulos transaccionales (ventas, compras)
+        if (str_contains($routeLower, 'sales') || str_contains($routeLower, 'venta') ||
+            str_contains($routeLower, 'purchase') || str_contains($routeLower, 'compra') ||
+            str_contains($routeLower, '/new')) {
+            return [
+                'view' => 'Ver',
+                'create' => 'Crear',
+                'update' => 'Editar',
+                'cancel' => 'Anular',
+                'authorize' => 'Autorizar',
+                'export' => 'Exportar',
+            ];
+        }
+
+        // Módulo de roles (especial)
+        if (str_contains($routeLower, 'setting/rol')) {
+            return [
+                'view' => 'Ver',
+                'create' => 'Crear',
+                'update' => 'Editar',
+                'delete' => 'Eliminar',
+                'manage_permissions' => 'Gestionar Permisos',
+                'export' => 'Exportar',
+                'bulk_activate' => 'Activar en Lote',
+                'bulk_deactivate' => 'Desactivar en Lote',
+                'bulk_delete' => 'Eliminar en Lote',
+            ];
+        }
+
+        // Módulos de configuración
+        if (str_contains($routeLower, 'setting') || str_contains($routeLower, 'config')) {
+            return [
+                'view' => 'Ver',
+                'create' => 'Crear',
+                'update' => 'Editar',
+                'delete' => 'Eliminar',
+                'export' => 'Exportar',
+                'bulk_activate' => 'Activar en Lote',
+                'bulk_deactivate' => 'Desactivar en Lote',
+                'bulk_delete' => 'Eliminar en Lote',
+            ];
+        }
+
+        // Por defecto: módulos de catálogo (CRUD básico)
+        return [
+            'view' => 'Ver',
+            'create' => 'Crear',
+            'update' => 'Editar',
+            'delete' => 'Eliminar',
+            'export' => 'Exportar',
+            'bulk_activate' => 'Activar en Lote',
+            'bulk_deactivate' => 'Desactivar en Lote',
+            'bulk_delete' => 'Eliminar en Lote',
+        ];
+    }
+
+    /**
+     * Determinar categoría del permiso según el tipo de módulo
+     */
+    private function getCategoryForModule($module): string
+    {
+        $routeLower = strtolower($module->ruta);
+
+        if (str_contains($routeLower, 'report')) return 'report';
+        if (str_contains($routeLower, 'sales') || str_contains($routeLower, 'purchase')) return 'transaction';
+        if (str_contains($routeLower, 'setting')) return 'configuration';
+
+        return 'crud';
     }
 }

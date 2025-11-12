@@ -27,27 +27,86 @@ class SalesHeaderController extends Controller
             $filtersJson = $request->input('filters') ?? '[]';
             $filters = json_decode($filtersJson, true) ?? [];
 
-
-            $salesHeaders = SalesHeader::with([
+            $query = SalesHeader::with([
                 'customer:id,document_number,name,last_name,document_type_id',
                 'warehouse:id,name',
                 'seller:id,name,last_name,dui',
                 'documentType',
                 'paymentMethod',
                 'saleCondition',
+            ]);
 
-            ])
-                ->whereHas('customer', function ($query) use ($search) {
-                    $query->where('name', 'like', "%$search%")
-                        ->orWhere('last_name', 'like', "%$search%");
-                })
-                ->paginate($perPage);
+            // Búsqueda general
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    // Buscar en campos de la venta
+                    $q->where('id', 'like', "%$search%")
+                        ->orWhere('document_internal_number', 'like', "%$search%")
+                        ->orWhere('sale_total', 'like', "%$search%")
+                        // Buscar en cliente
+                        ->orWhereHas('customer', function ($customerQuery) use ($search) {
+                            $customerQuery->where('name', 'like', "%$search%")
+                                ->orWhere('last_name', 'like', "%$search%")
+                                ->orWhere('document_number', 'like', "%$search%");
+                        })
+                        // Buscar en vendedor
+                        ->orWhereHas('seller', function ($sellerQuery) use ($search) {
+                            $sellerQuery->where('name', 'like', "%$search%")
+                                ->orWhere('last_name', 'like', "%$search%");
+                        })
+                        // Buscar en almacén
+                        ->orWhereHas('warehouse', function ($warehouseQuery) use ($search) {
+                            $warehouseQuery->where('name', 'like', "%$search%");
+                        });
+                });
+            }
+
+            // Aplicar filtros
+            if (!empty($filters)) {
+                foreach ($filters as $filter) {
+                    if (isset($filter['field']) && isset($filter['value'])) {
+                        $field = $filter['field'];
+                        $value = $filter['value'];
+                        $operator = $filter['operator'] ?? '=';
+
+                        // Filtros específicos
+                        if ($field === 'sale_status' && !empty($value)) {
+                            $query->where('sale_status', $value);
+                        } elseif ($field === 'customer_id' && !empty($value)) {
+                            $query->where('customer_id', $value);
+                        } elseif ($field === 'warehouse_id' && !empty($value)) {
+                            $query->where('warehouse_id', $value);
+                        } elseif ($field === 'seller_id' && !empty($value)) {
+                            $query->where('seller_id', $value);
+                        } elseif ($field === 'payment_status' && !empty($value)) {
+                            $query->where('payment_status', $value);
+                        } elseif ($field === 'is_dte' && $value !== '') {
+                            $query->where('is_dte', $value);
+                        } elseif ($field === 'date_from' && !empty($value)) {
+                            $query->whereDate('sale_date', '>=', $value);
+                        } elseif ($field === 'date_to' && !empty($value)) {
+                            $query->whereDate('sale_date', '<=', $value);
+                        } elseif ($field === 'min_total' && !empty($value)) {
+                            $query->where('sale_total', '>=', $value);
+                        } elseif ($field === 'max_total' && !empty($value)) {
+                            $query->where('sale_total', '<=', $value);
+                        }
+                    }
+                }
+            }
+
+            // Ordenar por fecha más reciente primero
+            $query->orderBy('sale_date', 'desc')->orderBy('id', 'desc');
+
+            $salesHeaders = $query->paginate($perPage);
+
             $salesHeaders->getCollection()->transform(function ($sale) {
                 $sale->formatted_date = $sale->sale_date->format('d/m/Y');
                 $sale->total_sale_formatted = number_format($sale->sale_total, 2, '.', ',');
                 return $sale;
             });
-            return ApiResponse::success($salesHeaders, 'Venta recuperada con éxito', 200);
+
+            return ApiResponse::success($salesHeaders, 'Ventas recuperadas con éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }

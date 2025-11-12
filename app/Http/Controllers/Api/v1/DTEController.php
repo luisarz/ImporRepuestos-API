@@ -138,10 +138,14 @@ class DTEController extends Controller
             ];
             $i++;
         }
-        $branchId = auth()->user()->employee->warehouse_id ?? null;
-        if (!$branchId) {
-            $branchId=1;
-            return response()->json(["status" => "error", "message" => "No se ha configurado la empresa"]);
+//        $branchId = auth()->user()->employee->warehouse_id ?? null;
+        $branchId = $factura->warehouse_id ?? 1;
+
+        if (!$factura->warehouse_id) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'No se ha configurado la empresa',
+            ], 400);
         }
         $exiteContingencia = Contingency::where('warehouse_id', $branchId)
             ->where('is_close', 0)->first();
@@ -641,7 +645,10 @@ class DTEController extends Controller
             $falloDTE->clasificaMsg = $responseHacienda["clasificaMsg"] ?? null;
             $falloDTE->codigoMsg = $responseHacienda["codigoMsg"] ?? null;
             $falloDTE->descripcionMsg = $responseHacienda["descripcionMsg"] ?? null;
-            $falloDTE->observaciones = isset($responseHacienda["observaciones"]) ? json_encode($responseHacienda["observaciones"]) : (isset($responseHacienda["descripcion"]) ? json_encode($responseHacienda["descripcion"]) : null);
+
+            // Usar el método formatObservaciones para normalizar el formato
+            $observacionesRaw = $responseHacienda["observaciones"] ?? $responseHacienda["descripcion"] ?? null;
+            $falloDTE->observaciones = $this->formatObservaciones($observacionesRaw);
 
             $falloDTE->dte = $responseData ?? null;
             $falloDTE->save();
@@ -804,11 +811,9 @@ class DTEController extends Controller
             $falloDTE->codigoMsg = $responseHacienda["codigoMsg"] ?? null;
             $falloDTE->descripcionMsg = $responseHacienda["descripcionMsg"] ?? null;
 
-            $falloDTE->observaciones = isset($responseHacienda["observaciones"])
-                ? (is_array($responseHacienda["observaciones"])
-                    ? json_encode($responseHacienda["observaciones"], JSON_UNESCAPED_UNICODE)
-                    : $responseHacienda["observaciones"])
-                : $observacion_fail;
+            // Usar el método formatObservaciones para normalizar el formato
+            $observacionesRaw = $responseHacienda["observaciones"] ?? $observacion_fail ?? null;
+            $falloDTE->observaciones = $this->formatObservaciones($observacionesRaw);
 
             $falloDTE->dte = json_encode($responseData, JSON_UNESCAPED_UNICODE);
 
@@ -1061,6 +1066,52 @@ class DTEController extends Controller
         } else {
             return 'Clave no encontrada';
         }
+    }
+
+    /**
+     * Normaliza y formatea las observaciones para guardar en la base de datos
+     *
+     * @param array|string|null $observaciones
+     * @return string|null
+     */
+    private function formatObservaciones($observaciones): ?string
+    {
+        if (empty($observaciones)) {
+            return null;
+        }
+
+        // Si ya es un string, retornarlo directamente
+        if (is_string($observaciones)) {
+            return $observaciones;
+        }
+
+        // Si es un array, procesarlo
+        if (is_array($observaciones)) {
+            // Si el array está vacío, retornar null
+            if (count($observaciones) === 0) {
+                return null;
+            }
+
+            // Si el array contiene strings simples, unirlos con saltos de línea
+            $isSimpleArray = true;
+            foreach ($observaciones as $item) {
+                if (!is_string($item) && !is_numeric($item)) {
+                    $isSimpleArray = false;
+                    break;
+                }
+            }
+
+            if ($isSimpleArray) {
+                // Unir observaciones con saltos de línea para mejor legibilidad
+                return implode("\n", array_filter($observaciones));
+            }
+
+            // Si el array contiene objetos o arrays anidados, convertir a JSON formateado
+            return json_encode($observaciones, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        }
+
+        // Para cualquier otro tipo, convertir a string
+        return (string) $observaciones;
     }
 
     /**

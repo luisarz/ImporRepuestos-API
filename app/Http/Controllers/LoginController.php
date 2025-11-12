@@ -72,6 +72,7 @@ class LoginController extends Controller
     protected function respondWithToken($token)
     {
         $user = auth()->user();
+
         $expiresIn = auth()->factory()->getTTL(); // En minutos
 
         // Obtener información del empleado si existe
