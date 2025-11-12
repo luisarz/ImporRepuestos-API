@@ -561,7 +561,7 @@ class DTEController extends Controller
         return $this->processDTE($dte, $idVenta);
     }
 
-    function SendDTE($dteData, $idVenta): array|JsonResponse // Assuming $dteData is the data you need to send
+    function SendDTE($dteData, $idVenta, $documentInfo = []): array|JsonResponse // Assuming $dteData is the data you need to send
     {
         set_time_limit(0);
         try {
@@ -626,6 +626,8 @@ class DTEController extends Controller
             $falloDTE = new HistoryDte;
             $ventaID = intval($idVenta);
             $falloDTE->sales_invoice_id = $ventaID;
+            $falloDTE->document_type = $documentInfo['document_type'] ?? null;
+            $falloDTE->document_number = $documentInfo['document_number'] ?? null;
             $falloDTE->version = $responseHacienda["version"] ?? 0;
             $falloDTE->ambiente = $responseHacienda["ambiente"] ?? 0;
             $falloDTE->versionApp = $responseHacienda["versionApp"] ?? 0;
@@ -797,6 +799,8 @@ class DTEController extends Controller
             $responseHacienda = ($responseData["estado"] == "RECHAZADO") ? $responseData : $responseData["respuestaHacienda"];
             $falloDTE = new HistoryDte;
             $falloDTE->sales_invoice_id = $idVenta;
+            $falloDTE->document_type = $venta->documentType->code ?? null;
+            $falloDTE->document_number = $venta->document_internal_number ?? null;
             $falloDTE->version = $responseHacienda["version"] ?? 2;
             $falloDTE->ambiente = $responseHacienda["ambiente"] ?? "00";
             $falloDTE->versionApp = $responseHacienda["versionApp"] ?? 2;
@@ -1218,7 +1222,13 @@ class DTEController extends Controller
             $dte['invoiceId'] = intval($venta->document_internal_number);
         }
 
-        $responseData = $this->SendDTE($dte, $idVenta);
+        // Preparar datos del documento para el historial
+        $documentInfo = [
+            'document_type' => $venta->documentType->code ?? null,
+            'document_number' => $venta->document_internal_number ?? null,
+        ];
+
+        $responseData = $this->SendDTE($dte, $idVenta, $documentInfo);
 
 //    dd($responseData['respuestaHacienda']);
 //    if (isset($responseData['respuestaHacienda']['estado']) && $responseData['respuestaHacienda']["estado"] === "RECHAZADO" || $responseData["estado"] === "RECHAZADO") {

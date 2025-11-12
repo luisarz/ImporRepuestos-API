@@ -17,6 +17,8 @@ class HistoryDte extends Model
      */
     protected $fillable = [
         'sales_invoice_id',
+        'document_type',
+        'document_number',
         'version',
         'ambiente',
         'versionApp',
