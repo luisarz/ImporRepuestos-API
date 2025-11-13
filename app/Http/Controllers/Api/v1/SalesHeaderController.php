@@ -105,27 +105,33 @@ class SalesHeaderController extends Controller
                 $sale->total_sale_formatted = number_format($sale->sale_total, 2, '.', ',');
 
                 // Formatear número de venta con PREFIX del correlativo + número de control interno
-                // Ejemplos: "F-000001" (Factura), "CCF-000123" (Comprobante Crédito Fiscal)
-                $prefix = 'DOC'; // fallback si no se encuentra correlativo
+                // Si document_internal_number es 0, mostrar "Sin asignar"
+                // Ejemplos: "F-000001" (Factura), "CCF-000123" (Comprobante Crédito Fiscal), "Sin asignar" (sin número)
 
-                // Obtener el prefix del correlativo activo para este tipo de documento
-                if ($sale->warehouse && $sale->document_type_id) {
-                    $cashRegister = $sale->warehouse->cashRegisters()->where('is_active', 1)->first();
-                    if ($cashRegister) {
-                        $correlativo = \App\Models\Correlative::where('cash_register_id', $cashRegister->id)
-                            ->where('document_type_id', $sale->document_type_id)
-                            ->where('is_active', true)
-                            ->first();
-                        if ($correlativo) {
-                            // Usar el prefix del correlativo (ej: "F-", "CCF-")
-                            // Remover guión si ya lo tiene para evitar duplicación
-                            $prefix = rtrim($correlativo->prefix, '-');
+                // Si el número de control interno es 0, significa que aún no se ha generado el DTE
+                if ($sale->document_internal_number == 0) {
+                    $sale->sale_number_formatted = 'Sin asignar';
+                } else {
+                    $prefix = 'DOC'; // fallback si no se encuentra correlativo
+
+                    // Obtener el prefix del correlativo activo para este tipo de documento
+                    if ($sale->warehouse && $sale->document_type_id) {
+                        $cashRegister = $sale->warehouse->cashRegisters()->where('is_active', 1)->first();
+                        if ($cashRegister) {
+                            $correlativo = \App\Models\Correlative::where('cash_register_id', $cashRegister->id)
+                                ->where('document_type_id', $sale->document_type_id)
+                                ->where('is_active', true)
+                                ->first();
+                            if ($correlativo) {
+                                // Usar el prefix del correlativo (ej: "F-", "CCF-")
+                                // Remover guión si ya lo tiene para evitar duplicación
+                                $prefix = rtrim($correlativo->prefix, '-');
+                            }
                         }
                     }
-                }
 
-                $internalNumber = $sale->document_internal_number ?: '0';
-                $sale->sale_number_formatted = $prefix . '-' . str_pad($internalNumber, 4, '0', STR_PAD_LEFT);
+                    $sale->sale_number_formatted = $prefix . '-' . str_pad($sale->document_internal_number, 4, '0', STR_PAD_LEFT);
+                }
 
                 return $sale;
             });
