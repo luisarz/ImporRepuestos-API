@@ -136,6 +136,11 @@ class SalesHeaderController extends Controller
             // Asignar el cashbox_open_id automáticamente
             $validated['cashbox_open_id'] = $openCashRegister->currentOpening->id;
 
+            // IMPORTANTE: Siempre forzar document_internal_number a 0 al crear una venta
+            // Ignorar cualquier valor que venga del frontend
+            // Este número se asignará definitivamente cuando se envíe el DTE desde el correlativo
+            $validated['document_internal_number'] = 0;
+
             $salesHeader = SalesHeader::create($validated);
             return ApiResponse::success($salesHeader, 'Venta creada con éxito', 201);
         } catch (\Exception $e) {
@@ -166,7 +171,14 @@ class SalesHeaderController extends Controller
     {
         try {
             $salesHeader = SalesHeader::findOrFail($id);
-            $salesHeader->update($request->validated());
+
+            $validated = $request->validated();
+
+            // PROTECCIÓN: No permitir modificar document_internal_number desde el frontend
+            // Solo el backend puede asignar este valor al generar el DTE
+            unset($validated['document_internal_number']);
+
+            $salesHeader->update($validated);
             return ApiResponse::success($salesHeader, 'Venta actualizada con éxito', 200);
         } catch (ModelNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), 'Venta no encontrada', 404);

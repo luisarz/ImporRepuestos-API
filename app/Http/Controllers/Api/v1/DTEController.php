@@ -6,6 +6,7 @@ use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Contingency;
+use App\Models\Correlative;
 use App\Models\HistoryDte;
 use App\Models\SalesHeader;
 use DateTime;
@@ -103,6 +104,7 @@ class DTEController extends Controller
     {
         $factura = SalesHeader::with([
             'warehouse.stablishmentType',
+            'warehouse.cashRegisters',
             'documentType',
             'seller',
             'customer',
@@ -114,6 +116,11 @@ class DTEController extends Controller
             'saleDetails',
             'saleDetails.inventory.product'])->find($idVenta);
 
+        // Si document_internal_number es 0, asignar el próximo correlativo
+        $error = $this->assignControlNumberIfNeeded($factura);
+        if ($error) {
+            return $error; // Retornar error si hubo problema al asignar correlativo
+        }
 
         $establishmentType = trim($factura->warehouse->stablishmentType->code);
         $conditionCode = trim($factura->saleCondition->code??'');
@@ -199,8 +206,13 @@ class DTEController extends Controller
 
     function CCFJson($idVenta): array|JsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
+        // Si document_internal_number es 0, asignar el próximo correlativo
+        $error = $this->assignControlNumberIfNeeded($factura);
+        if ($error) {
+            return $error; // Retornar error si hubo problema al asignar correlativo
+        }
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = trim($factura->salescondition->code);
@@ -375,7 +387,13 @@ class DTEController extends Controller
 
     function ExportacionJson($idVenta): array|jsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+
+        // Si document_internal_number es 0, asignar el próximo correlativo
+        $error = $this->assignControlNumberIfNeeded($factura);
+        if ($error) {
+            return $error; // Retornar error si hubo problema al asignar correlativo
+        }
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = 1;//trim($factura->salescondition->code);
@@ -493,7 +511,13 @@ class DTEController extends Controller
 
     function sujetoExcluidoJson($idVenta): array|jsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+
+        // Si document_internal_number es 0, asignar el próximo correlativo
+        $error = $this->assignControlNumberIfNeeded($factura);
+        if ($error) {
+            return $error; // Retornar error si hubo problema al asignar correlativo
+        }
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
         $conditionCode = (int)trim($factura->salescondition->code ?? 1);
@@ -1451,6 +1475,50 @@ class DTEController extends Controller
 
 
 
+    }
+
+    /**
+     * Asignar número de control interno si está en 0 (validación)
+     * Obtiene el próximo correlativo del sistema e incrementa el contador
+     */
+    private function assignControlNumberIfNeeded(SalesHeader $factura): ?JsonResponse
+    {
+        // Si document_internal_number NO es 0, ya tiene un número asignado, retornar null (sin error)
+        if ($factura->document_internal_number != 0) {
+            return null;
+        }
+
+        // Obtener la caja registradora activa del warehouse
+        $cashRegister = $factura->warehouse->cashRegisters()->where('is_active', 1)->first();
+
+        if (!$cashRegister) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No hay una caja registradora activa en esta sucursal',
+            ], 400);
+        }
+
+        // Obtener el correlativo activo para el tipo de documento
+        $correlativo = Correlative::where('cash_register_id', $cashRegister->id)
+            ->where('document_type_id', $factura->document_type_id)
+            ->where('is_active', true)
+            ->first();
+
+        if (!$correlativo) {
+            return response()->json([
+                'status' => false,
+                'message' => 'No hay un correlativo activo configurado para este tipo de documento',
+            ], 400);
+        }
+
+        // Asignar el próximo número correlativo
+        $factura->document_internal_number = $correlativo->current_number + 1;
+        $factura->save();
+
+        // Incrementar el correlativo
+        $correlativo->incrementCorrelative();
+
+        return null; // Sin error, proceso exitoso
     }
 
 }
