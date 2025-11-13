@@ -104,13 +104,14 @@ class SalesHeaderController extends Controller
                 $sale->formatted_date = $sale->sale_date->format('d/m/Y');
                 $sale->total_sale_formatted = number_format($sale->sale_total, 2, '.', ',');
 
-                // Formatear número de venta con PREFIX del correlativo + número de control interno
+                // Formatear número de venta con tipo de documento + número de control interno
                 // Si document_internal_number es 0, mostrar "Sin asignar"
-                // Ejemplos: "F-000001" (Factura), "CCF-000123" (Comprobante Crédito Fiscal), "Sin asignar" (sin número)
+                // Ejemplos: "Factura F-000001", "CCF CCF-000123", "Sin asignar"
 
                 // Si el número de control interno es 0, significa que aún no se ha generado el DTE
                 if ($sale->document_internal_number == 0) {
                     $sale->sale_number_formatted = 'Sin asignar';
+                    $sale->document_type_name = $sale->documentType ? $sale->documentType->name : 'Documento';
                 } else {
                     $prefix = 'DOC'; // fallback si no se encuentra correlativo
 
@@ -130,7 +131,12 @@ class SalesHeaderController extends Controller
                         }
                     }
 
-                    $sale->sale_number_formatted = $prefix . '-' . str_pad($sale->document_internal_number, 4, '0', STR_PAD_LEFT);
+                    // Formato: "Tipo de Documento PREFIX-NÚMERO"
+                    $documentTypeName = $sale->documentType ? $sale->documentType->name : 'Documento';
+                    $controlNumber = $prefix . '-' . str_pad($sale->document_internal_number, 4, '0', STR_PAD_LEFT);
+
+                    $sale->sale_number_formatted = $controlNumber;
+                    $sale->document_type_name = $documentTypeName;
                 }
 
                 return $sale;
