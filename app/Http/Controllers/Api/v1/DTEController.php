@@ -75,6 +75,29 @@ class DTEController extends Controller
         }
     }
 
+    /**
+     * Obtiene el DTE completo desde history_dtes usando el código de generación
+     *
+     * @param string $codigoGeneracion Código de generación del DTE
+     * @return array|null Array con los datos del DTE o null si no existe
+     */
+    public function getDTEFromHistory(string $codigoGeneracion): ?array
+    {
+        \Log::info('getDTEFromHistory called with: ' . $codigoGeneracion);
+
+        $historyDte = HistoryDte::where('codigoGeneracion', $codigoGeneracion)->first();
+
+        if (!$historyDte) {
+            \Log::warning('No history_dte found for codigo: ' . $codigoGeneracion);
+            return null;
+        }
+
+        \Log::info('Found history_dte ID: ' . $historyDte->id . ', has dte: ' . (!empty($historyDte->dte) ? 'YES' : 'NO'));
+
+        // El campo 'dte' ya está casteado como array en el modelo
+        return $historyDte->dte;
+    }
+
 
     function facturaJson($idVenta): array|jsonResponse
     {
@@ -838,161 +861,270 @@ class DTEController extends Controller
     public
     function printDTETicket($codGeneracion)
     {
-        $fileName = "/DTEs/{$codGeneracion}.json";
-        if (Storage::disk('public')->exists($fileName)) {
-            $fileContent = Storage::disk('public')->get($fileName);
-            $DTE = json_decode($fileContent, true); // Decodificar JSON en un array asociativo
-            $tipoDocumento = $DTE['identificacion']['tipoDte'] ?? 'DESCONOCIDO';
-            $logo = auth()->user()->employee->warehouse->logo;
-            $tiposDTE = [
-                '03' => 'COMPROBANTE DE CREDITO  FISCAL',
-                '01' => 'FACTURA',
-                '04' => 'NOTA DE REMISION',
-                '05' => 'NOTA DE CREDITO',
-                '06' => 'NOTA DE DEBITO',
-                '07' => 'COMPROBANTE DE RETENCION',
-                '08' => 'COMPROBANTE DE LIQUIDACION',
-                '11' => 'FACTURA DE EXPORTACION',
-                '14' => 'SUJETO EXCLUIDO'
-            ];
-            $tipoDocumento = $this->searchInArray($tipoDocumento, $tiposDTE);
-            $contenidoQR = "https://admin.factura.gob.sv/consultaPublica?ambiente=".env('DTE_AMBIENTE_QR')."&codGen=" . $DTE['identificacion']['codigoGeneracion'] . "&fechaEmi=" . $DTE['identificacion']['fecEmi'];
+        // Obtener DTE desde history_dtes usando el nuevo método
+        $DTE = $this->getDTEFromHistory($codGeneracion);
 
-            $datos = [
-                'empresa' => $DTE["emisor"], // O la función correspondiente para cargar datos globales de la empresa.
-                'DTE' => $DTE,
-                'tipoDocumento' => $tipoDocumento,
-                'logo' => Storage::url($logo),
-            ];
+        // Si no existe en history_dtes, intentar obtenerlo de Hacienda
+        if (!$DTE) {
+            $jsonResponse = $this->getDTE($codGeneracion);
 
-            // dd($datos['logo']);
-
-            $directory = storage_path('app/public/QR');
-
-            if (!file_exists($directory)) {
-                mkdir($directory, 0755, true); // Create the directory with proper permissions
-            }
-            $path = $directory . '/' . $DTE['identificacion']['codigoGeneracion'] . '.jpg';
-
-
-            QrCode::size(300)->generate($contenidoQR, $path);
-            if (file_exists($path)) {
-                $qr = Storage::url("QR/{$DTE['identificacion']['codigoGeneracion']}.jpg");
+            if (isset($jsonResponse->original) && is_array($jsonResponse->original)) {
+                $this->saveRestoreJson($jsonResponse->original, $codGeneracion);
+                return response()->json([
+                    'estado' => 'Error',
+                    'mensaje' => 'El DTE no estaba en el historial, pero fue solicitado a Hacienda. Por favor intente nuevamente.',
+                ]);
             } else {
-                throw new \Exception("Error: El archivo QR no fue guardado correctamente en {$path}");
+                return response()->json([
+                    'estado' => 'Error',
+                    'mensaje' => 'No se pudo obtener el DTE. Verifique el código de generación.',
+                ]);
             }
-
-            $isLocalhost = in_array(request()->getHost(), ['127.0.0.1', 'localhost']);
-
-            $pdf = Pdf::loadView('DTE.dte-print-ticket', compact('datos', 'qr'))
-                ->setOptions([
-                    'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled' => !$isLocalhost,
-                ]);
-
-            $pdfPage = Pdf::loadView('DTE.dte-print-pdf', compact('datos', 'qr'))
-                ->setOptions([
-                    'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled' => !$isLocalhost,
-                ]);
-
-            $pathPage = storage_path("app/public/DTEs/{$codGeneracion}.pdf");
-
-
-            $pdfPage->save($pathPage);
-            $pdf->set_paper(array(0, 0, 250, 1000)); // Custom paper size
-            return response()->json([
-                'pdf' => base64_encode($pdf->output())
-            ]);
-        } else {
-            $jsonResponse=$this->getDTE($codGeneracion);
-            $this->saveRestoreJson($jsonResponse->original, $codGeneracion);
-            return [
-                'estado' => 'Error',
-                'mensaje' => 'El Archivo no existe, pero fue solicitado a hacienda, por favor intente nuevamente (refresque el navegador)',
-            ];
-
         }
 
+        // Obtener la venta asociada al código de generación
+        $venta = SalesHeader::where('generationCode', $codGeneracion)->with('warehouse')->first();
 
+        // Obtener configuración de la empresa
+        $configuracion = $this->getConfiguracion();
+        if (!$configuracion) {
+            return response()->json([
+                'estado' => 'Error',
+                'mensaje' => 'No se ha configurado la empresa',
+            ]);
+        }
+
+        // Preparar datos para la vista - tomar del DTE (fuente de verdad)
+        $empresa = [
+            'nombre' => $DTE['emisor']['nombre'] ?? $configuracion->company_name ?? 'NOMBRE DE EMPRESA',
+            'nit' => $DTE['emisor']['nit'] ?? $configuracion->nit ?? '',
+            'nrc' => $DTE['emisor']['nrc'] ?? $configuracion->nrc ?? '',
+            'descActividad' => $DTE['emisor']['descActividad'] ?? $configuracion->economic_activity ?? '',
+            'direccion' => [
+                'complemento' => $DTE['emisor']['direccion']['complemento'] ?? $configuracion->address ?? ''
+            ],
+            'telefono' => $DTE['emisor']['telefono'] ?? $configuracion->phone ?? '',
+            'correo' => $DTE['emisor']['correo'] ?? $configuracion->email ?? '',
+            'web' => $configuracion->web ?? ''
+        ];
+
+        // Generar QR code como SVG (compatible con Dompdf)
+        $qrUrl = env('DTE_URL_REPORT') . '/consultaPublica?codGen=' . $codGeneracion;
+        $qrCodeSvg = QrCode::format('svg')
+            ->size(150)
+            ->errorCorrection('H')
+            ->generate($qrUrl);
+
+        // Convertir SVG a data URL
+        $qrDataUrl = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
+
+        // Determinar tipo de documento
+        $tipoDocumento = 'FACTURA ELECTRÓNICA';
+        if (isset($DTE['identificacion']['tipoDte'])) {
+            $tipoDocumento = match($DTE['identificacion']['tipoDte']) {
+                '01' => 'FACTURA ELECTRÓNICA',
+                '03' => 'COMPROBANTE DE CRÉDITO FISCAL',
+                '14' => 'FACTURA DE EXPORTACIÓN',
+                default => 'DOCUMENTO TRIBUTARIO ELECTRÓNICO'
+            };
+        }
+
+        // Preparar logo como base64 - prioridad: logo de sucursal, sino logo de empresa
+        $logo = null;
+        if ($venta && $venta->warehouse && $venta->warehouse->logo) {
+            $logo = $venta->warehouse->logo;
+            \Log::info('Logo de sucursal encontrado: ' . (is_array($logo) ? json_encode($logo) : $logo));
+        } else {
+            // Usar logo de la configuración general de la empresa
+            $logo = $configuracion->logo;
+            \Log::info('Logo de empresa: ' . ($logo ? (is_array($logo) ? json_encode($logo) : $logo) : 'null'));
+        }
+
+        // Si el logo es un array/objeto JSON, extraer el path
+        if (is_array($logo)) {
+            $logo = $logo['path'] ?? $logo['filename'] ?? $logo[0] ?? null;
+            \Log::info('Logo después de extraer path: ' . ($logo ?? 'null'));
+        }
+
+        // Convertir logo a base64 data URL
+        $logoDataUrl = null;
+        if ($logo) {
+            $logoPath = public_path('storage/' . $logo);
+            \Log::info('Buscando logo en: ' . $logoPath);
+
+            if (file_exists($logoPath)) {
+                \Log::info('Logo encontrado, convirtiendo a base64');
+                $logoData = file_get_contents($logoPath);
+                $logoBase64 = base64_encode($logoData);
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $logoPath);
+                finfo_close($finfo);
+                $logoDataUrl = 'data:' . $mimeType . ';base64,' . $logoBase64;
+            } else {
+                \Log::warning('Logo no encontrado en path: ' . $logoPath);
+            }
+        } else {
+            \Log::warning('No hay logo configurado');
+        }
+
+        $datos = [
+            'logo' => $logoDataUrl,
+            'empresa' => $empresa,
+            'tipoDocumento' => $tipoDocumento,
+            'DTE' => $DTE
+        ];
+
+        // Generar PDF usando Dompdf (formato ticket)
+        $pdf = Pdf::loadView('DTE.dte-print-ticket', [
+            'datos' => $datos,
+            'qr' => $qrDataUrl
+        ]);
+
+        // Configurar tamaño de página para ticket (80mm de ancho)
+        $pdf->setPaper([0, 0, 226.77, 841.89], 'portrait'); // 80mm x 297mm
+
+        // Retornar PDF como base64
+        $pdfContent = $pdf->output();
+        $pdfBase64 = base64_encode($pdfContent);
+
+        return response()->json([
+            'success' => true,
+            'pdf' => $pdfBase64,
+            'filename' => 'TICKET_' . $codGeneracion . '.pdf'
+        ]);
     }
 
     public
     function printDTEPdf($codGeneracion)
     {
+        // Obtener DTE desde history_dtes usando el nuevo método
+        $DTE = $this->getDTEFromHistory($codGeneracion);
 
-        $fileName = "/DTEs/{$codGeneracion}.json";
+        // Si no existe en history_dtes, intentar obtenerlo de Hacienda
+        if (!$DTE) {
+            $jsonResponse = $this->getDTE($codGeneracion);
 
-        if (Storage::disk('public')->exists($fileName)) {
-            $fileContent = Storage::disk('public')->get($fileName);
-            $DTE = json_decode($fileContent, true); // Decodificar JSON en un array asociativo
-            $tipoDocumento = $DTE['identificacion']['tipoDte'] ?? 'DESCONOCIDO';
-            $logo = auth()->user()->employee->warehouse->logo;
-            $tiposDTE = [
-                '03' => 'COMPROBANTE DE CREDITO  FISCAL',
-                '01' => 'FACTURA',
-                '02' => 'NOTA DE DEBITO',
-                '04' => 'NOTA DE CREDITO',
-                '05' => 'LIQUIDACION DE FACTURA',
-                '06' => 'LIQUIDACION DE FACTURA SIMPLIFICADA',
-                '08' => 'COMPROBANTE LIQUIDACION',
-                '09' => 'DOCUMENTO CONTABLE DE LIQUIDACION',
-                '11' => 'FACTURA DE EXPORTACION',
-                '14' => 'SUJETO EXCLUIDO',
-                '15' => 'COMPROBANTE DE DONACION'
-            ];
-            $tipoDocumento = $this->searchInArray($tipoDocumento, $tiposDTE);
-            $contenidoQR = "https://admin.factura.gob.sv/consultaPublica?ambiente=".env('DTE_AMBIENTE_QR')."&codGen=" . $DTE['identificacion']['codigoGeneracion'] . "&fechaEmi=" . $DTE['identificacion']['fecEmi'];
-
-            $datos = [
-                'empresa' => $DTE["emisor"], // O la función correspondiente para cargar datos globales de la empresa.
-                'DTE' => $DTE,
-                'tipoDocumento' => $tipoDocumento,
-                'logo' => Storage::url($logo),
-            ];
-
-
-            $directory = storage_path('app/public/QR');
-
-            if (!file_exists($directory)) {
-                mkdir($directory, 0755, true); // Create the directory with proper permissions
-            }
-            $path = $directory . '/' . $DTE['identificacion']['codigoGeneracion'] . '.jpg';
-
-
-            QrCode::size(300)->generate($contenidoQR, $path);
-
-            if (file_exists($path)) {
-                $qr = Storage::url("QR/{$DTE['identificacion']['codigoGeneracion']}.jpg");
-            } else {
-                throw new \Exception("Error: El archivo QR no fue guardado correctamente en {$path}");
-            }
-            $isLocalhost = in_array(request()->getHost(), ['127.0.0.1', 'localhost']);
-
-            $pdf = Pdf::loadView('DTE.dte-print-pdf', compact('datos', 'qr'))
-                ->setOptions([
-                    'isHtml5ParserEnabled' => true,
-                    'isRemoteEnabled' => !$isLocalhost,
+            if (isset($jsonResponse->original) && is_array($jsonResponse->original)) {
+                $this->saveRestoreJson($jsonResponse->original, $codGeneracion);
+                return response()->json([
+                    'estado' => 'Error',
+                    'mensaje' => 'El DTE no estaba en el historial, pero fue solicitado a Hacienda. Por favor intente nuevamente.',
                 ]);
-
-            $pathPage = storage_path("app/public/DTEs/{$codGeneracion}.pdf");
-
-            $pdf->save($pathPage);
-            return response()->json([
-                'pdf' => base64_encode($pdf->output())
-            ]);
-//            return $pdf->stream("{$codGeneracion}.pdf"); // El PDF se abre en una nueva pestaña
-        } else {
-            $jsonResponse=$this->getDTE($codGeneracion);
-            $this->saveRestoreJson($jsonResponse->original, $codGeneracion);
-            return [
-                'estado' => 'Error',
-                'mensaje' => 'El Archivo no existe, pero fue solicitado a hacienda, por favor intente nuevamente (refresque el navegador)',
-            ];
-
+            } else {
+                return response()->json([
+                    'estado' => 'Error',
+                    'mensaje' => 'No se pudo obtener el DTE. Verifique el código de generación.',
+                ]);
+            }
         }
 
+        // Obtener la venta asociada al código de generación
+        $venta = SalesHeader::where('generationCode', $codGeneracion)->with('warehouse')->first();
 
+        // Obtener configuración de la empresa
+        $configuracion = $this->getConfiguracion();
+        if (!$configuracion) {
+            return response()->json([
+                'estado' => 'Error',
+                'mensaje' => 'No se ha configurado la empresa',
+            ]);
+        }
+
+        // Preparar datos para la vista - tomar del DTE (fuente de verdad)
+        $empresa = [
+            'nombre' => $DTE['emisor']['nombre'] ?? $configuracion->company_name ?? 'NOMBRE DE EMPRESA',
+            'nit' => $DTE['emisor']['nit'] ?? $configuracion->nit ?? '',
+            'nrc' => $DTE['emisor']['nrc'] ?? $configuracion->nrc ?? '',
+            'descActividad' => $DTE['emisor']['descActividad'] ?? $configuracion->economic_activity ?? '',
+            'direccion' => [
+                'complemento' => $DTE['emisor']['direccion']['complemento'] ?? $configuracion->address ?? ''
+            ],
+            'telefono' => $DTE['emisor']['telefono'] ?? $configuracion->phone ?? '',
+            'correo' => $DTE['emisor']['correo'] ?? $configuracion->email ?? '',
+            'web' => $configuracion->web ?? ''
+        ];
+
+        // Generar QR code como SVG (compatible con Dompdf)
+        $qrUrl = env('DTE_URL_REPORT') . '/consultaPublica?codGen=' . $codGeneracion;
+        $qrCodeSvg = QrCode::format('svg')
+            ->size(200)
+            ->errorCorrection('H')
+            ->generate($qrUrl);
+
+        // Convertir SVG a data URL
+        $qrDataUrl = 'data:image/svg+xml;base64,' . base64_encode($qrCodeSvg);
+
+        // Determinar tipo de documento
+        $tipoDocumento = 'FACTURA ELECTRÓNICA';
+        if (isset($DTE['identificacion']['tipoDte'])) {
+            $tipoDocumento = match($DTE['identificacion']['tipoDte']) {
+                '01' => 'FACTURA ELECTRÓNICA',
+                '03' => 'COMPROBANTE DE CRÉDITO FISCAL',
+                '14' => 'FACTURA DE EXPORTACIÓN',
+                default => 'DOCUMENTO TRIBUTARIO ELECTRÓNICO'
+            };
+        }
+
+        // Preparar logo como base64 - prioridad: logo de sucursal, sino logo de empresa
+        $logo = null;
+        if ($venta && $venta->warehouse && $venta->warehouse->logo) {
+            $logo = $venta->warehouse->logo;
+            \Log::info('Logo de sucursal encontrado: ' . (is_array($logo) ? json_encode($logo) : $logo));
+        } else {
+            // Usar logo de la configuración general de la empresa
+            $logo = $configuracion->logo;
+            \Log::info('Logo de empresa: ' . ($logo ? (is_array($logo) ? json_encode($logo) : $logo) : 'null'));
+        }
+
+        // Si el logo es un array/objeto JSON, extraer el path
+        if (is_array($logo)) {
+            $logo = $logo['path'] ?? $logo['filename'] ?? $logo[0] ?? null;
+            \Log::info('Logo después de extraer path: ' . ($logo ?? 'null'));
+        }
+
+        // Convertir logo a base64 data URL
+        $logoDataUrl = null;
+        if ($logo) {
+            $logoPath = public_path('storage/' . $logo);
+            \Log::info('Buscando logo en: ' . $logoPath);
+
+            if (file_exists($logoPath)) {
+                \Log::info('Logo encontrado, convirtiendo a base64');
+                $logoData = file_get_contents($logoPath);
+                $logoBase64 = base64_encode($logoData);
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $logoPath);
+                finfo_close($finfo);
+                $logoDataUrl = 'data:' . $mimeType . ';base64,' . $logoBase64;
+            } else {
+                \Log::warning('Logo no encontrado en path: ' . $logoPath);
+            }
+        } else {
+            \Log::warning('No hay logo configurado');
+        }
+
+        $datos = [
+            'logo' => $logoDataUrl,
+            'empresa' => $empresa,
+            'tipoDocumento' => $tipoDocumento,
+            'DTE' => $DTE
+        ];
+
+        // Generar PDF usando Dompdf
+        $pdf = Pdf::loadView('DTE.dte-print-pdf', [
+            'datos' => $datos,
+            'qr' => $qrDataUrl
+        ]);
+
+        // Retornar PDF como base64
+        $pdfContent = $pdf->output();
+        $pdfBase64 = base64_encode($pdfContent);
+
+        return response()->json([
+            'success' => true,
+            'pdf' => $pdfBase64,
+            'filename' => 'DTE_' . $codGeneracion . '.pdf'
+        ]);
     }
 
     public
@@ -1051,16 +1183,16 @@ class DTEController extends Controller
     function saveJson(mixed $responseData, $idVenta, $enviado_hacienda): void
     {
         $codGeneration = $responseData['respuestaHacienda']['codigoGeneracion'] ?? $responseData['identificacion']['codigoGeneracion'] ?? null;
-        $fileName = "DTEs/{$codGeneration}.json";
 
-        $jsonContent = json_encode($responseData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        Storage::disk('public')->put($fileName, $jsonContent);
+        // Ya no guardamos el JSON en disco, solo en history_dtes
+        // El DTE completo ya está siendo guardado en history_dtes.dte por el método SendDTE
 
         $venta = SalesHeader::find($idVenta);
         $venta->is_dte = true;
         $venta->is_dte_send = $enviado_hacienda;
         $venta->generationCode = $codGeneration ?? null;
-        $venta->jsonUrl = $fileName;
+        // Mantenemos jsonUrl como null ya que no guardamos archivos físicos
+        $venta->jsonUrl = null;
         $venta->save();
     }
 
@@ -1291,9 +1423,18 @@ class DTEController extends Controller
     }
     public function saveRestoreJson($responseData, $codGeneracion): void
     {
-        $fileName = "DTEs/{$codGeneracion}.json";
-        $jsonContent = json_encode($responseData, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-        Storage::disk('public')->put($fileName, $jsonContent);
+        // Ya no guardamos el JSON en disco
+        // Intentar guardar en history_dtes si no existe
+        $exists = HistoryDte::where('codigoGeneracion', $codGeneracion)->exists();
+
+        if (!$exists) {
+            // Crear registro en history_dtes para DTEs recuperados de Hacienda
+            $historyDte = new HistoryDte();
+            $historyDte->codigoGeneracion = $codGeneracion;
+            $historyDte->dte = $responseData;
+            $historyDte->estado = 'RECUPERADO_HACIENDA';
+            $historyDte->save();
+        }
     }
     public  function logDTE($idVenta)
     {

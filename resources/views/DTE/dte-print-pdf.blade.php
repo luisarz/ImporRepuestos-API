@@ -4,126 +4,369 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Documento Tributario Electrónico</title>
+    {{--    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">--}}
+
     <style>
         body {
-            font-family: Arial, sans-serif;
-            font-size: 10px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 9.5px;
             margin: 0;
             padding: 0;
             display: flex;
             flex-direction: column;
-            /*min-height: 100vh;*/
+            line-height: 1.3;
+            color: #222;
         }
 
         .header {
             width: 100%;
             text-align: center;
-            padding: 10px;
-            box-shadow: 0 -1px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 8px;
         }
 
+        .header img {
+            width: 200px;
+        }
+
+        /* Tipografía mejorada para empresa */
+        .header strong {
+            font-weight: bold;
+            color: #57595B;
+            font-size: 9.5px;
+        }
 
         .footer {
-            /*position: fixed;*/
-            /*bottom: 0;*/
-            /*background-color: #57595B;*/
             left: 0;
             width: 100%;
-            border: 1px solid black; /* Borde sólido de 1px y color #f2f2f2 */
-            border-radius: 10px; /* Radio redondeado de 10px */
+            border: 2px solid #e12828;
+            border-radius: 10px;
             text-align: right;
-            font-size: 12px;
-            /*padding: 3;*/
+            font-size: 9px;
+            line-height: 1.3;
+        }
+
+        .footer strong {
+            font-weight: bold;
+            color: #57595B;
         }
 
         .content {
             flex: 1;
-            padding-bottom: 100px; /* Espacio para el footer */
+            padding-bottom: 100px;
         }
 
-        .header img {
-            width: 100px;
+        .content strong,
+        .content b {
+            font-weight: bold;
+            color: #57595B;
+            font-size: 9.5px;
         }
 
         .empresa-info, .documento-info, .tabla-productos, .resumen {
             margin: 10px 0;
         }
 
-        .tabla-productos th, .tabla-productos td {
-            padding: 5px;
+        /* TABLA DE PRODUCTOS - Mejoras tipográficas */
+        .tabla-productos {
+            border-collapse: collapse;
+            width: 100%;
         }
 
         .tabla-productos th {
-            background-color: #f2f2f2;
+            background-color: #e12828 !important;
+            color: #ffffff !important;
+            font-weight: bold;
+            padding: 8px 5px;
+            text-align: center;
+            font-size: 9px;
+            border: 1px solid #e12828;
+            line-height: 1.2;
+        }
+
+        .tabla-productos td {
+            padding: 6px 5px;
+            border: 1px solid #d0d0d0;
+            font-size: 9px;
+            line-height: 1.3;
+        }
+
+        .tabla-productos tbody tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        .tabla-productos tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        /* Alineación mejorada */
+        .tabla-productos td:nth-child(1),
+        .tabla-productos td:nth-child(2) {
+            text-align: center;
+            font-weight: normal;
+        }
+
+        .tabla-productos td:nth-child(6),
+        .tabla-productos td:nth-child(7),
+        .tabla-productos td:nth-child(8),
+        .tabla-productos td:nth-child(9),
+        .tabla-productos td:nth-child(10) {
+            text-align: right;
+            font-weight: normal;
+        }
+
+        /* Cliente info - Tipografía mejorada */
+        .cliente-info {
+            line-height: 1.4;
+        }
+
+        .cliente-info tr:nth-child(even) {
+            background-color: #f5f5f5;
+        }
+
+        .cliente-info td {
+            padding: 5px 6px;
+            font-size: 9.5px;
+        }
+
+        .cliente-info b {
+            color: #57595B;
+            font-weight: bold;
+        }
+
+        /* Título de sección mejorado */
+        .content > div[style*="border-bottom"] {
+            font-size: 11px;
+            font-weight: bold;
+            color: #57595B;
+            line-height: 1.3;
         }
 
         .resumen p {
             margin: 5px 0;
             text-align: right;
+            line-height: 1.3;
         }
 
         .table {
             width: 100%;
             border-collapse: collapse;
         }
+
+        /* Mejoras tipográficas para texto legal */
+        body > div:last-child p {
+            font-size: 7.5px;
+            line-height: 1.4;
+            color: #555;
+        }
     </style>
 </head>
 <body>
 <!-- Header Empresa -->
-<div class="header">
-    <table style="width: 100%">
+<div class="header" style="border: 0px solid #ccc; border-radius: 10px; padding: 0px; font-family: Arial, sans-serif;">
+
+
+    <table style="width: 100%; border-collapse: collapse;">
         <tr>
-            <td style="width: 40%; ">
-                <table style="text-align: left; border: black solid 1px; border-radius: 10px;">
+            {{-- IZQUIERDA: LOGO Y EMPRESA --}}
+            <td style="width: 40%; vertical-align: top; border: none; border-left: 2px solid #e12828; padding-left: 8px; padding-right: 10px;">
+                <table style="width: 100%; font-size: 10px; font-family: Arial, sans-serif; border-collapse: collapse;">
                     <tr>
-                        <td style="width: 5%">
-                            <img src="{{ asset($datos['logo'] ?? '') }}" alt="Logo Empresa">
+                        <td style="padding: 4px 0; width: 90px; vertical-align: middle;">
+                            <img src="{{ $datos['logo'] ?? '' }}" alt="Logo Empresa" style="max-height: 75px; max-width: 85px;">
                         </td>
-                        <td style="width: 95%">
-                            <h3>{{ $datos['empresa']['nombre'] }}</h3>
-                            <p style="font-size: 12px; line-height: 1;">
-                                NIT: {{ $datos['empresa']['nit'] }}<br>
-                                NRC: {{ $datos['empresa']['nrc'] }}
-                            </p>
+                        <td style="vertical-align: middle; padding: 4px 0 4px 10px;">
+                            <div style="font-weight: bold; font-size: 12px; padding: 0 0 3px 0; color: #e12828; line-height: 1.2;">
+                                {{ $datos['empresa']['nombre'] ?? 'NOMBRE DE EMPRESA' }}
+                            </div>
+                            <div style="padding: 0; font-size: 10px; color: #333; line-height: 1.3;">
+                                {{ $datos['empresa']['descActividad'] ?? '' }}
+                            </div>
                         </td>
                     </tr>
                     <tr>
-                        <td colspan="2" style="font-size: 12px;">
-                            {{ $datos['empresa']['descActividad'] }}<br>
-                            {{ $datos['empresa']['direccion']['complemento'] }}<br>
-                            Teléfono: {{ $datos['empresa']['telefono'] }}
+                        <td colspan="2" style="padding: 6px 0 0 0;">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr style="background-color: #f5f5f5;">
+                                    <td style="text-align: left; padding: 5px 6px; font-weight: bold; color: #57595B; font-size: 10px; width: 35%; line-height: 1.3; vertical-align: top;">
+                                        NIT:
+                                    </td>
+                                    <td style="text-align: left; padding: 5px 6px; color: #333; font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">
+                                        @php
+                                            $nit = $datos['empresa']['nit'] ?? '';
+                                        @endphp
+                                        {{ strlen($nit) === 14 ? substr($nit, 0, 4) . '-' . substr($nit, 4, 6) . '-' . substr($nit, 10, 3) . '-' . substr($nit, 13, 1) : $nit }}
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #ffffff;">
+                                    <td style="text-align: left; padding: 5px 6px; font-weight: bold; color: #57595B; font-size: 10px; line-height: 1.3; vertical-align: top;">
+                                        NRC:
+                                    </td>
+                                    <td style="text-align: left; padding: 5px 6px; color: #333; font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">{{ $datos['empresa']['nrc'] ?? '' }}</td>
+                                </tr>
+                                <tr style="background-color: #f5f5f5;">
+                                    <td style="text-align: left; padding: 5px 6px; font-weight: bold; color: #57595B; font-size: 10px; line-height: 1.3; vertical-align: top;">
+                                        DIRECCIÓN:
+                                    </td>
+                                    <td style="text-align: left; padding: 5px 6px; color: #333; font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">{{ $datos['empresa']['direccion']['complemento'] ?? '' }}</td>
+                                </tr>
+                                <tr style="background-color: #ffffff;">
+                                    <td style="text-align: left; padding: 5px 6px; font-weight: bold; color: #57595B; font-size: 10px; line-height: 1.3; vertical-align: top;">
+                                        TELÉFONO:
+                                    </td>
+                                    <td style="text-align: left; padding: 5px 6px; color: #333; font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">
+                                        @php
+                                            $telefono = $datos['empresa']['telefono'] ?? '';
+                                            $telefonoLimpio = preg_replace('/[^0-9]/', '', $telefono);
+
+                                            // Si el teléfono tiene 11 dígitos y empieza con 503 (código país El Salvador)
+                                            if (strlen($telefonoLimpio) == 11 && substr($telefonoLimpio, 0, 3) == '503') {
+                                                $telefono = '(' . substr($telefonoLimpio, 0, 3) . ') ' . substr($telefonoLimpio, 3, 4) . '-' . substr($telefonoLimpio, 7, 4);
+                                            }
+                                            // Si el teléfono tiene 8 dígitos (2222-2222), formatear como (2222) 2222
+                                            elseif (strlen($telefonoLimpio) == 8) {
+                                                $telefono = '(' . substr($telefonoLimpio, 0, 4) . ') ' . substr($telefonoLimpio, 4, 4);
+                                            }
+                                        @endphp
+                                        {{ $telefono }}
+                                    </td>
+                                </tr>
+                                <tr style="background-color: #f5f5f5;">
+                                    <td style="text-align: left; padding: 5px 6px; font-weight: bold; color: #57595B; font-size: 10px; line-height: 1.3; vertical-align: top;">
+                                        CORREO:
+                                    </td>
+                                    <td style="text-align: left; padding: 5px 6px; color: #333; font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">{{ $datos['empresa']['correo'] ?? '' }}</td>
+                                </tr>
+                                <tr style="background-color: #ffffff;">
+                                    <td style="text-align: left; padding: 5px 6px; font-weight: bold; color: #57595B; font-size: 10px; line-height: 1.3; vertical-align: top;">
+                                        SITIO WEB:
+                                    </td>
+                                    <td style="text-align: left; padding: 5px 6px; color: #333; font-size: 9.5px; text-transform: uppercase; line-height: 1.3;">{{ $datos['empresa']['web'] ?? '' }}</td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                 </table>
-            </td>
-            <td style="width: 55%; text-align: left; border: black solid 1px; border-radius: 10px; font-size: 11px;">
-                <div style="text-align: center;">
-                    <h3>DOCUMENTO TRIBUTARIO ELECTRÓNICO</h3>
-                    <h3>{{ $datos['tipoDocumento'] }}</h3>
-                </div>
-                <table>
-                    <tr>
-                        <td>Código generación:</td>
-                        <td>
-                            {{ $datos['DTE']['respuestaHacienda']['codigoGeneracion'] ?? $datos['DTE']['identificacion']['codigoGeneracion'] }}
 
+            </td>
+
+            {{-- DERECHA: DTE INFO --}}
+            <td style="width: 60%; vertical-align: top; border: none;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 10px; border: none;">
+                    <thead>
+                    <th style="width: 110px !important; border: none;"></th>
+                    <th style="border: none;"></th>
+                    </thead>
+                    <tr style="background-color: #e12828; color: white;">
+                        <td colspan="2" style="text-align: center; font-size: 10px; font-weight: bold; padding: 4px; line-height: 1.1; border: none;">
+                            DOCUMENTO TRIBUTARIO ELECTRÓNICO
+                        </td>
+                    </tr>
+                    <tr style="background-color: #e12828; color: white;">
+                        <td colspan="2" style="text-align: center; font-size: 13px; font-weight: bold; padding: 5px; line-height: 1.1; border: none;">
+                            {{ $datos['tipoDocumento'] }}
+                        </td>
+                    </tr>
+                    <tr style="background-color: #f5f5f5;">
+                        <td style="font-weight: bold; color: #57595B; padding: 5px 6px; font-size: 10px; line-height: 1.3; vertical-align: top; border: none;">
+                            Código generación:
+                        </td>
+                        <td style="color: #333; padding: 5px 6px; font-size: 9.5px; line-height: 1.3; word-break: break-all; border: none;">
+                            {{ $datos['DTE']['respuestaHacienda']['codigoGeneracion'] ?? $datos['DTE']['identificacion']['codigoGeneracion'] }}
+                        </td>
+                    </tr>
+                    <tr style="background-color: #ffffff;">
+                        <td style="font-weight: bold; color: #57595B; padding: 5px 6px; font-size: 10px; line-height: 1.3; vertical-align: top; border: none;">
+                            Sello de recepción:
+                        </td>
+                        <td style="color: #333; padding: 5px 6px; font-size: 9.5px; line-height: 1.3; word-break: break-all; border: none;">
+                            {{ $datos['DTE']['respuestaHacienda']['selloRecibido'] ?? 'Contingencia' }}
+                        </td>
+                    </tr>
+                    <tr style="background-color: #f5f5f5;">
+                        <td style="font-weight: bold; color: #57595B; padding: 5px 6px; font-size: 10px; line-height: 1.3; border: none;">
+                            Número de control:
+                        </td>
+                        <td style="color: #333; padding: 5px 6px; font-size: 10px; line-height: 1.3; border: none;">
+                            {{ $datos['DTE']['identificacion']['numeroControl'] }}
+                        </td>
+                    </tr>
+                    <tr style="background-color: #ffffff;">
+                        <td style="font-weight: bold; color: #57595B; padding: 5px 6px; font-size: 10px; line-height: 1.3; border: none;">
+                            Fecha emisión:
+                        </td>
+                        <td style="color: #333; padding: 5px 6px; font-size: 10px; line-height: 1.3; border: none;">
+                            {{ date('d-m-Y', strtotime($datos['DTE']['identificacion']['fecEmi'])) }}
+                        </td>
+                    </tr>
+                    <tr style="background-color: #f5f5f5;">
+                        <td style="font-weight: bold; color: #57595B; padding: 5px 6px; font-size: 10px; line-height: 1.3; border: none;">
+                            Hora emisión:
+                        </td>
+                        <td style="color: #333; padding: 5px 6px; font-size: 10px; line-height: 1.3; border: none;">
+                            {{ $datos['DTE']['identificacion']['horEmi'] }}
                         </td>
                     </tr>
                     <tr>
-                        <td>Sello de recepción:</td>
-                        <td>{{ $datos['DTE']['respuestaHacienda']['selloRecibido']??'Contingencia' }}</td>
-                    </tr>
-                    <tr>
-                        <td>Número de control:</td>
-                        <td>{{ $datos['DTE']['identificacion']['numeroControl'] }}</td>
-                    </tr>
-                    <tr>
-                        <td>Fecha emisión:</td>
-                        <td>{{ date('d-m-Y', strtotime($datos['DTE']['identificacion']['fecEmi'])) }}</td>
-                    </tr>
-                    <tr>
-                        <td>Hora emisión:</td>
-                        <td>{{ $datos['DTE']['identificacion']['horEmi'] }}</td>
+                        <td style="text-align: center; padding: 8px 4px; border: none;">
+                            <img src="{{ $qr }}" alt="QR Código"
+                                 style="width: 100px; height: 100px; border: 2px solid #999; padding: 5px;">
+                        </td>
+                        <td style="padding: 0 4px; border: none;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 9px; border: none;">
+                                @php
+                                    $variables = [];
+
+                                    // Verifica si existe y es un array
+                                    if (!empty($datos['DTE']['apendice']) && is_array($datos['DTE']['apendice'])) {
+                                        foreach ($datos['DTE']['apendice'] as $item) {
+                                            $variables[$item['campo']] = $item['valor'];
+                                        }
+                                    }
+
+                                    // Uso
+                                    $codCliente   = $variables['COD_CLIENTE'] ?? '-';
+                                    $vendedor     = $variables['VENDEDOR'] ?? '-';
+                                    $almacen      = $variables['ALMACEN'] ?? '-';
+                                    $orderNumber  = $variables['ORDER_NUMBER'] ?? '-';
+                                    $creditDays   = $variables['CREDIT_DAYS'] ?? '-';
+                                @endphp
+                                <thead>
+                                <tr>
+                                    <td colspan="2" style="text-align: center; font-weight: bold; padding: 5px; background-color: #57595B; color: white; font-size: 9px; line-height: 1.2;">
+                                        DETALLES ADICIONALES
+                                    </td>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                <tr style="background-color: #f5f5f5;">
+                                    <td style="text-align: left; padding: 4px 6px; font-weight: bold; color: #57595B; font-size: 8px; width: 45%;">
+                                        CÓDIGO CLIENTE:
+                                    </td>
+                                    <td style="text-align: left; padding: 4px 6px; color: #333; font-size: 8.5px;">{{$codCliente}}</td>
+                                </tr>
+                                <tr style="background-color: #ffffff;">
+                                    <td style="text-align: left; padding: 4px 6px; font-weight: bold; color: #57595B; font-size: 8px;">
+                                        VENDEDOR:
+                                    </td>
+                                    <td style="text-align: left; padding: 4px 6px; color: #333; font-size: 8.5px;">{{$vendedor}}</td>
+                                </tr>
+                                <tr style="background-color: #f5f5f5;">
+                                    <td style="text-align: left; padding: 4px 6px; font-weight: bold; color: #57595B; font-size: 8px;">
+                                        ALMACÉN:
+                                    </td>
+                                    <td style="text-align: left; padding: 4px 6px; color: #333; font-size: 8.5px;">{{substr($almacen,0,28)}}</td>
+                                </tr>
+                                <tr style="background-color: #ffffff;">
+                                    <td style="text-align: left; padding: 4px 6px; font-weight: bold; color: #57595B; font-size: 8px;">
+                                        ORDEN DE COMPRA:
+                                    </td>
+                                    <td style="text-align: left; padding: 4px 6px; color: #333; font-size: 8.5px;">{{$orderNumber}}</td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+
+                        </td>
                     </tr>
                 </table>
             </td>
@@ -131,24 +374,47 @@
     </table>
 </div>
 
+
 <!-- Contenido principal -->
+
 <div class="content">
+    <div style="border-bottom: 1px solid black; font-weight: bold; font-size: 14px; font-family: Arial, sans-serif; color: #333; padding-bottom: 4px;">
+        Información del receptor
+    </div>
+
     <!-- Info Cliente -->
     <div class="cliente-info">
-        <table>
+        <table style="width: 100%; border-collapse: collapse; font-size: 9px; font-family: Arial, sans-serif; ">
+
+
             <tr>
-                <td>
-                    <p>Razón Social: {{ $datos['DTE']['receptor']['nombre']??'' }}<br>
-                        Documento: {{ $datos['DTE']['receptor']['numDocumento'] ?? '' }}<br>
-                        Actividad: {{ $datos['DTE']['receptor']['codActividad']??'' }}
-                        - {{ $datos['DTE']['receptor']['descActividad']??'' }}<br>
-                        Dirección: {{ $datos['DTE']['receptor']['direccion']['complemento']??'' }}<br>
-                        Teléfono: {{ $datos['DTE']['receptor']['telefono']??'' }} |
-                        Correo: {{ $datos['DTE']['receptor']['correo']??'' }}
-                    </p>
+                <td style="padding: 4px 2px 4px 0; width: "><b>NOMBRE:</b></td>
+                <td style="padding: 4px 6px;">{{ $datos['DTE']['receptor']['nombre']??'' }}</td>
+                <td style="padding: 4px 2px 4px 0;"><b>NIT:</b></td>
+                <td style="padding: 4px 6px;">{{ $datos['DTE']['receptor']['nit'] ?? '' }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 2px 4px 0;"><b>ACTIVIDAD:</b></td>
+                <td style="padding: 4px 6px;">{{ $datos['DTE']['receptor']['codActividad']??'' }}
+                    @if(!empty($datos['DTE']['receptor']['descActividad']))
+                        - {{ $datos['DTE']['receptor']['descActividad'] }}
+                    @endif
                 </td>
-                <td style="align-items: end;">
-                    <img src="{{ asset($qr) }}" alt="QR Código" width="100px">
+                <td style="padding: 4px 2px 4px 0;"><b>NRC:</b></td>
+                <td style="padding: 4px 6px;">{{ $datos['DTE']['receptor']['nrc']??'' }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 2px 4px 0;"><b>DIRECCIÓN:</b></td>
+                <td style="padding: 4px 6px;">{{ $datos['DTE']['receptor']['direccion']['complemento']??'' }}</td>
+                <td style="padding: 4px 2px 4px 0;"><b>TELÉFONO:</b></td>
+                <td style="padding: 4px 6px;">{{ $datos['DTE']['receptor']['telefono']??'' }}</td>
+            </tr>
+            <tr>
+                <td style="padding: 4px 2px 4px 0; vertical-align: top;"><b>REFERENCIAS:</b></td>
+                <td style="padding: 4px 6px;"></td>
+                <td style="padding: 4px 2px 4px 0; vertical-align: top;"><b>CORREO:</b></td>
+                <td style="padding: 4px 6px; word-break: break-all; ">
+                    {{ $datos['DTE']['receptor']['correo']??'' }}
                 </td>
             </tr>
         </table>
@@ -160,7 +426,8 @@
         <tr>
             <th>No</th>
             <th>Cant</th>
-            <th>Unidad</th>
+            <th>Unidad de medida</th>
+            <th>Código</th>
             <th>Descripción</th>
             <th>Precio Unitario</th>
             <th>Desc Item</th>
@@ -170,12 +437,21 @@
         </tr>
         </thead>
         <tbody>
+        @php
+            // Optimización: Precarga de unidades de medida para evitar N consultas en el loop
+            $unitMeasurements = App\Models\UnitMeasurement::pluck('description', 'code')->toArray();
+        @endphp
 
         @foreach ($datos['DTE']['cuerpo']??$datos['DTE']['cuerpoDocumento'] as $item)
+            @php
+                $unidad = $unitMeasurements[$item['uniMedida']] ?? $item['uniMedida'];
+            @endphp
+
             <tr>
                 <td>{{ $item['numItem'] }}</td>
                 <td>{{ $item['cantidad'] }}</td>
-                <td>{{ $item['uniMedida'] }}</td>
+                <td>{{  $unidad }}</td>
+                <td>{{ $item['codigo'] }}</td>
                 <td>{{ $item['descripcion'] }}</td>
                 <td>${{ number_format($item['precioUni'], 2) }}</td>
                 <td>${{ number_format($item['montoDescu'], 2) }}</td>
@@ -191,9 +467,10 @@
 <!-- Footer fijo -->
 <div class="footer">
 
-    <table>
+
+    <table style="width: 100%; border-collapse: collapse; font-size: 10px; font-family: Arial, sans-serif;">
         <tr>
-            <td style="width: 85%">
+            <td style="width: 60%">
                 <table style="width: 100%">
                     <tr>
                         <td colspan="2"><b>VALOR EN LETRAS:</b> {{ $datos["DTE"]['resumen']['totalLetras'] }} DOLARES
@@ -208,7 +485,7 @@
                         @php
                             $ext = $datos['DTE']['extencion'] ?? $datos['DTE']['extension'] ?? null;
                         @endphp
-                        <td>Entregado por:   {{  $ext['nombEntrega']??'S/N' }}</td>
+                        <td>Entregado por: {{  $ext['nombEntrega']??'S/N' }}</td>
                         <td>Recibido por:</td>
                     </tr>
                     <tr>
@@ -216,31 +493,51 @@
                         <td>N° Documento:</td>
                     </tr>
                     <tr>
-                        <td>Condicion Operación</td>
-                        <td>{{$datos["DTE"]['resumen']['condicionOperacion']}}</td>
+                        <td>Condición Operación</td>
+                        <td>
+                            @if ($datos["DTE"]['resumen']['condicionOperacion'] == 1)
+                                Contado
+                            @elseif ($datos["DTE"]['resumen']['condicionOperacion'] == 2)
+                                Crédito a {{ $creditDays }} días
+                            @endif
+                        </td>
+
+                        {{--                        <td>--}}
+                        {{--                            @if(isset($datos['DTE']['resumen']['totalPagar']))--}}
+                        {{--                                ${{ number_format($datos['DTE']['resumen']['totalPagar'], 2) }}--}}
+                        {{--                            @elseif(isset($datos['DTE']['resumen']['montoTotalOperacion']))--}}
+                        {{--                                ${{ number_format($datos['DTE']['resumen']['montoTotalOperacion'], 2) }}--}}
+                        {{--                            @elseif(isset($datos['DTE']['resumen']['totalLetras']))--}}
+                        {{--                                {{ $datos['DTE']['resumen']['totalLetras'] }}--}}
+                        {{--                            @endif--}}
+                        {{--                        </td>--}}
                     </tr>
                     <tr>
                         <td colspan="2">Observaciones:</td>
                     </tr>
                 </table>
             </td>
-            <td style="width: 10%">Total Operaciones:
+            <td style="width: 40%">Total Operaciones:
                 <table style="width: 100%">
                     <tr>
                         <td>Total No Sujeto:</td>
-                        <td>${{ number_format($datos['DTE']['resumen']['totalNoSuj']??$datos['DTE']['resumen']['totalNoGravado']??0, 2) }}</td>
+                        <td>
+                            ${{ number_format($datos['DTE']['resumen']['totalNoSuj']??$datos['DTE']['resumen']['totalNoGravado']??0, 2) }}</td>
                     </tr>
                     <tr>
                         <td>Total Exento:</td>
-                        <td>${{ number_format($datos['DTE']['resumen']['totalExenta']??$datos['DTE']['resumen']['totalNoGravado']??0, 2) }}</td>
+                        <td>
+                            ${{ number_format($datos['DTE']['resumen']['totalExenta']??$datos['DTE']['resumen']['totalNoGravado']??0, 2) }}</td>
                     </tr>
                     <tr>
                         <td>Total Gravadas:</td>
-                        <td>${{ number_format($datos['DTE']['resumen']['totalGravada']??$datos['DTE']['resumen']['totalCompra'], 2) }}</td>
+                        <td>
+                            ${{ number_format($datos['DTE']['resumen']['totalGravada']??$datos['DTE']['resumen']['totalCompra'], 2) }}</td>
                     </tr>
                     <tr>
                         <td>Subtotal:</td>
-                        <td>${{ number_format($datos['DTE']['resumen']['subTotal']??$datos['DTE']['resumen']['totalGravada'], 2) }}</td>
+                        <td>
+                            ${{ number_format($datos['DTE']['resumen']['subTotal']??$datos['DTE']['resumen']['totalGravada'], 2) }}</td>
                     </tr>
                     @isset($datos['DTE']['resumen']['tributos'])
                         @foreach($datos['DTE']['resumen']['tributos'] as $tributo)
@@ -253,7 +550,8 @@
                     <tr style="background-color: #57595B; color: white;">
                         <td>
                             <b>TOTAL A PAGAR:</b></td>
-                        <td> ${{number_format($datos['DTE']['resumen']['totalPagar']??$datos['DTE']['resumen']['montoTotalOperacion'], 2)}}
+                        <td>
+                            ${{number_format($datos['DTE']['resumen']['totalPagar']??$datos['DTE']['resumen']['montoTotalOperacion'], 2)}}
                         </td>
                     </tr>
                 </table>
@@ -262,6 +560,11 @@
     </table>
 
 
+</div>
+<div>
+    <p style="text-align:center; font-size: 8px; font-family: Arial, sans-serif; margin-top: 10px; font-weight: bold;">
+        EL INCUMPLIMIENTO DEL PAGO DE ESTE DOCUMENTO AL CRÉDITO EN EL PLAZO ESTIPULADO. GENERARÁ UN CARGO POR MORA DEL 2% MENSUAL SOBRE SALDO VENCIDO. TODO CHEQUE RECHAZADO, GENERARÁ UN CARGO ADMINISTRATIVO DE $10.00, NO SE ACEPTAN CAMBIOS NI DEVOLUCIONES DESPUÉS DE 7 DÍAS CALENDARIO, EN MATERIALES ELÉCTRICOS NO ADMITIMOS DEVOLUCIONES
+    </p>
 </div>
 </body>
 </html>

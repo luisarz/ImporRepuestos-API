@@ -503,8 +503,8 @@ Route::middleware(['jwt'])->group(function () {
     // 4. Los permisos específicos (ventas.generate_dte, etc.) solo controlan la VISIBILIDAD de botones manuales
     Route::get('/generarDTE/{idVenta}', [DTEController::class, 'generarDTE'])->name('generarDTE');
     Route::get('/sendAnularDTE/{idVenta}', [DTEController::class, 'anularDTE'])->name('sendAnularDTE');
-    Route::get('/printDTETicket/{idVenta}', [DTEController::class, 'printDTETicket'])->name('printDTETicket');
-    Route::get('/printDTEPdf/{idVenta}', [DTEController::class, 'printDTEPdf'])->name('printDTEPdf');
+    Route::get('/printDTETicket/{codGeneracion}', [DTEController::class, 'printDTETicket'])->name('printDTETicket');
+    Route::get('/printDTEPdf/{codGeneracion}', [DTEController::class, 'printDTEPdf'])->name('printDTEPdf');
     Route::get('/logDTE/{idVenta}', [DTEController::class, 'logDTE'])->name('logDTE');
     Route::get('/sendDTE/{idVenta}', [SenEmailDTEController::class, 'SenEmailDTEController'])->name('sendDTE');
 

@@ -17,18 +17,20 @@ class sendEmailDTE extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $jsonPath;
-    public $pdfPath;
+    public $jsonContent;
+    public $pdfContent;
     public SalesHeader $sale;
+    public string $generationCode;
 
     /**
      * Create a new message instance.
      */
-    public function __construct($jsonPath, $pdfPath, SalesHeader $sale)
+    public function __construct($jsonContent, $pdfContent, SalesHeader $sale, string $generationCode)
     {
-        $this->jsonPath = $jsonPath;
-        $this->pdfPath = $pdfPath;
+        $this->jsonContent = $jsonContent;
+        $this->pdfContent = $pdfContent;
         $this->sale = $sale;
+        $this->generationCode = $generationCode;
     }
 
     /**
@@ -49,26 +51,23 @@ class sendEmailDTE extends Mailable
     {
         return new Content(
             view: 'emails.sendDTE',
-            with: ['sale' => $this->sale, 'pdfPath' => $this->pdfPath, 'jsonPath' => $this->jsonPath],
+            with: ['sale' => $this->sale, 'generationCode' => $this->generationCode],
         );
     }
 
     /**
      * Get the attachments for the message.
      *
-
+     *
      * @return array<int, Attachment>
      */
     public function attachments(): array
     {
         return [
-            Attachment::fromPath($this->pdfPath)
-                ->as($this->sale->generationCode.'.pdf')
+            Attachment::fromData(fn () => $this->pdfContent, $this->generationCode . '.pdf')
                 ->withMime('application/pdf'),
-            Attachment::fromPath($this->jsonPath)
-                ->as($this->sale->generationCode.'.json')
+            Attachment::fromData(fn () => $this->jsonContent, $this->generationCode . '.json')
                 ->withMime('application/json'),
-
         ];
     }
 }
