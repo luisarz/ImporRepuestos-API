@@ -104,11 +104,28 @@ class SalesHeaderController extends Controller
                 $sale->formatted_date = $sale->sale_date->format('d/m/Y');
                 $sale->total_sale_formatted = number_format($sale->sale_total, 2, '.', ',');
 
-                // Formatear número de venta con tipo de documento + número de control interno
-                // Ejemplos: "F-65233" (Factura), "CCF-123" (Comprobante Crédito Fiscal)
-                $documentTypePrefix = $sale->documentType ? $sale->documentType->code : 'DOC';
+                // Formatear número de venta con PREFIX del correlativo + número de control interno
+                // Ejemplos: "F-000001" (Factura), "CCF-000123" (Comprobante Crédito Fiscal)
+                $prefix = 'DOC'; // fallback si no se encuentra correlativo
+
+                // Obtener el prefix del correlativo activo para este tipo de documento
+                if ($sale->warehouse && $sale->document_type_id) {
+                    $cashRegister = $sale->warehouse->cashRegisters()->where('is_active', 1)->first();
+                    if ($cashRegister) {
+                        $correlativo = \App\Models\Correlative::where('cash_register_id', $cashRegister->id)
+                            ->where('document_type_id', $sale->document_type_id)
+                            ->where('is_active', true)
+                            ->first();
+                        if ($correlativo) {
+                            // Usar el prefix del correlativo (ej: "F-", "CCF-")
+                            // Remover guión si ya lo tiene para evitar duplicación
+                            $prefix = rtrim($correlativo->prefix, '-');
+                        }
+                    }
+                }
+
                 $internalNumber = $sale->document_internal_number ?: '0';
-                $sale->sale_number_formatted = $documentTypePrefix . '-' . str_pad($internalNumber, 6, '0', STR_PAD_LEFT);
+                $sale->sale_number_formatted = $prefix . '-' . str_pad($internalNumber, 4, '0', STR_PAD_LEFT);
 
                 return $sale;
             });
