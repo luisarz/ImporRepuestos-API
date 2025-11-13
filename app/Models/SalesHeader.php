@@ -44,6 +44,8 @@ class SalesHeader extends Model
         'transmision_type',
         'is_dte',
         'is_dte_send',
+        'generationCode',
+        'jsonUrl',
         'is_active',
     ];
 
