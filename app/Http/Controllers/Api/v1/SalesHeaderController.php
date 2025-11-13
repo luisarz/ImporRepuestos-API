@@ -103,6 +103,13 @@ class SalesHeaderController extends Controller
             $salesHeaders->getCollection()->transform(function ($sale) {
                 $sale->formatted_date = $sale->sale_date->format('d/m/Y');
                 $sale->total_sale_formatted = number_format($sale->sale_total, 2, '.', ',');
+
+                // Formatear número de venta con tipo de documento + número de control interno
+                // Ejemplos: "F-65233" (Factura), "CCF-123" (Comprobante Crédito Fiscal)
+                $documentTypePrefix = $sale->documentType ? $sale->documentType->code : 'DOC';
+                $internalNumber = $sale->document_internal_number ?: '0';
+                $sale->sale_number_formatted = $documentTypePrefix . '-' . str_pad($internalNumber, 6, '0', STR_PAD_LEFT);
+
                 return $sale;
             });
 
