@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Company;
 use App\Models\Contingency;
 use App\Models\Correlative;
+use App\Models\DteAuditLog;
 use App\Models\HistoryDte;
 use App\Models\SalesHeader;
 use DateTime;
@@ -29,15 +30,31 @@ class DTEController extends Controller
     {
         $configuracion = $this->getConfiguracion();
         if (!$configuracion) {
+            DteAuditLog::logError(
+                $idVenta,
+                'generarDTE',
+                'No se ha configurado la empresa'
+            );
             return response()->json(['message' => 'No se ha configurado la empresa']);
         }
 
         $venta = SalesHeader::with('documentType')->find($idVenta);
         if (!$venta) {
+            DteAuditLog::logError(
+                $idVenta,
+                'generarDTE',
+                'Venta no encontrada'
+            );
             return $this->respuestaFallo('Venta no encontrada');
         }
 
         if ($venta->is_dte) {
+            DteAuditLog::logError(
+                $idVenta,
+                'generarDTE',
+                'DTE ya enviado',
+                $venta->documentType->code ?? null
+            );
             return $this->respuestaFallo('DTE ya enviado');
         }
 
@@ -51,9 +68,18 @@ class DTEController extends Controller
 
         $method = $documentTypes[$venta->documenttype->code] ?? null;
 
-        $response = ($method && method_exists($this, $method))
-            ? $this->$method($idVenta)
-            : $this->respuestaFallo('Tipo de documento no soportado');
+        if (!$method || !method_exists($this, $method)) {
+            DteAuditLog::logError(
+                $idVenta,
+                'generarDTE',
+                'Tipo de documento no soportado: ' . ($venta->documenttype->code ?? 'desconocido'),
+                $venta->documenttype->code ?? null
+            );
+            $response = $this->respuestaFallo('Tipo de documento no soportado');
+        } else {
+            $response = $this->$method($idVenta);
+        }
+
         return response()->json($response);
     }
 
@@ -206,7 +232,7 @@ class DTEController extends Controller
 
     function CCFJson($idVenta): array|JsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.municipio', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
         // Si document_internal_number es 0, asignar el próximo correlativo
         $error = $this->assignControlNumberIfNeeded($factura);
@@ -215,9 +241,9 @@ class DTEController extends Controller
         }
 
         $establishmentType = trim($factura->warehouse->stablishmenttype->code);
-        $conditionCode = trim($factura->salescondition->code);
+        $conditionCode = $factura->saleCondition ? trim($factura->saleCondition->code) : '1';
         $receptor = [
-            "documentType" => trim($factura->customer->documentType->code) ?? null,
+            "documentType" => $factura->customer->documentType ? trim($factura->customer->documentType->code) : null,
             "documentNum" => trim($factura->customer->nit),
             "nit" => trim(str_replace("-", '', $factura->customer->nit)) ?? null,
             "nrc" => trim(str_replace("-", "", $factura->customer->nrc)) ?? null,
@@ -228,9 +254,9 @@ class DTEController extends Controller
             "email" => trim($factura->customer->email) ?? null,
             "address" => trim($factura->customer->address) ?? null,
             "businessName" => null,
-            "codeCity" => trim($factura->customer->departamento->code) ?? null,
-            "codeMunicipality" => trim($factura->customer->distrito->code) ?? null,
-            "economicAtivity" => trim($factura->customer->economicactivity->code ?? null),
+            "codeCity" => $factura->customer->departamento ? trim($factura->customer->departamento->code) : null,
+            "codeMunicipality" => $factura->customer->municipio ? trim($factura->customer->municipio->code) : null,
+            "economicAtivity" => $factura->customer->economicactivity ? trim($factura->customer->economicactivity->code) : null,
         ];
         $extencion = [
             "deliveryName" => trim($factura->seller->name) . " " . trim($factura->seller->last_name) ?? null,
@@ -262,8 +288,14 @@ class DTEController extends Controller
             ];
             $i++;
         }
-        $branchId = auth()->user()->employee->branch_id ?? null;
+        $branchId = auth()->user()->employee->warehouse_id ?? null;
         if (!$branchId) {
+            DteAuditLog::logError(
+                $idVenta,
+                'CCFJson',
+                'No se ha configurado la empresa - Usuario sin warehouse_id',
+                '03'
+            );
             return [
                 'estado' => 'FALLO',
                 'mensaje' => 'No se ha configurado la empresa'
@@ -348,7 +380,7 @@ class DTEController extends Controller
             ];
             $i++;
         }
-        $branchId = auth()->user()->employee->branch_id ?? null;
+        $branchId = auth()->user()->employee->warehouse_id ?? null;
         if (!$branchId) {
             return false;
         }
@@ -387,7 +419,7 @@ class DTEController extends Controller
 
     function ExportacionJson($idVenta): array|jsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.municipio', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
         // Si document_internal_number es 0, asignar el próximo correlativo
         $error = $this->assignControlNumberIfNeeded($factura);
@@ -456,8 +488,14 @@ class DTEController extends Controller
             $i++;
         }
 
-        $branchId = auth()->user()->employee->branch_id ?? null;
+        $branchId = auth()->user()->employee->warehouse_id ?? null;
         if (!$branchId) {
+            DteAuditLog::logError(
+                $idVenta,
+                'ExportacionJson',
+                'No se ha configurado la empresa - Usuario sin warehouse_id',
+                '11'
+            );
             return [
                 'estado' => 'FALLO',
                 'mensaje' => 'No se ha configurado la empresa'
@@ -511,7 +549,7 @@ class DTEController extends Controller
 
     function sujetoExcluidoJson($idVenta): array|jsonResponse
     {
-        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
+        $factura = SalesHeader::with('warehouse.stablishmenttype', 'warehouse.cashRegisters', 'documentType', 'seller', 'customer', 'customer.economicactivity', 'customer.departamento', 'customer.municipio', 'customer.documenttypecustomer', 'saleCondition', 'paymentMethod', 'saleDetails', 'saleDetails.inventory.product')->find($idVenta);
 
         // Si document_internal_number es 0, asignar el próximo correlativo
         $error = $this->assignControlNumberIfNeeded($factura);
@@ -567,8 +605,14 @@ class DTEController extends Controller
             ];
             $i++;
         }
-        $branchId = auth()->user()->employee->branch_id ?? null;
+        $branchId = auth()->user()->employee->warehouse_id ?? null;
         if (!$branchId) {
+            DteAuditLog::logError(
+                $idVenta,
+                'sujetoExcluidoJson',
+                'No se ha configurado la empresa - Usuario sin warehouse_id',
+                '14'
+            );
             return [
                 'estado' => 'FALLO',
                 'mensaje' => 'No se ha configurado la empresa'
@@ -640,11 +684,20 @@ class DTEController extends Controller
 
             // Check for cURL errors
             if ($response === false) {
+                $errorMsg = "Error cURL: " . curl_error($curl);
+                DteAuditLog::logError(
+                    $idVenta,
+                    'SendDTE',
+                    $errorMsg,
+                    $dteData['documentType'] ?? null,
+                    curl_getinfo($curl, CURLINFO_HTTP_CODE),
+                    $dteData
+                );
                 return [
                     'estado' => 'RECHAZADO',
                     'response' => false,
                     'code' => curl_getinfo($curl, CURLINFO_HTTP_CODE),
-                    'mensaje' => "Ocurrio un eror" . curl_error($curl)
+                    'mensaje' => $errorMsg
                 ];
             }
 
@@ -703,14 +756,39 @@ class DTEController extends Controller
             $falloDTE->dte = $responseData ?? null;
             $falloDTE->save();
 
+            // Registrar en auditoría si el DTE fue rechazado
+            $estadoDTE = $responseHacienda["estado"] ?? null;
+            if ($estadoDTE === 'RECHAZADO') {
+                DteAuditLog::logRejected(
+                    $idVenta,
+                    'SendDTE',
+                    $responseHacienda["descripcionMsg"] ?? 'DTE rechazado por Hacienda',
+                    $dteData['documentType'] ?? null,
+                    $responseHacienda["codigoMsg"] ?? null,
+                    $dteData,
+                    $responseData,
+                    $responseHacienda["codigoGeneracion"] ?? null
+                );
+            }
+
 //            $responseData['json_send']= $dteData;
 
             return $responseData;
 
         } catch (Exception $e) {
+            DteAuditLog::logError(
+                $idVenta,
+                'SendDTE',
+                'Excepción en envío de DTE: ' . $e->getMessage(),
+                $dteData['documentType'] ?? null,
+                null,
+                $dteData,
+                null,
+                $e->getTraceAsString()
+            );
             $data = [
                 'estado' => 'RECHAZADO',
-                'mensaje' => "Ocurrio un eror " . $e
+                'mensaje' => "Ocurrio un error " . $e->getMessage()
             ];
             return $data;
         }
@@ -723,6 +801,11 @@ class DTEController extends Controller
 
 
         if ($this->getConfiguracion() == null) {
+            DteAuditLog::logError(
+                $idVenta,
+                'anularDTE',
+                'No se ha configurado la empresa'
+            );
             return response()->json(['message' => 'No se ha configurado la empresa']);
         }
         $venta = SalesHeader::with([
@@ -739,12 +822,23 @@ class DTEController extends Controller
 //        return response()->json($venta);
 
         if (!$venta) {
+            DteAuditLog::logError(
+                $idVenta,
+                'anularDTE',
+                'Venta no encontrada'
+            );
             return [
                 'estado' => 'FALLO', // o 'ERROR'
                 'mensaje' => 'Venta no encontrada',
             ];
         }
         if (!$venta->is_dte) {
+            DteAuditLog::logError(
+                $idVenta,
+                'anularDTE',
+                'DTE no generado aun',
+                $venta->documentType->code ?? null
+            );
             return [
                 'estado' => 'FALLO', // o 'ERROR'
                 'mensaje' => 'DTE no generado aun',
@@ -752,6 +846,12 @@ class DTEController extends Controller
         }
 
         if ($venta->status == "Anulado") {
+            DteAuditLog::logError(
+                $idVenta,
+                'anularDTE',
+                'DTE ya fue anulado',
+                $venta->documentType->code ?? null
+            );
             return [
                 'estado' => 'FALLO', // o 'ERROR'
                 'mensaje' => 'DTE Ya fue anulado ',

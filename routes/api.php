@@ -34,6 +34,7 @@ use App\Http\Controllers\Api\v1\EconomicActivityController;
 use App\Http\Controllers\Api\v1\EmployeeController;
 use App\Http\Controllers\Api\v1\EquivalentController;
 use App\Http\Controllers\Api\v1\FuelTypeController;
+use App\Http\Controllers\Api\v1\DteAuditLogController;
 use App\Http\Controllers\Api\v1\HistoryDteController;
 use App\Http\Controllers\Api\v1\InventoriesBatchController;
 use App\Http\Controllers\Api\v1\InventoryController;
@@ -487,6 +488,14 @@ Route::middleware(['jwt'])->group(function () {
     // History DTEs - rutas especiales antes del resource
     Route::get('history-dtes/stats/all', [HistoryDteController::class, 'getStats']);
     Route::apiResource('history-dtes', HistoryDteController::class);
+
+    // DTE Audit Logs - rutas especiales antes del resource
+    Route::get('dte-audit-logs/stats', [DteAuditLogController::class, 'stats']);
+    Route::get('dte-audit-logs/by-sale/{saleId}', [DteAuditLogController::class, 'bySale']);
+    Route::post('dte-audit-logs/cleanup', [DteAuditLogController::class, 'cleanup']);
+    Route::post('dte-audit-logs/{dteAuditLog}/mark-resolved', [DteAuditLogController::class, 'markAsResolved']);
+    Route::post('dte-audit-logs/{dteAuditLog}/increment-retry', [DteAuditLogController::class, 'incrementRetry']);
+    Route::apiResource('dte-audit-logs', DteAuditLogController::class)->only(['index', 'show', 'destroy']);
 
 
 

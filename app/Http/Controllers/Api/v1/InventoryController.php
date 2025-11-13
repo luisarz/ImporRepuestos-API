@@ -45,6 +45,12 @@ class InventoryController extends Controller
                         ->orWhere('description', 'like', "%$search%");
                 });
 
+            // Filtrar solo productos con existencias
+            $withStock = $request->input('with_stock', false);
+            if ($withStock === 'true' || $withStock === true || $withStock === '1') {
+                $inventories->having('inventory_batches_sum_quantity', '>', 0);
+            }
+
             // 🔍 Aplicar filtros dinámicamente
             foreach ($filters as $filter) {
                 $column = $filter['column'] ?? null;

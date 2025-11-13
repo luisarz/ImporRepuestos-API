@@ -90,6 +90,8 @@ class SalesHeaderController extends Controller
                             $query->where('sale_total', '>=', $value);
                         } elseif ($field === 'max_total' && !empty($value)) {
                             $query->where('sale_total', '<=', $value);
+                        } elseif ($field === 'exclude_status' && !empty($value)) {
+                            $query->where('sale_status', '!=', $value);
                         }
                     }
                 }
