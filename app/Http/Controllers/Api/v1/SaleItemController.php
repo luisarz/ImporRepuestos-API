@@ -41,10 +41,10 @@ class SaleItemController extends Controller
         try {
 
             $saleItem = SaleItem::create($request->validated());
-            //Actualizar el total de la venta
-            $sale = SalesHeader::findOrFail($saleItem->sale_id);
-            $sale->sale_total += $saleItem->total;
-            $sale->save();
+
+            // Recalcular totales del sale_header
+            $this->recalculateSaleHeaderTotals($saleItem->sale_id);
+
             $saleItem['formatted_price'] = '$' . number_format($saleItem->price, 2);
 
             return ApiResponse::success($saleItem, 'Item de venta creado con éxito', 200);
@@ -197,10 +197,8 @@ class SaleItemController extends Controller
 
             $saleItem->update($validated);
 
-            // Recalcular total de la venta
-            $sale = SalesHeader::findOrFail($saleItem->sale_id);
-            $sale->sale_total = SaleItem::where('sale_id', $sale->id)->sum('total');
-            $sale->save();
+            // Recalcular totales del sale_header
+            $this->recalculateSaleHeaderTotals($saleItem->sale_id);
 
             return ApiResponse::success($saleItem, 'Item de venta actualizado con éxito', 200);
         } catch (ModelNotFoundException $exception) {
@@ -214,7 +212,12 @@ class SaleItemController extends Controller
     {
         try {
             $saleItem = SaleItem::findOrFail($id);
+            $saleId = $saleItem->sale_id;
             $saleItem->delete();
+
+            // Recalcular totales del sale_header
+            $this->recalculateSaleHeaderTotals($saleId);
+
             return ApiResponse::success(null, 'Item de venta eliminado con éxito', 200);
         } catch (ModelNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), 'Item de venta no encontrado', 404);
@@ -222,5 +225,28 @@ class SaleItemController extends Controller
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
 
+    }
+
+    /**
+     * Recalcular totales del sale_header basándose en los items actuales
+     */
+    private function recalculateSaleHeaderTotals($saleId): void
+    {
+        $sale = SalesHeader::findOrFail($saleId);
+
+        // Calcular total sumando todos los items activos
+        $total = SaleItem::where('sale_id', $saleId)
+            ->where('is_active', true)
+            ->sum('total');
+
+        // Calcular neto e IVA (asumiendo 13% de IVA incluido en el total)
+        $neto = $total / 1.13;
+        $iva = $neto * 0.13;
+
+        // Actualizar sale_header
+        $sale->sale_total = round($total, 2);
+        $sale->net_amount = round($neto, 2);
+        $sale->tax = round($iva, 2);
+        $sale->save();
     }
 }
