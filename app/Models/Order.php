@@ -32,6 +32,7 @@ class Order extends Model
         'document_type_id',
         'warehouse_id',
         'document_internal_number',
+        'order_number',
         'seller_id',
         'customer_id',
         'operation_condition_id',

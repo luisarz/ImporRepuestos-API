@@ -41,6 +41,7 @@ class OrderController extends Controller
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('id', 'like', "%$search%")
+                        ->orWhere('order_number', 'like', "%$search%")
                         ->orWhere('document_internal_number', 'like', "%$search%")
                         ->orWhere('sale_total', 'like', "%$search%")
                         ->orWhereHas('customer', function ($customerQuery) use ($search) {
@@ -124,7 +125,18 @@ class OrderController extends Controller
     public function store(SalesHeaderStoreRequest $request): JsonResponse
     {
         try {
-            $order = Order::create($request->validated());
+            $data = $request->validated();
+
+            // Generar el siguiente número de orden para esta sucursal
+            if (!isset($data['order_number']) && isset($data['warehouse_id'])) {
+                $lastOrder = Order::where('warehouse_id', $data['warehouse_id'])
+                    ->orderBy('order_number', 'desc')
+                    ->first();
+
+                $data['order_number'] = $lastOrder ? $lastOrder->order_number + 1 : 1;
+            }
+
+            $order = Order::create($data);
             return ApiResponse::success($order, 'Orden creada con éxito', 201);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al crear orden', 500);
