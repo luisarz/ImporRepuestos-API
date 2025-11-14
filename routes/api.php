@@ -55,6 +55,8 @@ use App\Http\Controllers\Api\v1\SaleItemController;
 use App\Http\Controllers\Api\v1\SalePaymentDetailController;
 use App\Http\Controllers\Api\v1\SalesDteController;
 use App\Http\Controllers\Api\v1\SalesHeaderController;
+use App\Http\Controllers\Api\v1\OrderController;
+use App\Http\Controllers\Api\v1\OrderItemController;
 use App\Http\Controllers\Api\v1\StablishmentTypeController;
 use App\Http\Controllers\Api\v1\UnitMeasurementController;
 use App\Http\Controllers\Api\v1\VehicleController;
@@ -477,6 +479,22 @@ Route::middleware(['jwt'])->group(function () {
 
     // Sale Items - Resource (genera: index, store, show, update, destroy)
     Route::apiResource('sale-items', SaleItemController::class);
+
+    // ==================== ORDERS MODULE ====================
+    // Orders - Rutas específicas ANTES del resource
+    Route::get('orders/{id}/total', [OrderController::class, 'getTotal']);
+
+    // Orders - Resource (genera: index, store, show, update, destroy)
+    Route::apiResource('orders', OrderController::class);
+
+    // Order Items - Rutas específicas ANTES del resource
+    Route::get('order-items/by-order/{order_id}', [OrderItemController::class, 'index']);
+    Route::get('order-details/{order_id}', [OrderItemController::class, 'details']);
+    Route::get('order-total/{order_id}', [OrderItemController::class, 'totalOrder']);
+
+    // Order Items - Resource (genera: index, store, show, update, destroy)
+    Route::apiResource('order-items', OrderItemController::class);
+    // ==================== END ORDERS MODULE ====================
 
     Route::apiResource('sales-dtes', SalesDteController::class);
 
