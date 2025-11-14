@@ -20,16 +20,17 @@ class SaleItemUpdateRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'sale_id' => ['required', 'integer'],
-            'inventory_id' => ['required', 'integer'],
+            'sale_id' => ['sometimes', 'integer'],
+            'inventory_id' => ['sometimes', 'integer'],
             'batch_id' => ['nullable', 'integer'],
-            'saled' => ['required'],
-            'quantity' => ['required', 'numeric'],
-            'price' => ['required', 'numeric'],
-            'discount' => ['required', 'numeric'],
-            'total' => ['required', 'numeric'],
-            'is_saled' => ['required'],
-            'is_active' => ['required'],
+            'saled' => ['sometimes'],
+            'quantity' => ['sometimes', 'numeric'],
+            'price' => ['sometimes', 'numeric'],
+            'discount' => ['sometimes', 'integer', 'min:0', 'max:25'], // Porcentaje de descuento (0-25)
+            'total' => ['sometimes', 'numeric'],
+            'observations' => ['nullable', 'string'],
+            'is_saled' => ['sometimes'],
+            'is_active' => ['sometimes'],
         ];
     }
 }

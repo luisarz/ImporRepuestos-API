@@ -22,9 +22,9 @@ class SaleItem extends Model
         'saled',
         'quantity',
         'price',
-        'discount',
-        'discount_percentage',
+        'discount', // Porcentaje de descuento (0-25)
         'total',
+        'observations',
         'is_saled',
         'is_active',
     ];
@@ -42,8 +42,7 @@ class SaleItem extends Model
         'saled' => 'boolean',
         'quantity' => 'float',
         'price' => 'float',
-        'discount' => 'float',
-        'discount_percentage' => 'float',
+        'discount' => 'integer', // Porcentaje (0-25)
         'total' => 'float',
         'is_saled' => 'boolean',
         'is_active' => 'boolean',

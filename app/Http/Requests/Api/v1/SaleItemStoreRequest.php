@@ -26,6 +26,7 @@ class SaleItemStoreRequest extends FormRequest
             'price' => ['required', 'numeric'],
             'discount' => ['required', 'numeric'],
             'total' => ['required', 'numeric'],
+            'observations' => ['nullable', 'string'],
             'is_saled' => ['required'],
             'is_active' => ['required'],
         ];

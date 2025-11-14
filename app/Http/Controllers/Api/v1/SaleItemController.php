@@ -118,7 +118,90 @@ class SaleItemController extends Controller
     {
         try {
             $saleItem = SaleItem::findOrFail($id);
-            $saleItem->update($request->validated());
+            $validated = $request->validated();
+
+            // Obtener valores actuales o nuevos
+            $quantity = $validated['quantity'] ?? $saleItem->quantity;
+            $price = $validated['price'] ?? $saleItem->price;
+            // discount almacena el PORCENTAJE (0-25)
+            $discountPercentage = $validated['discount'] ?? $saleItem->discount ?? 0;
+
+            // Validar que el descuento esté en el rango permitido (0-25)
+            if ($discountPercentage < 0 || $discountPercentage > 25) {
+                return ApiResponse::error(
+                    null,
+                    'El descuento debe estar entre 0% y 25%',
+                    422
+                );
+            }
+
+            // Validar que el descuento sea un número entero (sin decimales)
+            if (floor($discountPercentage) != $discountPercentage) {
+                return ApiResponse::error(
+                    null,
+                    'El descuento no puede tener decimales',
+                    422
+                );
+            }
+
+            // Validar que la cantidad no sea decimal
+            if (floor($quantity) != $quantity) {
+                return ApiResponse::error(
+                    null,
+                    'La cantidad no puede tener decimales',
+                    422
+                );
+            }
+
+            // VALIDAR STOCK DISPONIBLE
+            $inventory = \App\Models\Inventory::find($saleItem->inventory_id);
+            if (!$inventory) {
+                return ApiResponse::error(
+                    null,
+                    'Inventario no encontrado',
+                    404
+                );
+            }
+
+            // Calcular stock total disponible en lotes
+            $availableStock = \App\Models\InventoriesBatch::where('id_inventory', $inventory->id)
+                ->sum('quantity');
+
+            // Si estamos aumentando la cantidad, validar que haya stock
+            if ($quantity > $saleItem->quantity) {
+                $additionalQuantity = $quantity - $saleItem->quantity;
+
+                if ($availableStock < $additionalQuantity) {
+                    return ApiResponse::error(
+                        ['available_stock' => $availableStock],
+                        "Stock insuficiente. Solo hay {$availableStock} unidades disponibles",
+                        422
+                    );
+                }
+            }
+
+            // Calcular subtotal
+            $subtotal = $quantity * $price;
+
+            // Calcular descuento en dinero basado en el porcentaje
+            $discountMoney = $subtotal * ($discountPercentage / 100);
+
+            // Calcular total final
+            $total = $subtotal - $discountMoney;
+
+            // Actualizar todos los campos calculados
+            $validated['quantity'] = $quantity;
+            $validated['price'] = $price;
+            $validated['discount'] = $discountPercentage; // Guardar el porcentaje en discount
+            $validated['total'] = $total;
+
+            $saleItem->update($validated);
+
+            // Recalcular total de la venta
+            $sale = SalesHeader::findOrFail($saleItem->sale_id);
+            $sale->sale_total = SaleItem::where('sale_id', $sale->id)->sum('total');
+            $sale->save();
+
             return ApiResponse::success($saleItem, 'Item de venta actualizado con éxito', 200);
         } catch (ModelNotFoundException $exception) {
             return ApiResponse::error($exception->getMessage(), 'Item de venta no encontrado', 404);

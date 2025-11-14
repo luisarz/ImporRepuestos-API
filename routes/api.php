@@ -469,12 +469,13 @@ Route::middleware(['jwt'])->group(function () {
 
 
     Route::apiResource('sales', SalesHeaderController::class);
-    Route::apiResource('sales', SalesHeaderController::class);
-    Route::get('sale-items', [SaleItemController::class, 'index']);
-    Route::get('sale-items/{id_venta}', [SaleItemController::class, 'index']);
+
+    // Sale Items - Rutas específicas ANTES del resource
+    Route::get('sale-items/by-sale/{id_venta}', [SaleItemController::class, 'index']);
     Route::get('sale-details/{id_venta}', [SaleItemController::class, 'details']);
     Route::get('sale-total/{id_venta}', [SaleItemController::class, 'totalSale']);
-    Route::get('sale-item/{id_item}', [SaleItemController::class, 'show']);
+
+    // Sale Items - Resource (genera: index, store, show, update, destroy)
     Route::apiResource('sale-items', SaleItemController::class);
 
     Route::apiResource('sales-dtes', SalesDteController::class);
