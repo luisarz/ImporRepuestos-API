@@ -58,6 +58,15 @@ class Order extends Model
         'is_dte',
         'is_dte_send',
         'generationCode',
+        'is_active',
+    ];
+
+    /**
+     * Valores por defecto para los atributos
+     */
+    protected $attributes = [
+        'is_active' => true,
+        'is_order' => true,
     ];
 
     /**
@@ -74,6 +83,7 @@ class Order extends Model
         'is_invoiced_order' => 'boolean',
         'is_dte' => 'boolean',
         'is_dte_send' => 'boolean',
+        'is_active' => 'boolean',
     ];
 
     /**
