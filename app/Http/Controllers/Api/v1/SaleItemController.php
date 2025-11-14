@@ -58,7 +58,9 @@ class SaleItemController extends Controller
         try {
             $perPage = $request->input('per_page', 100);
             $saleItem = SaleItem::with([
-                'inventory',
+                'inventory' => function($query) {
+                    $query->withSum('inventoryBatches as inventory_batches_sum_quantity', 'quantity');
+                },
                 'inventory.product',
                 'inventory.product.category',
                 'inventory.warehouse', // Agregar bodega
