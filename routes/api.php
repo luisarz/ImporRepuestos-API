@@ -485,6 +485,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('orders/stats', [OrderController::class, 'getStats']);
     Route::get('orders/{id}/total', [OrderController::class, 'getTotal']);
     Route::get('orders/{id}/print-pdf', [OrderController::class, 'printPdf']);
+    Route::get('orders/{id}/print-ticket', [OrderController::class, 'printTicket']);
     Route::post('orders/{id}/send-email', [OrderController::class, 'sendByEmail']);
 
     // Orders - Resource (genera: index, store, show, update, destroy)

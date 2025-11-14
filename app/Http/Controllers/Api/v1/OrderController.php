@@ -328,6 +328,86 @@ class OrderController extends Controller
     }
 
     /**
+     * Imprimir orden en formato ticket
+     */
+    public function printTicket($id): JsonResponse
+    {
+        try {
+            // Obtener la orden con sus relaciones
+            $order = Order::with([
+                'customer',
+                'warehouse',
+                'seller',
+                'operationCondition',
+                'items.inventory.product', // Cargar producto a través de inventory
+            ])->findOrFail($id);
+
+            // Obtener información de la empresa
+            $empresa = Company::first();
+
+            // Preparar logo como base64 - prioridad: logo de sucursal, sino logo de empresa
+            $logo = null;
+            if ($order && $order->warehouse && $order->warehouse->logo) {
+                $logo = $order->warehouse->logo;
+            } elseif ($empresa && $empresa->logo_path) {
+                $logo = $empresa->logo_path;
+            }
+
+            // Si el logo es un array, extraer el path
+            if ($logo && is_array($logo)) {
+                $logo = $logo['path'] ?? $logo['filename'] ?? $logo[0] ?? null;
+            }
+
+            // Si el logo es un string JSON, extraer el path
+            if ($logo && is_string($logo) && (str_starts_with($logo, '{') || str_starts_with($logo, '['))) {
+                $logoArray = json_decode($logo, true);
+                if (is_array($logoArray)) {
+                    $logo = $logoArray['path'] ?? $logoArray['filename'] ?? $logoArray[0] ?? null;
+                }
+            }
+
+            // Convertir logo a base64 data URL
+            $logoDataUrl = null;
+            if ($logo && is_string($logo)) {
+                $logoPath = public_path('storage/' . $logo);
+                if (file_exists($logoPath)) {
+                    $logoData = file_get_contents($logoPath);
+                    $logoBase64 = base64_encode($logoData);
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mimeType = finfo_file($finfo, $logoPath);
+                    finfo_close($finfo);
+                    $logoDataUrl = 'data:' . $mimeType . ';base64,' . $logoBase64;
+                }
+            }
+
+            // Generar PDF en formato ticket
+            $pdf = Pdf::loadView('orders.order-print-ticket', [
+                'order' => $order,
+                'empresa' => $empresa,
+                'logo' => $logoDataUrl,
+            ]);
+
+            // Configurar tamaño de página para ticket (80mm de ancho, altura auto)
+            // 80mm = 3.15 pulgadas, usaremos formato custom
+            $pdf->setPaper([0, 0, 226.77, 841.89], 'portrait'); // 80mm x 297mm (A4 height)
+
+            // Retornar PDF como base64
+            $pdfContent = $pdf->output();
+            $pdfBase64 = base64_encode($pdfContent);
+
+            return ApiResponse::success([
+                'pdf' => $pdfBase64,
+                'filename' => 'ticket_orden_' . str_pad($order->order_number, 5, '0', STR_PAD_LEFT) . '.pdf',
+            ], 'Ticket generado con éxito', 200);
+
+        } catch (ModelNotFoundException $exception) {
+            return ApiResponse::error($exception->getMessage(), 'Orden no encontrada', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al generar ticket: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Enviar orden por correo electrónico
      */
     public function sendByEmail(Request $request, $id): JsonResponse
