@@ -19,7 +19,7 @@ class Order extends Model
     /**
      * Nombre de la tabla en la base de datos
      */
-    protected $table = 'sales_header';
+    protected $table = 'sales_headers';
 
     /**
      * The attributes that are mass assignable.
