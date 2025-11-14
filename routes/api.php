@@ -482,7 +482,10 @@ Route::middleware(['jwt'])->group(function () {
 
     // ==================== ORDERS MODULE ====================
     // Orders - Rutas específicas ANTES del resource
+    Route::get('orders/stats', [OrderController::class, 'getStats']);
     Route::get('orders/{id}/total', [OrderController::class, 'getTotal']);
+    Route::get('orders/{id}/print-pdf', [OrderController::class, 'printPdf']);
+    Route::post('orders/{id}/send-email', [OrderController::class, 'sendByEmail']);
 
     // Orders - Resource (genera: index, store, show, update, destroy)
     Route::apiResource('orders', OrderController::class);

@@ -7,9 +7,12 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\v1\SalesHeaderStoreRequest;
 use App\Http\Requests\Api\v1\SalesHeaderUpdateRequest;
 use App\Models\Order;
+use App\Models\Company;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Mail;
 
 /**
  * OrderController - Controlador para gestionar órdenes
@@ -28,6 +31,9 @@ class OrderController extends Controller
             $filtersJson = $request->input('filters') ?? '[]';
             $filters = json_decode($filtersJson, true) ?? [];
 
+            // Obtener warehouse_id de la sesión del usuario
+            $warehouseId = $request->user()->warehouse_id ?? null;
+
             $query = Order::with([
                 'customer:id,document_number,name,last_name,document_type_id',
                 'warehouse:id,name',
@@ -36,6 +42,11 @@ class OrderController extends Controller
                 'paymentMethod',
                 'operationCondition',
             ]);
+
+            // Filtrar por sucursal del usuario por defecto
+            if ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId);
+            }
 
             // Búsqueda general
             if (!empty($search)) {
@@ -178,6 +189,40 @@ class OrderController extends Controller
     }
 
     /**
+     * Obtener estadísticas de órdenes
+     */
+    public function getStats(Request $request): JsonResponse
+    {
+        try {
+            // Obtener warehouse_id de la sesión del usuario
+            $warehouseId = $request->user()->warehouse_id ?? null;
+
+            $query = Order::query();
+
+            // Filtrar por sucursal si existe
+            if ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId);
+            }
+
+            $total = (clone $query)->count();
+            $inProgress = (clone $query)->where('sale_status', 1)->count(); // En progreso
+            $completed = (clone $query)->where('sale_status', 2)->count(); // Completadas
+            $cancelled = (clone $query)->where('sale_status', 3)->count(); // Anuladas
+
+            $result = [
+                'total' => $total,
+                'in_progress' => $inProgress,
+                'completed' => $completed,
+                'cancelled' => $cancelled,
+            ];
+
+            return ApiResponse::success($result, 'Estadísticas recuperadas con éxito', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al obtener estadísticas', 500);
+        }
+    }
+
+    /**
      * Obtener total calculado de una orden
      */
     public function getTotal($id): JsonResponse
@@ -200,6 +245,204 @@ class OrderController extends Controller
             return ApiResponse::error($exception->getMessage(), 'Orden no encontrada', 404);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al calcular total', 500);
+        }
+    }
+
+    /**
+     * Generar PDF de la orden
+     */
+    public function printPdf($id): JsonResponse
+    {
+        try {
+            // Obtener la orden con sus relaciones
+            $order = Order::with([
+                'customer',
+                'warehouse',
+                'seller',
+                'operationCondition',
+                'items.inventory.product', // Cargar producto a través de inventory
+            ])->findOrFail($id);
+
+            // Obtener información de la empresa
+            $empresa = Company::first();
+
+            // Preparar logo como base64 - prioridad: logo de sucursal, sino logo de empresa
+            $logo = null;
+            if ($order && $order->warehouse && $order->warehouse->logo) {
+                $logo = $order->warehouse->logo;
+            } elseif ($empresa && $empresa->logo_path) {
+                $logo = $empresa->logo_path;
+            }
+
+            // Si el logo es un array, extraer el path
+            if ($logo && is_array($logo)) {
+                $logo = $logo['path'] ?? $logo['filename'] ?? $logo[0] ?? null;
+            }
+
+            // Si el logo es un string JSON, extraer el path
+            if ($logo && is_string($logo) && (str_starts_with($logo, '{') || str_starts_with($logo, '['))) {
+                $logoArray = json_decode($logo, true);
+                if (is_array($logoArray)) {
+                    $logo = $logoArray['path'] ?? $logoArray['filename'] ?? $logoArray[0] ?? null;
+                }
+            }
+
+            // Convertir logo a base64 data URL
+            $logoDataUrl = null;
+            if ($logo && is_string($logo)) {
+                $logoPath = public_path('storage/' . $logo);
+                if (file_exists($logoPath)) {
+                    $logoData = file_get_contents($logoPath);
+                    $logoBase64 = base64_encode($logoData);
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mimeType = finfo_file($finfo, $logoPath);
+                    finfo_close($finfo);
+                    $logoDataUrl = 'data:' . $mimeType . ';base64,' . $logoBase64;
+                }
+            }
+
+            // Generar PDF
+            $pdf = Pdf::loadView('orders.order-print-pdf', [
+                'order' => $order,
+                'empresa' => $empresa,
+                'logo' => $logoDataUrl,
+            ]);
+
+            // Configurar tamaño de página
+            $pdf->setPaper('letter', 'portrait');
+
+            // Retornar PDF como base64
+            $pdfContent = $pdf->output();
+            $pdfBase64 = base64_encode($pdfContent);
+
+            return ApiResponse::success([
+                'pdf' => $pdfBase64,
+                'filename' => 'orden_' . str_pad($order->order_number, 5, '0', STR_PAD_LEFT) . '.pdf',
+            ], 'PDF generado con éxito', 200);
+
+        } catch (ModelNotFoundException $exception) {
+            return ApiResponse::error($exception->getMessage(), 'Orden no encontrada', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al generar PDF: ' . $e->getMessage(), 500);
+        }
+    }
+
+    /**
+     * Enviar orden por correo electrónico
+     */
+    public function sendByEmail(Request $request, $id): JsonResponse
+    {
+        try {
+            // Validar email
+            $request->validate([
+                'email' => 'required|email',
+                'message' => 'nullable|string',
+            ]);
+
+            // Obtener la orden con sus relaciones
+            $order = Order::with([
+                'customer',
+                'warehouse',
+                'seller',
+                'operationCondition',
+                'items.inventory.product', // Cargar producto a través de inventory
+            ])->findOrFail($id);
+
+            // Obtener información de la empresa
+            $empresa = Company::first();
+
+            // Preparar logo como base64 - prioridad: logo de sucursal, sino logo de empresa
+            $logo = null;
+            if ($order && $order->warehouse && $order->warehouse->logo) {
+                $logo = $order->warehouse->logo;
+            } elseif ($empresa && $empresa->logo_path) {
+                $logo = $empresa->logo_path;
+            }
+
+            // Si el logo es un array, extraer el path
+            if ($logo && is_array($logo)) {
+                $logo = $logo['path'] ?? $logo['filename'] ?? $logo[0] ?? null;
+            }
+
+            // Si el logo es un string JSON, extraer el path
+            if ($logo && is_string($logo) && (str_starts_with($logo, '{') || str_starts_with($logo, '['))) {
+                $logoArray = json_decode($logo, true);
+                if (is_array($logoArray)) {
+                    $logo = $logoArray['path'] ?? $logoArray['filename'] ?? $logoArray[0] ?? null;
+                }
+            }
+
+            // Convertir logo a base64 data URL
+            $logoDataUrl = null;
+            if ($logo && is_string($logo)) {
+                $logoPath = public_path('storage/' . $logo);
+                if (file_exists($logoPath)) {
+                    $logoData = file_get_contents($logoPath);
+                    $logoBase64 = base64_encode($logoData);
+                    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                    $mimeType = finfo_file($finfo, $logoPath);
+                    finfo_close($finfo);
+                    $logoDataUrl = 'data:' . $mimeType . ';base64,' . $logoBase64;
+                }
+            }
+
+            // Generar PDF
+            $pdf = Pdf::loadView('orders.order-print-pdf', [
+                'order' => $order,
+                'empresa' => $empresa,
+                'logo' => $logoDataUrl,
+            ]);
+
+            $pdf->setPaper('letter', 'portrait');
+            $pdfContent = $pdf->output();
+
+            // Preparar datos para el email
+            $customerName = $order->customer
+                ? trim($order->customer->name . ' ' . ($order->customer->last_name ?? ''))
+                : 'Cliente';
+
+            $orderStatus = match($order->sale_status) {
+                1 => 'En Progreso',
+                2 => 'Completada',
+                3 => 'Anulada',
+                default => 'Desconocido'
+            };
+
+            $emailData = [
+                'customerName' => $customerName,
+                'orderNumber' => str_pad($order->order_number, 5, '0', STR_PAD_LEFT),
+                'orderDate' => \Carbon\Carbon::parse($order->sale_date)->format('d/m/Y H:i'),
+                'orderTotal' => number_format($order->sale_total, 2),
+                'orderStatus' => $orderStatus,
+                'companyName' => $empresa->name ?? 'IMPORREPUESTOS',
+                'companyPhone' => $empresa->phone ?? null,
+                'companyEmail' => $empresa->email ?? null,
+                'companyAddress' => $empresa->address ?? null,
+                'additionalMessage' => $request->input('message', null),
+            ];
+
+            // Enviar email
+            Mail::send('emails.sendOrder', $emailData, function ($message) use ($request, $pdfContent, $order, $empresa) {
+                $message->to($request->input('email'))
+                    ->subject('Orden de Compra #' . str_pad($order->order_number, 5, '0', STR_PAD_LEFT))
+                    ->from(
+                        $empresa->email ?? config('mail.from.address', 'noreply@imporrepuestos.com'),
+                        $empresa->name ?? config('mail.from.name', 'IMPORREPUESTOS')
+                    )
+                    ->attachData($pdfContent, 'orden_' . str_pad($order->order_number, 5, '0', STR_PAD_LEFT) . '.pdf', [
+                        'mime' => 'application/pdf',
+                    ]);
+            });
+
+            return ApiResponse::success([
+                'email' => $request->input('email'),
+                'order_number' => str_pad($order->order_number, 5, '0', STR_PAD_LEFT),
+            ], 'Orden enviada por correo con éxito', 200);
+
+        } catch (ModelNotFoundException $exception) {
+            return ApiResponse::error($exception->getMessage(), 'Orden no encontrada', 404);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al enviar correo: ' . $e->getMessage(), 500);
         }
     }
 }

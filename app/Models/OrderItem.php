@@ -81,4 +81,20 @@ class OrderItem extends Model
     {
         return $this->belongsTo(Inventory::class, 'inventory_id');
     }
+
+    /**
+     * Relación con Product (producto) a través de inventory
+     * Acceso directo al producto del item
+     */
+    public function product()
+    {
+        return $this->hasOneThrough(
+            Product::class,
+            Inventory::class,
+            'id', // Foreign key on inventory table
+            'id', // Foreign key on products table
+            'inventory_id', // Local key on order_items table
+            'product_id' // Local key on inventory table
+        );
+    }
 }
