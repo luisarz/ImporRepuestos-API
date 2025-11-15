@@ -43,7 +43,15 @@ class BatchController extends Controller
     public function show(Request $request, $id): JsonResponse
     {
         try {
-            $batch = (new \App\Models\Batch)->with(['inventory:id,warehouse_id,product_id', 'inventory.product:id,code,original_code,description'])->findOrFail($id);
+            $batch = Batch::with([
+                'inventory:id,warehouse_id,product_id',
+                'inventory.product:id,code,original_code,description',
+                'inventory.warehouse:id,name',
+                'origenCode:id,code,description',
+                'purchaseItem:id,purchase_id,product_id,quantity,unit_price',
+                'purchaseItem.purchase:id,document_number,purchase_date'
+            ])->findOrFail($id);
+
             return ApiResponse::success($batch, 'Lote recuperado', 200);
         } catch (ModelNotFoundException $e) {
             return ApiResponse::error(null, 'Lote no encontrado', 404);
