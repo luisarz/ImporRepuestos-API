@@ -367,6 +367,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('products/{id}', [ProductController::class, 'update']);
 
     Route::get('prices/inventory/{idInventory}', [InventoryController::class, 'getPrices']);
+    Route::get('inventories/for-batches', [InventoryController::class, 'indexForBatches']);
     Route::get('inventories/{id}/details', [InventoryController::class, 'getDetails']);
     Route::get('inventories/product/{productId}', [InventoryController::class, 'getByProduct']);
     Route::apiResource('inventories', InventoryController::class);
@@ -423,10 +424,12 @@ Route::middleware(['jwt'])->group(function () {
     // Inventories Batches - rutas especiales antes del resource
     Route::get('inventories-batches/warehouse/{warehouseId}', [InventoriesBatchController::class, 'getByWarehouse']);
     Route::get('inventories-batches/product/{productId}', [InventoriesBatchController::class, 'getByProduct']);
+    Route::get('inventories-batches/inventory/{inventoryId}', [InventoriesBatchController::class, 'getByInventory']);
     Route::get('inventories-batches/expiring/list', [InventoriesBatchController::class, 'getExpiring']);
     Route::get('inventories-batches/expired/list', [InventoriesBatchController::class, 'getExpired']);
     Route::post('inventories-batches/transfer', [InventoriesBatchController::class, 'transfer']);
     Route::post('inventories-batches/adjust-stock', [InventoriesBatchController::class, 'adjustStock']);
+    Route::post('inventories-batches/create-manual', [InventoriesBatchController::class, 'createManualBatch']);
     Route::get('inventories-batches/{id}/movements', [InventoriesBatchController::class, 'getMovements']);
     Route::apiResource('inventories-batches', InventoriesBatchController::class);
 

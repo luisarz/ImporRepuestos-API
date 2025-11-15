@@ -21,6 +21,7 @@ class Kardex extends Model
         'entity',
         'nationality',
         'inventory_id',
+        'inventory_batch_id',
         'previous_stock',
         'stock_in',
         'stock_out',
@@ -40,6 +41,7 @@ class Kardex extends Model
         'operation_id' => 'integer',
         'operation_detail_id' => 'integer',
         'inventory_id' => 'integer',
+        'inventory_batch_id' => 'integer',
         'previous_stock' => 'decimal:2',
         'stock_in' => 'decimal:2',
         'stock_out' => 'decimal:2',
@@ -60,5 +62,10 @@ class Kardex extends Model
     public function inventory(): BelongsTo
     {
         return $this->belongsTo(Inventory::class);
+    }
+
+    public function inventoryBatch(): BelongsTo
+    {
+        return $this->belongsTo(InventoriesBatch::class, 'inventory_batch_id');
     }
 }

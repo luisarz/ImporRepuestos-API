@@ -39,11 +39,17 @@ class InventoryController extends Controller
                 'product.images',
             ])
                 ->withSum('inventoryBatches', 'quantity')
+                ->withCount('inventoryBatches as batches_count')
                 ->whereHas('product', function ($query) use ($search) {
                     $query->where('code', 'like', "%$search%")
                         ->orWhere('original_code', 'like', "%$search%")
                         ->orWhere('description', 'like', "%$search%");
                 });
+
+            // Filtro por bodega
+            if ($request->has('warehouse_id') && $request->input('warehouse_id') !== '') {
+                $inventories->where('warehouse_id', $request->input('warehouse_id'));
+            }
 
             // Filtrar solo productos con existencias
             $withStock = $request->input('with_stock', false);
@@ -51,26 +57,94 @@ class InventoryController extends Controller
                 $inventories->having('inventory_batches_sum_quantity', '>', 0);
             }
 
-            // 🔍 Aplicar filtros dinámicamente
-            foreach ($filters as $filter) {
-                $column = $filter['column'] ?? null;
-                $value = $filter['value'] ?? null;
-                $type = $filter['type'] ?? 'text';
+            // Filtro por estado de stock
+            $stockFilter = $request->input('stock_filter', 'all');
+            \Log::info('Stock filter recibido:', ['filter' => $stockFilter]);
 
-                if (!$column || $value === null) continue;
+            if ($stockFilter !== 'all' && $stockFilter !== '') {
+                // Obtener todos primero para filtrar
+                $allInventories = $inventories->get();
+                \Log::info('Total inventarios antes de filtrar:', ['count' => $allInventories->count()]);
 
-                // Verifica si es un filtro sobre relación (usa notación punto)
-                if (str_contains($column, '.')) {
-                    [$relation, $field] = explode('.', $column, 2);
-                    $inventories->whereHas($relation, function ($q) use ($field, $value) {
-                        $q->where($field, 'like', "%$value%");
-                    });
-                } else {
-                    $inventories->where($column, 'like', "%$value%");
+                // Filtrar según el tipo de stock
+                $filtered = $allInventories->filter(function ($inventory) use ($stockFilter) {
+                    $actual = (float) ($inventory->inventory_batches_sum_quantity ?? 0);
+                    $min = (float) ($inventory->stock_min ?? 0);
+
+                    $result = false;
+                    switch ($stockFilter) {
+                        case 'low_stock':
+                            // Stock bajo:
+                            // - Si tiene mínimo configurado (min > 0): actual < min Y actual > 0
+                            // - Si NO tiene mínimo configurado (min = 0): actual > 0 Y actual <= 10 (stock bajo sin mínimo)
+                            if ($min > 0) {
+                                $result = $actual < $min && $actual > 0;
+                            } else {
+                                $result = $actual > 0 && $actual <= 10; // Considera "bajo" si tiene 10 o menos sin mínimo configurado
+                            }
+                            break;
+                        case 'no_stock':
+                            // Sin stock: exactamente 0
+                            $result = $actual == 0;
+                            break;
+                        case 'healthy_stock':
+                            // Stock saludable:
+                            // - Si tiene mínimo configurado: actual >= min Y actual > 0
+                            // - Si NO tiene mínimo configurado: actual > 10
+                            if ($min > 0) {
+                                $result = $actual >= $min && $actual > 0;
+                            } else {
+                                $result = $actual > 10; // Saludable si tiene más de 10
+                            }
+                            break;
+                        default:
+                            $result = true;
+                    }
+
+                    // Log de algunos ejemplos
+                    if ($inventory->id <= 5) {
+                        \Log::info("Inventario {$inventory->id}: actual={$actual}, min={$min}, filter={$stockFilter}, result=" . ($result ? 'SI' : 'NO'));
+                    }
+
+                    return $result;
+                });
+
+                \Log::info('Total inventarios después de filtrar:', ['count' => $filtered->count()]);
+
+                // Paginar manualmente
+                $page = $request->input('page', 1);
+                $total = $filtered->count();
+                $items = $filtered->forPage($page, $perPage)->values();
+
+                $inventories = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $items,
+                    $total,
+                    $perPage,
+                    $page,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                );
+            } else {
+                // 🔍 Aplicar filtros dinámicamente
+                foreach ($filters as $filter) {
+                    $column = $filter['column'] ?? null;
+                    $value = $filter['value'] ?? null;
+                    $type = $filter['type'] ?? 'text';
+
+                    if (!$column || $value === null) continue;
+
+                    // Verifica si es un filtro sobre relación (usa notación punto)
+                    if (str_contains($column, '.')) {
+                        [$relation, $field] = explode('.', $column, 2);
+                        $inventories->whereHas($relation, function ($q) use ($field, $value) {
+                            $q->where($field, 'like', "%$value%");
+                        });
+                    } else {
+                        $inventories->where($column, 'like', "%$value%");
+                    }
                 }
-            }
 
-            $inventories = $inventories->paginate($perPage);
+                $inventories = $inventories->paginate($perPage);
+            }
 
             $inventories->getCollection()->transform(function ($inventory) {
                 $stock = $inventory->inventoryBatches->sum('quantity');
@@ -158,7 +232,9 @@ class InventoryController extends Controller
     public function store(InventoryStoreRequest $request): JsonResponse
     {
         try {
+            // Crear el inventario (puede ser temporal is_temp=1 o permanente is_temp=0)
             $inventory = (new Inventory)->create($request->validated());
+
             return ApiResponse::success($inventory, 'Inventario creado exitosamente', 201);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
@@ -371,21 +447,23 @@ class InventoryController extends Controller
         try {
             $message = "";
             $inventory = Inventory::findOrFail($id);
+
+            // Verificar si existe otro inventario con el mismo producto en la misma sucursal
             $existing = Inventory::where('warehouse_id', $request->warehouse_id)
                 ->where('product_id', $request->product_id)
                 ->where('id', '!=', $id)
                 ->first();
 
             if ($existing) {
-                $message.= 'Este producto ya existe en la sucursal que intentas levantarlo';
+                $message = 'Este producto ya existe en la sucursal que intentas levantarlo';
                 return ApiResponse::error(null, $message, 200);
             }
-            //validamos que sea temporal antes de actualizar
-            $is_temp=false;
-            if ($inventory->is_temp) {
-                $is_temp=true;
-            }
 
+            // Verificar si era temporal ANTES de actualizar
+            $wasTemporary = $inventory->is_temp == 1;
+            $stockQuantity = $request->stock_actual_quantity ?? 0;
+
+            // Actualizar el inventario (incluyendo is_temp)
             $updated = $inventory->update($request->only([
                 'warehouse_id',
                 'product_id',
@@ -398,57 +476,88 @@ class InventoryController extends Controller
                 'alert_stock_min',
                 'alert_stock_max',
                 'is_active',
+                'is_temp',  // ← Incluir is_temp en la actualización
             ]));
 
-
             if ($updated) {
-                //Crear un loto inicial separaado por el id del inventario
-                if($is_temp){
-                    $lote=new Batch();
-                    $lote->code=$inventory->product->code;
-                    $lote->origen_code=1;
-                    $lote->inventory_id=$inventory->id;
-                    $lote->incoming_date=now();
-                    $lote->expiration_date=null;
-                    $lote->initial_quantity=$request->stock_actual_quantity;
-                    $lote->available_quantity=$request->stock_actual_quantity;
-                    $lote->observations="Lote de Inventario inicial";
-                    $lote->is_active=1;
-                    if($lote->save()) {
-                        $message .= 'Lote creado exitosamente. ';
-                    } else {
-                        $message .= 'Error al crear el lote. ';
-                    }
+                // Si era temporal y ahora es permanente (is_temp cambió de 1 a 0)
+                // Y tiene stock inicial, crear el lote de inventario inicial
+                if ($wasTemporary && $request->is_temp == 0 && $stockQuantity > 0) {
 
-                    //Crear un lote de inventario
-                    $inventory->inventoryBatches()->create([
+                    // Obtener o crear el código de origen para inventario inicial
+                    $initialOriginCode = \App\Models\BatchCodeOrigen::firstOrCreate(
+                        ['code' => 'INV_INICIAL'],
+                        ['description' => 'INVENTARIO INICIAL', 'is_active' => 1]
+                    );
+
+                    // Crear el lote con código estandarizado
+                    $batch = \App\Models\Batch::create([
+                        'code' => 'INV-' . $inventory->id . '-INICIAL',
+                        'purchase_item_id' => null,
+                        'origen_code' => $initialOriginCode->id,
                         'inventory_id' => $inventory->id,
-                        'id_batch' => $lote->id,
-                        'quantity' => $request->stock_actual_quantity,
+                        'incoming_date' => now(),
+                        'expiration_date' => null,
+                        'initial_quantity' => $stockQuantity,
+                        'available_quantity' => $stockQuantity,
+                        'observations' => 'Lote de Inventario inicial',
+                        'is_active' => true,
+                    ]);
+
+                    // Crear el registro en inventories_batches
+                    $inventoryBatch = \App\Models\InventoriesBatch::create([
+                        'id_inventory' => $inventory->id,
+                        'id_batch' => $batch->id,
+                        'quantity' => $stockQuantity,
                         'operation_date' => now(),
                     ]);
-                    $message .= 'Lote de inventario creado exitosamente. ';
+
+                    // Registrar en Kardex el ingreso inicial
+                    \App\Helpers\KardexHelper::createKardexFromInventory(
+                        $inventory->warehouse_id,
+                        now()->toDateTimeString(),
+                        'INVENTARIO_INICIAL',
+                        (string) $inventory->id,
+                        (string) $batch->id,
+                        'INGRESO',
+                        'INV-INICIAL-' . $inventory->id,
+                        'Sistema',
+                        'N/A',
+                        $inventory->id,
+                        0,
+                        (int) $stockQuantity,
+                        0,
+                        (int) $stockQuantity,
+                        0.0,
+                        0.0,
+                        0.0,
+                        0.0,
+                        (float) ($inventory->last_cost_with_tax ?? 0),
+                        $inventoryBatch->id
+                    );
+
+                    $message .= 'Inventario actualizado exitosamente. Lote inicial creado y registrado en Kardex.';
+                } else {
+                    $message = 'Inventario actualizado exitosamente.';
                 }
-
-
-
-
 
                 DB::commit();
                 return ApiResponse::success([
-                    'inventory' => $inventory,
+                    'inventory' => $inventory->load('inventoryBatches.batch'),
                     'updated' => true,
                 ], $message, 200);
             } else {
+                DB::commit();
                 return ApiResponse::success([
                     'inventory' => $inventory,
                     'updated' => false,
                 ], 'No se realizaron cambios en el inventario', 200);
             }
-        }catch (ValidationException $e) {
+        } catch (ValidationException $e) {
+            DB::rollBack();
             return ApiResponse::error(null, 'Error de validación', 200);
-        }
-        catch (ModelNotFoundException $e) {
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
             return ApiResponse::error('Inventario no encontrado', 'Inventario no encontrado', 404);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -458,6 +567,69 @@ class InventoryController extends Controller
 
 
 
+
+    /**
+     * Get inventories with batches information for batches module
+     */
+    public function indexForBatches(Request $request): JsonResponse
+    {
+        try {
+            $perPage = $request->input('per_page', 10);
+            $search = $request->input('search', '');
+            $warehouseId = $request->input('warehouse_id');
+
+            $inventories = Inventory::with([
+                'warehouse:id,name',
+                'product:id,code,description',
+            ])
+                // Contar solo lotes con cantidad > 0 (disponibles)
+                ->withCount(['inventoryBatches as batches_count' => function ($query) {
+                    $query->where('quantity', '>', 0);
+                }])
+                // Sumar solo cantidades de lotes disponibles
+                ->withSum(['inventoryBatches as stock_actual_quantity' => function ($query) {
+                    $query->where('quantity', '>', 0);
+                }], 'quantity')
+                ->whereHas('product', function ($query) use ($search) {
+                    $query->where('code', 'like', "%$search%")
+                        ->orWhere('description', 'like', "%$search%");
+                });
+
+            // Filtro por bodega
+            if ($warehouseId) {
+                $inventories->where('warehouse_id', $warehouseId);
+            }
+
+            $inventories = $inventories->paginate($perPage);
+
+            // Transformar para incluir las relaciones explícitamente
+            $inventories->getCollection()->transform(function ($inventory) {
+                return [
+                    'id' => $inventory->id,
+                    'warehouse_id' => $inventory->warehouse_id,
+                    'product_id' => $inventory->product_id,
+                    'stock_actual_quantity' => $inventory->stock_actual_quantity ?? 0,
+                    'stock_min' => $inventory->stock_min ?? 0,
+                    'stock_max' => $inventory->stock_max ?? 0,
+                    'is_active' => $inventory->is_active,
+                    'batches_count' => $inventory->batches_count ?? 0,
+                    'product' => $inventory->product ? [
+                        'id' => $inventory->product->id,
+                        'code' => $inventory->product->code,
+                        'description' => $inventory->product->description,
+                    ] : null,
+                    'warehouse' => $inventory->warehouse ? [
+                        'id' => $inventory->warehouse->id,
+                        'name' => $inventory->warehouse->name,
+                    ] : null,
+                ];
+            });
+
+            return ApiResponse::success($inventories, 'Inventarios recuperados exitosamente', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
 
     public function destroy(Request $request, $id): JsonResponse
     {

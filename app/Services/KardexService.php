@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Kardex;
 use App\Models\SaleItem;
 use App\Models\SalesHeader;
+use App\Models\InventoriesBatch;
 use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -39,6 +40,15 @@ class KardexService
             $moneyOut = $stockOut * $previousCost;
             $moneyActual = $previousMoney - $moneyOut;
 
+            // Obtener el inventory_batch_id si existe
+            $inventoryBatchId = null;
+            if ($saleItem->batch_id && $saleItem->inventory_id) {
+                $inventoryBatch = InventoriesBatch::where('id_batch', $saleItem->batch_id)
+                    ->where('id_inventory', $saleItem->inventory_id)
+                    ->first();
+                $inventoryBatchId = $inventoryBatch?->id;
+            }
+
             // Crear entrada en kardex
             $kardex = Kardex::create([
                 'branch_id' => $sale->warehouse_id,
@@ -51,6 +61,7 @@ class KardexService
                 'entity' => $sale->customer?->name ?? 'CLIENTE GENERICO',
                 'nationality' => $sale->customer?->nationality ?? 'NACIONAL',
                 'inventory_id' => $saleItem->inventory_id,
+                'inventory_batch_id' => $inventoryBatchId,
                 'previous_stock' => $previousStock,
                 'stock_in' => 0,
                 'stock_out' => $stockOut,
@@ -107,6 +118,15 @@ class KardexService
             $moneyIn = $stockIn * $previousCost;
             $moneyActual = $previousMoney + $moneyIn;
 
+            // Obtener el inventory_batch_id si existe
+            $inventoryBatchId = null;
+            if ($saleItem->batch_id && $saleItem->inventory_id) {
+                $inventoryBatch = InventoriesBatch::where('id_batch', $saleItem->batch_id)
+                    ->where('id_inventory', $saleItem->inventory_id)
+                    ->first();
+                $inventoryBatchId = $inventoryBatch?->id;
+            }
+
             // Crear entrada en kardex
             $kardex = Kardex::create([
                 'branch_id' => $sale->warehouse_id,
@@ -119,6 +139,7 @@ class KardexService
                 'entity' => $sale->customer?->name ?? 'CLIENTE GENERICO',
                 'nationality' => $sale->customer?->nationality ?? 'NACIONAL',
                 'inventory_id' => $saleItem->inventory_id,
+                'inventory_batch_id' => $inventoryBatchId,
                 'previous_stock' => $previousStock,
                 'stock_in' => $stockIn,
                 'stock_out' => 0,

@@ -27,10 +27,11 @@ class InventoryUpdateRequest extends FormRequest
             'last_cost_with_tax' => ['required', 'numeric'],
             'stock_actual_quantity' => ['required', 'numeric'],
             'stock_min' => ['required', 'numeric'],
-//            'alert_stock_min' => ['required','boolean'],
-//            'stock_max' => ['required', 'numeric'],
-//            'alert_stock_max' => ['required', 'boolean'],
-//            'last_purchase' => ['required'],
+            'is_temp' => ['sometimes', 'boolean'], // ← Permitir actualización de is_temp
+            'alert_stock_min' => ['sometimes', 'boolean'],
+            'stock_max' => ['sometimes', 'numeric'],
+            'alert_stock_max' => ['sometimes', 'boolean'],
+            'is_active' => ['sometimes', 'boolean'],
         ];
     }
     public function attributes(): array
