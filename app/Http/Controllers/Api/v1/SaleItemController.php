@@ -87,21 +87,22 @@ class SaleItemController extends Controller
     {
         try {
             $total = SaleItem::where('sale_id', $id)->sum('total');
-            $neto=number_format($total/1.13,2);
-            $iva=number_format(  $neto*0.13,2);
+
+            // Calcular valores numéricos primero
+            $neto = $total / 1.13;
+            $iva = $neto * 0.13;
+
+            // Formatear solo para la respuesta (con punto decimal, sin separador de miles)
             $saleItem = [
-                'total' =>number_format($total,2),
-                'neto' => $neto,
-                'iva' => $iva,
+                'total' => number_format($total, 2, '.', ''),
+                'neto' => number_format($neto, 2, '.', ''),
+                'iva' => number_format($iva, 2, '.', ''),
             ];
-
-
 
             return ApiResponse::success($saleItem, 'Venta recuperada con éxito', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
-
     }
 
     public function show(Request $request, $id): JsonResponse
