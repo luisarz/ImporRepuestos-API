@@ -92,11 +92,11 @@ class SaleItemController extends Controller
             $neto = $total / 1.13;
             $iva = $neto * 0.13;
 
-            // Formatear con separador de miles (coma) y punto decimal
+            // Retornar valores numéricos (sin formato) para que el frontend pueda hacer cálculos
             $saleItem = [
-                'total' => number_format($total, 2, '.', ','),
-                'neto' => number_format($neto, 2, '.', ','),
-                'iva' => number_format($iva, 2, '.', ','),
+                'total' => round($total, 2),
+                'neto' => round($neto, 2),
+                'iva' => round($iva, 2),
             ];
 
             return ApiResponse::success($saleItem, 'Venta recuperada con éxito', 200);
