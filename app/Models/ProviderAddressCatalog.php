@@ -45,4 +45,12 @@ class ProviderAddressCatalog extends Model
     {
         return $this->belongsTo(Provider::class);
     }
+
+    /**
+     * Get the district that owns the address.
+     */
+    public function district()
+    {
+        return $this->belongsTo(District::class);
+    }
 }

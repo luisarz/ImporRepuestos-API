@@ -30,8 +30,8 @@ class ProviderUpdateRequest extends FormRequest
             'credit_days' => ['required', 'integer'],
             'credit_limit' => ['required', 'numeric'],
             'debit_balance' => ['required', 'numeric'],
-            'last_purchase' => ['required', 'date'],
-            'decimal_purchase' => ['required', 'integer'],
+            'last_purchase' => ['nullable', 'date'],
+            'decimal_purchase' => ['required', 'integer', 'min:2', 'max:8'],
             'is_active' => ['required'],
         ];
     }

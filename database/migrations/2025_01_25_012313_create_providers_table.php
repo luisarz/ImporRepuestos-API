@@ -28,8 +28,8 @@ return new class extends Migration
             $table->integer('credit_days');
             $table->decimal('credit_limit',8,2)->index();
             $table->decimal('debit_balance',8,2);
-            $table->date('last_purchase');
-            $table->integer('decimal_purchase');
+            $table->date('last_purchase')->nullable();
+            $table->decimal('decimal_purchase',8,2);
             $table->boolean('is_active');
             $table->softDeletes();
             $table->timestamps();

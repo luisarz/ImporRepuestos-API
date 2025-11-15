@@ -22,6 +22,7 @@ class ProviderAddressCatalogController extends Controller
             $perPage = $request->input('per_page', 10);
             $search = $request->input('search', '');
             $statusFilter = $request->input('is_active', '');
+            $providerIdFilter = $request->input('provider_id', '');
             $sortBy = $request->input('sortField', 'id');
             $sortOrderRaw = $request->input('sortOrder', 'asc');
 
@@ -30,7 +31,12 @@ class ProviderAddressCatalogController extends Controller
                 $sortOrder = 'asc';
             }
 
-            $query = ProviderAddressCatalog::query()->with('provider:id,legal_name,comercial_name');
+            $query = ProviderAddressCatalog::query()->with(['provider:id,legal_name,comercial_name', 'district:id,description']);
+
+            // Filtro por proveedor específico
+            if (!empty($providerIdFilter)) {
+                $query->where('provider_id', $providerIdFilter);
+            }
 
             // Búsqueda por múltiples campos
             if (!empty($search)) {
