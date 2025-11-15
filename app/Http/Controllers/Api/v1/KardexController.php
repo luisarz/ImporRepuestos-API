@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Api\v1;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Models\Kardex;
+use App\Models\Branch;
+use App\Exports\KardexExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -80,9 +82,9 @@ class KardexController extends Controller
 
             // Aplicar ordenamiento
             if ($sortField && $sortField !== 'null') {
-                $query->orderBy($sortField, $sortOrder ?: 'desc');
+                $query->orderBy($sortField, $sortOrder ?: 'asc');
             } else {
-                $query->orderBy('date', 'desc')->orderBy('id', 'desc');
+                $query->orderBy('date', 'asc')->orderBy('id', 'asc');
             }
 
             $kardex = $query->paginate($perPage);
@@ -271,7 +273,7 @@ class KardexController extends Controller
     }
 
     /**
-     * Export kardex report.
+     * Export kardex report to PDF.
      */
     public function exportReport(Request $request)
     {
@@ -315,12 +317,24 @@ class KardexController extends Controller
                 $query->where('branch_id', $warehouseId);
             }
 
-            $kardex = $query->orderBy('date', 'desc')->orderBy('id', 'desc')->get();
+            $kardex = $query->orderBy('date', 'asc')->orderBy('id', 'asc')->get();
 
-            return ApiResponse::success($kardex, 'Datos para exportación obtenidos correctamente');
+            // Generar PDF
+            $warehouse = $warehouseId ? Branch::find($warehouseId)?->name : null;
+
+            $pdf = \PDF::loadView('reports.kardex', [
+                'kardex' => $kardex,
+                'startDate' => $startDate,
+                'endDate' => $endDate,
+                'warehouse' => $warehouse,
+                'movementType' => $movementType,
+                'date' => now()->format('d/m/Y H:i')
+            ]);
+
+            return $pdf->stream('kardex_' . time() . '.pdf');
 
         } catch (\Exception $e) {
-            return ApiResponse::error('Error al obtener datos para exportar: ' . $e->getMessage(), 500);
+            return ApiResponse::error('Error al generar reporte: ' . $e->getMessage(), 500);
         }
     }
 
