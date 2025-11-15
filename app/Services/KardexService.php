@@ -52,7 +52,7 @@ class KardexService
             // Crear entrada en kardex
             $kardex = Kardex::create([
                 'branch_id' => $sale->warehouse_id,
-                'date' => $sale->sale_date ?? now(),
+                'date' => now(), // Usar hora actual del sistema para registrar el momento exacto del movimiento
                 'operation_type' => 'SALE',
                 'operation_id' => $sale->id,
                 'operation_detail_id' => $saleItem->id,
