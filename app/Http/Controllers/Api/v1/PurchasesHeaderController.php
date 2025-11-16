@@ -11,6 +11,7 @@ use App\Http\Resources\Api\v1\PurchasesHeaderResource;
 use App\Models\PurchasesHeader;
 use App\Models\Inventory;
 use App\Models\Batch;
+use App\Models\InventoriesBatch;
 use App\Services\KardexService;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
@@ -153,11 +154,29 @@ class PurchasesHeaderController extends Controller
                 $batch->available_quantity = ($batch->available_quantity ?? 0) + $purchaseItem->quantity;
                 $batch->save();
 
+                // Crear o actualizar el registro en inventories_batches
+                $inventoryBatch = InventoriesBatch::firstOrCreate(
+                    [
+                        'id_inventory' => $batch->inventory_id,
+                        'id_batch' => $batch->id,
+                    ],
+                    [
+                        'quantity' => 0,
+                        'operation_date' => now(),
+                    ]
+                );
+
+                // Incrementar la cantidad en el inventario batch
+                $inventoryBatch->quantity += $purchaseItem->quantity;
+                $inventoryBatch->save();
+
                 Log::info("Batch actualizado", [
                     'batch_id' => $batch->id,
                     'inventory_id' => $batch->inventory_id,
                     'quantity_added' => $purchaseItem->quantity,
-                    'new_available' => $batch->available_quantity
+                    'new_available' => $batch->available_quantity,
+                    'inventory_batch_id' => $inventoryBatch->id,
+                    'inventory_batch_quantity' => $inventoryBatch->quantity
                 ]);
             }
 
@@ -251,10 +270,27 @@ class PurchasesHeaderController extends Controller
                     $batch->available_quantity -= $purchaseItem->quantity;
                     $batch->save();
 
+                    // Restar cantidad del inventories_batches
+                    $inventoryBatch = InventoriesBatch::where('id_inventory', $batch->inventory_id)
+                        ->where('id_batch', $batch->id)
+                        ->first();
+
+                    if ($inventoryBatch) {
+                        $inventoryBatch->quantity -= $purchaseItem->quantity;
+
+                        // Si la cantidad llega a 0 o menos, eliminar el registro
+                        if ($inventoryBatch->quantity <= 0) {
+                            $inventoryBatch->delete();
+                        } else {
+                            $inventoryBatch->save();
+                        }
+                    }
+
                     Log::info("Batch revertido por cancelación", [
                         'batch_id' => $batch->id,
                         'quantity_reverted' => $purchaseItem->quantity,
-                        'new_available' => $batch->available_quantity
+                        'new_available' => $batch->available_quantity,
+                        'inventory_batch_updated' => $inventoryBatch ? true : false
                     ]);
                 }
             }
