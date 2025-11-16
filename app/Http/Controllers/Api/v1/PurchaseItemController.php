@@ -33,7 +33,7 @@ class PurchaseItemController extends Controller
             // Crear Batch con el purchase_items_id obtenido
             $batch = (new Batch)->create($requestBatchData);
 
-            $purchaseItems = PurchaseItem::with('batch')->where('purchase_id', $purchaseItem->purchase_id)->get();
+            $purchaseItems = PurchaseItem::with(['batch.inventory.product'])->where('purchase_id', $purchaseItem->purchase_id)->get();
 
             DB::commit(); // Confirma la transacción si todo salió bien
 
@@ -49,7 +49,7 @@ class PurchaseItemController extends Controller
     {
         try {
 
-            $purchaseItems = PurchaseItem::with('batch')->where('purchase_id', $id)->get();
+            $purchaseItems = PurchaseItem::with(['batch.inventory.product'])->where('purchase_id', $id)->get();
             return ApiResponse::success($purchaseItems, 'Ítems agregados y recuperados', 200);
         } catch (\Exception $e) {
             DB::rollBack(); // Revierte los cambios si ocurre un error
@@ -67,7 +67,7 @@ class PurchaseItemController extends Controller
             $purchaseItem->update($request->validated());
             $batch= (new Batch)->where('purchase_item_id',$purchaseItem->id)->firstOrFail();
             $batch->update($requestBatch->validated());
-            $purchaseItems = PurchaseItem::with('batch')->where('purchase_id', $purchaseItem->purchase_id)->get();
+            $purchaseItems = PurchaseItem::with(['batch.inventory.product'])->where('purchase_id', $purchaseItem->purchase_id)->get();
             DB::commit(); // Confirma la transacción si todo salió bien
             return ApiResponse::success($purchaseItems, 'Ítems agregados y recuperados', 200);
         } catch (\Exception $e) {

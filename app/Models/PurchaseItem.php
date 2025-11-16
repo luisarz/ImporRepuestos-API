@@ -46,6 +46,17 @@ class PurchaseItem extends Model
         return $this->belongsTo(PurchasesHeader::class, 'purchase_id');
     }
 
+    /**
+     * Relación singular: Un purchase_item tiene un batch
+     */
+    public function batch(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(Batch::class, 'purchase_item_id', 'id');
+    }
+
+    /**
+     * Relación plural: Un purchase_item puede tener múltiples batches (para consultas)
+     */
     public function batches(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         // Corregido: 'id' en lugar de 'purchase_id'
