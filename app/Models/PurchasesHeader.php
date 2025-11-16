@@ -70,6 +70,6 @@ class PurchasesHeader extends Model
     }
     public function purchaseItems(): HasMany
     {
-        return $this->hasMany(PurchaseItem::class);
+        return $this->hasMany(PurchaseItem::class, 'purchase_id', 'id');
     }
 }

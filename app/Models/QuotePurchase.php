@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class QuotePurchase extends Model
 {
@@ -36,7 +37,7 @@ class QuotePurchase extends Model
         'payment_method' => 'integer',
         'provider' => 'integer',
         'date' => 'date',
-        'amount_purchase' => 'decimal',
+        'amount_purchase' => 'decimal:2',
         'is_active' => 'boolean',
         'is_purchased' => 'boolean',
         'is_compared' => 'boolean',
@@ -46,5 +47,10 @@ class QuotePurchase extends Model
     public function buyer(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function quotePurchaseItems(): HasMany
+    {
+        return $this->hasMany(QuotePurchaseItem::class, 'quote_purchase_id', 'id');
     }
 }

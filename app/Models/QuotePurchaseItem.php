@@ -36,21 +36,22 @@ class QuotePurchaseItem extends Model
         'id' => 'integer',
         'quote_purchase_id' => 'integer',
         'inventory_id' => 'integer',
-        'quantity' => 'decimal',
-        'price' => 'decimal',
-        'discount' => 'decimal',
-        'total' => 'decimal',
+        'quantity' => 'decimal:2',
+        'price' => 'decimal:2',
+        'discount' => 'decimal:2',
+        'total' => 'decimal:2',
         'is_compared' => 'integer',
         'is_purchased' => 'boolean',
     ];
 
     public function quotePurchase(): BelongsTo
     {
-        return $this->belongsTo(QuotePurchase::class);
+        return $this->belongsTo(QuotePurchase::class, 'quote_purchase_id');
     }
 
     public function inventory(): BelongsTo
     {
-        return $this->belongsTo(Warehouse::class);
+        // Corregido: debe apuntar a Inventory, no a Warehouse
+        return $this->belongsTo(Inventory::class, 'inventory_id');
     }
 }
