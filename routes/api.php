@@ -38,6 +38,8 @@ use App\Http\Controllers\Api\v1\DteAuditLogController;
 use App\Http\Controllers\Api\v1\HistoryDteController;
 use App\Http\Controllers\Api\v1\InventoriesBatchController;
 use App\Http\Controllers\Api\v1\InventoryController;
+use App\Http\Controllers\Api\v1\InventoryCostHistoryController;
+use App\Http\Controllers\Api\v1\KardexController;
 use App\Http\Controllers\Api\v1\JobsTitleController;
 use App\Http\Controllers\Api\v1\MunicipalityController;
 use App\Http\Controllers\Api\v1\PlateTypeController;
@@ -373,6 +375,22 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('inventories', InventoryController::class);
     Route::apiResource('prices', PriceController::class);
 
+    // Inventory Cost History - rutas especiales antes del resource
+    Route::get('inventory-cost-history/stats/all', [InventoryCostHistoryController::class, 'getStats']);
+    Route::get('inventory-cost-history/product/{productId}', [InventoryCostHistoryController::class, 'getByProduct']);
+    Route::get('inventory-cost-history/inventory/{inventoryId}', [InventoryCostHistoryController::class, 'getByInventory']);
+    Route::get('inventory-cost-history/date-range', [InventoryCostHistoryController::class, 'getByDateRange']);
+    Route::get('inventory-cost-history/report', [InventoryCostHistoryController::class, 'exportReport']);
+    Route::get('inventory-cost-history', [InventoryCostHistoryController::class, 'index']);
+
+    // Kardex - rutas especiales
+    Route::get('kardex/stats/all', [KardexController::class, 'getStats']);
+    Route::get('kardex/product/{productId}', [KardexController::class, 'getByProduct']);
+    Route::get('kardex/warehouse/{warehouseId}', [KardexController::class, 'getByWarehouse']);
+    Route::get('kardex/date-range', [KardexController::class, 'getByDateRange']);
+    Route::get('kardex/report', [KardexController::class, 'exportReport']);
+    Route::get('kardex', [KardexController::class, 'index']);
+
     #vehiculos
     // Estadísticas y acciones grupales de plate-types - DEBEN IR ANTES del apiResource
     Route::get('plate-types/stats/all', [PlateTypeController::class, 'stats']);
@@ -412,6 +430,13 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('interchanges/product/{id_product}', [InterchangesController::class, 'getInterchangeByProduct']);
 
     #Purchase Header, Items and batches,
+    Route::get('purchases-headers/stats/all', [PurchasesHeaderController::class, 'stats']);
+    Route::post('purchases-headers/{id}/receive', [PurchasesHeaderController::class, 'receive']);
+    Route::post('purchases-headers/{id}/cancel', [PurchasesHeaderController::class, 'cancel']);
+    Route::get('purchases-headers/{id}/kardex', [PurchasesHeaderController::class, 'kardexHistory']);
+    Route::post('purchases-headers/bulk/approve', [PurchasesHeaderController::class, 'bulkApprove']);
+    Route::post('purchases-headers/bulk/cancel', [PurchasesHeaderController::class, 'bulkCancel']);
+    Route::post('purchases-headers/bulk/delete', [PurchasesHeaderController::class, 'bulkDelete']);
     Route::apiResource('purchases-headers', PurchasesHeaderController::class);
     Route::apiResource('purchase-items', PurchaseItemController::class);
 
@@ -527,6 +552,7 @@ Route::middleware(['jwt'])->group(function () {
 
 
 
+    Route::post('quote-purchases/{id}/convert', [QuotePurchaseController::class, 'convertToPurchase']);
     Route::apiResource('quote-purchases', QuotePurchaseController::class);
     Route::apiResource('quote-purchase-items', QuotePurchaseItemController::class);
 

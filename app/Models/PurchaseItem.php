@@ -24,6 +24,8 @@ class PurchaseItem extends Model
         'total',
     ];
 
+    // Relaciones
+
     /**
      * The attributes that should be cast to native types.
      *
@@ -41,11 +43,13 @@ class PurchaseItem extends Model
 
     public function purchase(): BelongsTo
     {
-        return $this->belongsTo(PurchasesHeader::class);
+        return $this->belongsTo(PurchasesHeader::class, 'purchase_id');
     }
 
-    public function batch(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function batches(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(Batch::class,'purchase_item_id','purchase_id');
+        // Corregido: 'id' en lugar de 'purchase_id'
+        // purchase_item_id en Batch → id en PurchaseItem
+        return $this->hasMany(Batch::class, 'purchase_item_id', 'id');
     }
 }
