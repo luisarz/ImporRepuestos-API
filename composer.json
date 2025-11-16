@@ -14,6 +14,7 @@
         "laravel/octane": "^2.8",
         "laravel/tinker": "^2.9",
         "luecano/numero-a-letras": "*",
+        "maatwebsite/excel": "*",
         "simplesoftwareio/simple-qrcode": "*",
         "spatie/laravel-permission": "^6.16",
         "tymon/jwt-auth": "^2.1"
