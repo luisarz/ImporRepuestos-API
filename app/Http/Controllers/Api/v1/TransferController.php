@@ -9,9 +9,11 @@ use App\Models\Inventory;
 use App\Models\Transfer;
 use App\Models\TransferItem;
 use App\Services\TransferService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class TransferController extends Controller
@@ -289,6 +291,43 @@ class TransferController extends Controller
             return ApiResponse::success($inventories, 'Productos comunes recuperados', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al obtener productos', 500);
+        }
+    }
+
+    /**
+     * Generar PDF para imprimir un traslado
+     */
+    public function printPdf($id): Response
+    {
+        try {
+            // Obtener el traslado con todas las relaciones necesarias
+            $transfer = Transfer::with([
+                'warehouseOrigin',
+                'warehouseDestination',
+                'sentByUser',
+                'receivedByUser',
+                'items.product',
+                'items.batch',
+                'items.inventoryOrigin',
+                'items.inventoryDestination'
+            ])->findOrFail($id);
+
+            // Preparar datos para la vista
+            $data = [
+                'transfer' => $transfer,
+            ];
+
+            // Generar PDF
+            $pdf = Pdf::loadView('transfers.transfer-print-pdf', $data);
+            $pdf->setPaper('letter', 'portrait');
+
+            // Retornar el PDF para abrir en nueva ventana
+            return $pdf->stream("Traslado-{$transfer->transfer_number}.pdf");
+
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Traslado no encontrado');
+        } catch (\Exception $e) {
+            abort(500, 'Error al generar PDF: ' . $e->getMessage());
         }
     }
 }

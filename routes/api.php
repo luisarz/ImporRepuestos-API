@@ -449,6 +449,7 @@ Route::middleware(['jwt'])->group(function () {
     # Batches individual and batch CODE Cp,CL, J
     Route::apiResource('batch-code-origens', BatchCodeOrigenController::class);
     Route::get('batches/stats/all', [BatchController::class, 'stats']);
+    Route::get('batches/{id}/print', [BatchController::class, 'printPdf']);
     Route::apiResource('batches', BatchController::class);
 
     #Se EJECUTARÁ el registro al momento de finalizar el registro de un lote en compras o realizar una venta o traslado
@@ -468,6 +469,7 @@ Route::middleware(['jwt'])->group(function () {
     // Transfers - rutas especiales antes del resource
     Route::get('transfers/batches/available', [TransferController::class, 'getAvailableBatches']);
     Route::get('transfers/products/common', [TransferController::class, 'getProductsInBothWarehouses']);
+    Route::get('transfers/{id}/print', [TransferController::class, 'printPdf']);
     Route::post('transfers/{id}/send', [TransferController::class, 'send']);
     Route::post('transfers/{id}/receive', [TransferController::class, 'receive']);
     Route::post('transfers/{id}/cancel', [TransferController::class, 'cancel']);

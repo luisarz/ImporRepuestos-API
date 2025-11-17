@@ -9,6 +9,8 @@ use App\Http\Requests\Api\v1\BatchUpdateRequest;
 use App\Http\Resources\Api\v1\BatchCollection;
 use App\Http\Resources\Api\v1\BatchResource;
 use App\Models\Batch;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -106,6 +108,47 @@ class BatchController extends Controller
             return ApiResponse::success($stats, 'Estadísticas recuperadas de manera exitosa', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
+
+    /**
+     * Generar PDF para imprimir un lote
+     */
+    public function printPdf($id): Response
+    {
+        try {
+            // Obtener el lote con todas las relaciones necesarias
+            $batch = Batch::with([
+                'inventory.product',
+                'inventory.warehouse',
+                'origenCode',
+                'purchaseItem.purchase'
+            ])->findOrFail($id);
+
+            // Calcular días hasta vencimiento
+            $expirationDate = Carbon::parse($batch->expiration_date);
+            $now = Carbon::now();
+            $daysToExpire = $now->diffInDays($expirationDate, false);
+            $isExpired = $daysToExpire < 0;
+
+            // Preparar datos para la vista
+            $data = [
+                'batch' => $batch,
+                'daysToExpire' => abs($daysToExpire),
+                'isExpired' => $isExpired,
+            ];
+
+            // Generar PDF
+            $pdf = Pdf::loadView('batches.batch-print-pdf', $data);
+            $pdf->setPaper('letter', 'portrait');
+
+            // Retornar el PDF para abrir en nueva ventana
+            return $pdf->stream("Lote-{$batch->code}.pdf");
+
+        } catch (ModelNotFoundException $e) {
+            abort(404, 'Lote no encontrado');
+        } catch (\Exception $e) {
+            abort(500, 'Error al generar PDF: ' . $e->getMessage());
         }
     }
 }
