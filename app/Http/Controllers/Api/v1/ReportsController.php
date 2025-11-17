@@ -23,6 +23,21 @@ use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReportsController extends Controller
 {
+    /**
+     * Helper method to parse date range including the full end day
+     */
+    private function parseDateRange(Request $request): array
+    {
+        $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth()->format('Y-m-d'));
+        $dateTo = $request->input('date_to', Carbon::now()->format('Y-m-d'));
+
+        // Asegurar que el rango incluya todo el día final
+        $dateFromStart = Carbon::parse($dateFrom)->startOfDay();
+        $dateToEnd = Carbon::parse($dateTo)->endOfDay();
+
+        return [$dateFromStart, $dateToEnd];
+    }
+
     // ========== REPORTES DE VENTAS ==========
 
     /**
@@ -31,11 +46,10 @@ class ReportsController extends Controller
     public function getSalesReport(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
-            $query = SalesHeader::with(['customer', 'seller', 'warehouse'])
-                ->whereBetween('sale_date', [$dateFrom, $dateTo])
+            $query = SalesHeader::with(['customer', 'seller', 'warehouse', 'saleDetails'])
+                ->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                 ->where('sale_status', '2');
 
             // Filtros adicionales
@@ -79,8 +93,7 @@ class ReportsController extends Controller
     public function getSalesBySeller(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $salesBySeller = SalesHeader::select(
                     'seller_id',
@@ -89,7 +102,7 @@ class ReportsController extends Controller
                     DB::raw('AVG(sale_total) as average_ticket')
                 )
                 ->with('seller')
-                ->whereBetween('sale_date', [$dateFrom, $dateTo])
+                ->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                 ->where('sale_status', '2')
                 ->groupBy('seller_id')
                 ->orderBy('total_amount', 'desc')
@@ -118,8 +131,7 @@ class ReportsController extends Controller
     public function getSalesByCustomer(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $salesByCustomer = SalesHeader::select(
                     'customer_id',
@@ -129,7 +141,7 @@ class ReportsController extends Controller
                     DB::raw('MAX(sale_date) as last_sale_date')
                 )
                 ->with('customer')
-                ->whereBetween('sale_date', [$dateFrom, $dateTo])
+                ->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                 ->where('sale_status', '2')
                 ->groupBy('customer_id')
                 ->orderBy('total_amount', 'desc')
@@ -158,24 +170,35 @@ class ReportsController extends Controller
     public function getSalesByProduct(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $salesByProduct = SaleItem::select(
-                    'id_product',
-                    DB::raw('SUM(quantity) as total_quantity'),
-                    DB::raw('SUM(subtotal) as total_amount'),
-                    DB::raw('AVG(unit_price) as average_price'),
-                    DB::raw('COUNT(DISTINCT id_sale) as sales_count')
+                    'inventories.product_id',
+                    DB::raw('SUM(sale_items.quantity) as total_quantity'),
+                    DB::raw('SUM(sale_items.total) as total_amount'),
+                    DB::raw('AVG(sale_items.price) as average_price'),
+                    DB::raw('COUNT(DISTINCT sale_items.sale_id) as sales_count')
                 )
-                ->with('product')
-                ->whereHas('salesHeader', function($query) use ($dateFrom, $dateTo) {
-                    $query->whereBetween('sale_date', [$dateFrom, $dateTo])
+                ->join('inventories', 'sale_items.inventory_id', '=', 'inventories.id')
+                ->whereHas('sale', function($query) use ($dateFromStart, $dateToEnd) {
+                    $query->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                           ->where('sale_status', '2');
                 })
-                ->groupBy('id_product')
+                ->groupBy('inventories.product_id')
                 ->orderBy('total_amount', 'desc')
-                ->get();
+                ->get()
+                ->map(function($item) {
+                    $product = \App\Models\Product::find($item->product_id);
+                    return [
+                        'product_id' => $item->product_id,
+                        'product_code' => $product->code ?? 'N/A',
+                        'product_name' => $product->name ?? 'N/A',
+                        'total_quantity' => $item->total_quantity,
+                        'total_amount' => $item->total_amount,
+                        'average_price' => round($item->average_price, 2),
+                        'sales_count' => $item->sales_count,
+                    ];
+                });
 
             $summary = [
                 'total_products' => $salesByProduct->count(),
@@ -199,8 +222,7 @@ class ReportsController extends Controller
     public function getSalesByPaymentMethod(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $salesByPayment = SalePaymentDetail::select(
                     'payment_method_id',
@@ -209,8 +231,8 @@ class ReportsController extends Controller
                     DB::raw('AVG(payment_amount) as average_amount')
                 )
                 ->with('paymentMethod')
-                ->whereHas('sale', function($query) use ($dateFrom, $dateTo) {
-                    $query->whereBetween('sale_date', [$dateFrom, $dateTo])
+                ->whereHas('sale', function($query) use ($dateFromStart, $dateToEnd) {
+                    $query->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                           ->where('sale_status', '2');
                 })
                 ->groupBy('payment_method_id')
@@ -240,11 +262,10 @@ class ReportsController extends Controller
     public function getPurchasesReport(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $query = PurchasesHeader::with(['provider', 'warehouse'])
-                ->whereBetween('purchase_date', [$dateFrom, $dateTo]);
+                ->whereBetween('purchase_date', [$dateFromStart, $dateToEnd]);
 
             if ($request->has('provider_id')) {
                 $query->where('provider_id', $request->input('provider_id'));
@@ -274,8 +295,7 @@ class ReportsController extends Controller
     public function getPurchasesByProvider(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $purchasesByProvider = PurchasesHeader::select(
                     'provider_id',
@@ -285,7 +305,7 @@ class ReportsController extends Controller
                     DB::raw('MAX(purchase_date) as last_purchase_date')
                 )
                 ->with('provider')
-                ->whereBetween('purchase_date', [$dateFrom, $dateTo])
+                ->whereBetween('purchase_date', [$dateFromStart, $dateToEnd])
                 ->groupBy('provider_id')
                 ->orderBy('total_amount', 'desc')
                 ->get();
@@ -311,23 +331,35 @@ class ReportsController extends Controller
     public function getPurchasesByProduct(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $purchasesByProduct = PurchaseItem::select(
-                    'id_product',
-                    DB::raw('SUM(quantity) as total_quantity'),
-                    DB::raw('SUM(subtotal) as total_amount'),
-                    DB::raw('AVG(unit_price) as average_price'),
-                    DB::raw('COUNT(DISTINCT id_purchase) as purchases_count')
+                    'inventories.product_id',
+                    DB::raw('SUM(purchase_items.quantity) as total_quantity'),
+                    DB::raw('SUM(purchase_items.total) as total_amount'),
+                    DB::raw('AVG(purchase_items.price) as average_price'),
+                    DB::raw('COUNT(DISTINCT purchase_items.purchase_id) as purchases_count')
                 )
-                ->with('product')
-                ->whereHas('purchaseHeader', function($query) use ($dateFrom, $dateTo) {
-                    $query->whereBetween('purchase_date', [$dateFrom, $dateTo]);
+                ->join('batches', 'purchase_items.id', '=', 'batches.purchase_item_id')
+                ->join('inventories', 'batches.inventory_id', '=', 'inventories.id')
+                ->whereHas('purchase', function($query) use ($dateFromStart, $dateToEnd) {
+                    $query->whereBetween('purchase_date', [$dateFromStart, $dateToEnd]);
                 })
-                ->groupBy('id_product')
+                ->groupBy('inventories.product_id')
                 ->orderBy('total_amount', 'desc')
-                ->get();
+                ->get()
+                ->map(function($item) {
+                    $product = \App\Models\Product::find($item->product_id);
+                    return [
+                        'product_id' => $item->product_id,
+                        'product_code' => $product->code ?? 'N/A',
+                        'product_name' => $product->name ?? 'N/A',
+                        'total_quantity' => $item->total_quantity,
+                        'total_amount' => $item->total_amount,
+                        'average_price' => round($item->average_price, 2),
+                        'purchases_count' => $item->purchases_count,
+                    ];
+                });
 
             $summary = [
                 'total_products' => $purchasesByProduct->count(),
@@ -353,33 +385,64 @@ class ReportsController extends Controller
     public function getInventoryValuation(Request $request): JsonResponse
     {
         try {
-            $query = Inventory::with(['product', 'warehouse'])
-                ->where('quantity', '>', 0);
+            $query = Inventory::with(['product', 'warehouse', 'inventoryBatches.batch.purchaseItem'])
+                ->where('stock_actual_quantity', '>', 0);
 
             if ($request->has('warehouse_id')) {
-                $query->where('id_warehouse', $request->input('warehouse_id'));
+                $query->where('warehouse_id', $request->input('warehouse_id'));
             }
 
-            $inventories = $query->get()->map(function ($inventory) {
+            $inventories = $query->get()->filter(function ($inventory) {
+                return $inventory->product !== null && $inventory->warehouse !== null;
+            })->map(function ($inventory) {
                 $product = $inventory->product;
-                $costPrice = $product->cost_price ?? 0;
+
+                // Calcular costo promedio ponderado basado en lotes disponibles
+                $inventoryBatches = $inventory->inventoryBatches()
+                    ->with('batch.purchaseItem')
+                    ->get();
+
+                $totalQuantityInBatches = 0;
+                $totalCostInBatches = 0;
+                $batchesCount = 0;
+
+                foreach ($inventoryBatches as $inventoryBatch) {
+                    $batch = $inventoryBatch->batch;
+
+                    if ($batch && $batch->is_active && $batch->available_quantity > 0) {
+                        $batchPrice = $batch->purchaseItem->price ?? 0;
+                        $batchQuantity = $batch->available_quantity; // Usar available_quantity del batch
+
+                        $totalQuantityInBatches += $batchQuantity;
+                        $totalCostInBatches += ($batchQuantity * $batchPrice);
+                        $batchesCount++;
+                    }
+                }
+
+                // Costo promedio ponderado
+                $avgCostPrice = $totalQuantityInBatches > 0
+                    ? ($totalCostInBatches / $totalQuantityInBatches)
+                    : ($product->cost_price ?? 0);
+
                 $salePrice = $product->sale_price ?? 0;
-                $totalCost = $inventory->quantity * $costPrice;
-                $totalSale = $inventory->quantity * $salePrice;
+                $quantity = $inventory->stock_actual_quantity; // Usar stock_actual_quantity del inventario
+                $totalCost = $quantity * $avgCostPrice;
+                $totalSale = $quantity * $salePrice;
                 $potentialProfit = $totalSale - $totalCost;
 
                 return [
-                    'product_code' => $product->code,
-                    'product_name' => $product->name,
-                    'warehouse' => $inventory->warehouse->name,
-                    'quantity' => $inventory->quantity,
-                    'cost_price' => $costPrice,
+                    'product_code' => $product->code ?? 'N/A',
+                    'product_name' => $product->name ?? 'N/A',
+                    'warehouse' => $inventory->warehouse->name ?? 'N/A',
+                    'quantity' => $quantity,
+                    'batches_count' => $batchesCount,
+                    'avg_cost_price' => round($avgCostPrice, 2),
                     'sale_price' => $salePrice,
-                    'total_cost' => $totalCost,
-                    'total_sale_value' => $totalSale,
-                    'potential_profit' => $potentialProfit,
+                    'total_cost' => round($totalCost, 2),
+                    'total_sale_value' => round($totalSale, 2),
+                    'potential_profit' => round($potentialProfit, 2),
                 ];
-            });
+            })->values();
 
             $summary = [
                 'total_products' => $inventories->count(),
@@ -405,37 +468,40 @@ class ReportsController extends Controller
     public function getInventoryRotation(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->subMonths(3));
-            $dateTo = $request->input('date_to', Carbon::now());
-            $days = Carbon::parse($dateFrom)->diffInDays(Carbon::parse($dateTo));
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
+            $days = $dateFromStart->diffInDays($dateToEnd);
 
             // Obtener ventas por producto en el período
             $salesByProduct = SaleItem::select(
-                    'id_product',
-                    DB::raw('SUM(quantity) as total_sold')
+                    'inventories.product_id',
+                    DB::raw('SUM(sale_items.quantity) as total_sold')
                 )
-                ->whereHas('salesHeader', function($query) use ($dateFrom, $dateTo) {
-                    $query->whereBetween('sale_date', [$dateFrom, $dateTo])
+                ->join('inventories', 'sale_items.inventory_id', '=', 'inventories.id')
+                ->whereHas('sale', function($query) use ($dateFromStart, $dateToEnd) {
+                    $query->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                           ->where('sale_status', '2');
                 })
-                ->groupBy('id_product')
-                ->pluck('total_sold', 'id_product');
+                ->groupBy('inventories.product_id')
+                ->pluck('total_sold', 'product_id');
 
             // Obtener inventario actual
             $inventories = Inventory::with(['product'])
-                ->where('quantity', '>', 0)
+                ->where('stock_actual_quantity', '>', 0)
                 ->get()
+                ->filter(function ($inventory) {
+                    return $inventory->product !== null;
+                })
                 ->map(function ($inventory) use ($salesByProduct, $days) {
-                    $productId = $inventory->id_product;
+                    $productId = $inventory->product_id;
                     $sold = $salesByProduct[$productId] ?? 0;
-                    $avgStock = $inventory->quantity;
+                    $avgStock = $inventory->stock_actual_quantity;
                     $rotation = $avgStock > 0 ? ($sold / $avgStock) : 0;
                     $daysToSellout = $sold > 0 ? ($avgStock / $sold) * $days : 999;
 
                     return [
-                        'product_code' => $inventory->product->code,
-                        'product_name' => $inventory->product->name,
-                        'current_stock' => $inventory->quantity,
+                        'product_code' => $inventory->product->code ?? 'N/A',
+                        'product_name' => $inventory->product->name ?? 'N/A',
+                        'current_stock' => $inventory->stock_actual_quantity,
                         'total_sold' => $sold,
                         'rotation_index' => round($rotation, 2),
                         'days_to_sellout' => round($daysToSellout, 0),
@@ -473,19 +539,24 @@ class ReportsController extends Controller
             $dateLimit = Carbon::now()->subDays($days);
 
             // Obtener productos con stock
-            $inventories = Inventory::with(['product'])
-                ->where('quantity', '>', 0)
-                ->get();
+            $inventories = Inventory::with(['product', 'inventoryBatches.batch.purchaseItem'])
+                ->where('stock_actual_quantity', '>', 0)
+                ->get()
+                ->filter(function ($inventory) {
+                    return $inventory->product !== null;
+                });
 
             $productsWithoutMovement = [];
 
             foreach ($inventories as $inventory) {
                 // Buscar última venta del producto
-                $lastSale = SaleItem::where('id_product', $inventory->id_product)
-                    ->whereHas('salesHeader', function($query) {
+                $lastSale = SaleItem::join('inventories', 'sale_items.inventory_id', '=', 'inventories.id')
+                    ->where('inventories.product_id', $inventory->product_id)
+                    ->whereHas('sale', function($query) {
                         $query->where('sale_status', '2');
                     })
-                    ->orderBy('created_at', 'desc')
+                    ->orderBy('sale_items.created_at', 'desc')
+                    ->select('sale_items.*')
                     ->first();
 
                 // Si no hay venta o la última venta es anterior a la fecha límite
@@ -493,12 +564,33 @@ class ReportsController extends Controller
                     $daysSinceLastSale = $lastSale ?
                         Carbon::parse($lastSale->created_at)->diffInDays(Carbon::now()) : 999;
 
+                    // Calcular costo promedio ponderado basado en lotes disponibles
+                    $inventoryBatches = $inventory->inventoryBatches;
+                    $totalQuantityInBatches = 0;
+                    $totalCostInBatches = 0;
+
+                    foreach ($inventoryBatches as $inventoryBatch) {
+                        $batch = $inventoryBatch->batch;
+                        if ($batch && $batch->is_active && $batch->available_quantity > 0) {
+                            $batchPrice = $batch->purchaseItem->price ?? 0;
+                            $batchQuantity = $batch->available_quantity;
+
+                            $totalQuantityInBatches += $batchQuantity;
+                            $totalCostInBatches += ($batchQuantity * $batchPrice);
+                        }
+                    }
+
+                    // Costo promedio ponderado
+                    $avgCostPrice = $totalQuantityInBatches > 0
+                        ? ($totalCostInBatches / $totalQuantityInBatches)
+                        : ($inventory->product->cost_price ?? 0);
+
                     $productsWithoutMovement[] = [
-                        'product_code' => $inventory->product->code,
-                        'product_name' => $inventory->product->name,
-                        'current_stock' => $inventory->quantity,
-                        'cost_price' => $inventory->product->cost_price ?? 0,
-                        'inventory_value' => $inventory->quantity * ($inventory->product->cost_price ?? 0),
+                        'product_code' => $inventory->product->code ?? 'N/A',
+                        'product_name' => $inventory->product->name ?? 'N/A',
+                        'current_stock' => $inventory->stock_actual_quantity,
+                        'cost_price' => round($avgCostPrice, 2),
+                        'inventory_value' => round($inventory->stock_actual_quantity * $avgCostPrice, 2),
                         'last_sale_date' => $lastSale ? $lastSale->created_at->format('Y-m-d') : 'Nunca',
                         'days_without_movement' => $daysSinceLastSale,
                     ];
@@ -532,21 +624,25 @@ class ReportsController extends Controller
     {
         try {
             $stockByWarehouse = Inventory::select(
-                    'id_warehouse',
-                    DB::raw('COUNT(DISTINCT id_product) as total_products'),
-                    DB::raw('SUM(quantity) as total_quantity')
+                    'warehouse_id',
+                    DB::raw('COUNT(DISTINCT product_id) as total_products'),
+                    DB::raw('SUM(stock_actual_quantity) as total_quantity')
                 )
                 ->with('warehouse')
-                ->where('quantity', '>', 0)
-                ->groupBy('id_warehouse')
+                ->where('stock_actual_quantity', '>', 0)
+                ->groupBy('warehouse_id')
                 ->get()
+                ->filter(function ($item) {
+                    return $item->warehouse !== null;
+                })
                 ->map(function ($item) {
                     return [
-                        'warehouse_name' => $item->warehouse->name,
+                        'warehouse_name' => $item->warehouse->name ?? 'N/A',
                         'total_products' => $item->total_products,
                         'total_quantity' => $item->total_quantity,
                     ];
-                });
+                })
+                ->values();
 
             $summary = [
                 'total_warehouses' => $stockByWarehouse->count(),
@@ -571,20 +667,26 @@ class ReportsController extends Controller
     {
         try {
             $lowStockProducts = Inventory::with(['product', 'warehouse'])
-                ->whereRaw('quantity < minimum_stock')
-                ->orWhere('quantity', '=', 0)
+                ->whereRaw('stock_actual_quantity < stock_min')
+                ->orWhere('stock_actual_quantity', '=', 0)
                 ->get()
+                ->filter(function ($inventory) {
+                    return $inventory->product !== null && $inventory->warehouse !== null;
+                })
                 ->map(function ($inventory) {
+                    $deficit = $inventory->stock_min - $inventory->stock_actual_quantity;
+
                     return [
-                        'product_code' => $inventory->product->code,
-                        'product_name' => $inventory->product->name,
-                        'warehouse' => $inventory->warehouse->name,
-                        'current_stock' => $inventory->quantity,
-                        'minimum_stock' => $inventory->minimum_stock,
-                        'deficit' => $inventory->minimum_stock - $inventory->quantity,
-                        'status' => $inventory->quantity == 0 ? 'Sin Stock' : 'Bajo Mínimo',
+                        'product_code' => $inventory->product->code ?? 'N/A',
+                        'product_name' => $inventory->product->name ?? 'N/A',
+                        'warehouse' => $inventory->warehouse->name ?? 'N/A',
+                        'current_stock' => $inventory->stock_actual_quantity,
+                        'minimum_stock' => $inventory->stock_min,
+                        'deficit' => $deficit > 0 ? $deficit : 0,
+                        'status' => $inventory->stock_actual_quantity == 0 ? 'Sin Stock' : 'Bajo Mínimo',
                     ];
-                });
+                })
+                ->values();
 
             $summary = [
                 'total_products' => $lowStockProducts->count(),
@@ -610,38 +712,71 @@ class ReportsController extends Controller
     public function getProfitabilityByProduct(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
-            $profitability = SaleItem::select(
-                    'id_product',
-                    DB::raw('SUM(quantity) as total_sold'),
-                    DB::raw('SUM(subtotal) as total_revenue'),
-                    DB::raw('SUM(quantity * cost_price) as total_cost'),
-                    DB::raw('SUM(subtotal - (quantity * cost_price)) as total_profit')
+            // Obtener ventas por producto
+            $salesByProduct = SaleItem::select(
+                    'inventories.product_id',
+                    DB::raw('SUM(sale_items.quantity) as total_sold'),
+                    DB::raw('SUM(sale_items.total) as total_revenue')
                 )
-                ->with('product')
-                ->whereHas('salesHeader', function($query) use ($dateFrom, $dateTo) {
-                    $query->whereBetween('sale_date', [$dateFrom, $dateTo])
+                ->join('inventories', 'sale_items.inventory_id', '=', 'inventories.id')
+                ->whereHas('sale', function($query) use ($dateFromStart, $dateToEnd) {
+                    $query->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                           ->where('sale_status', '2');
                 })
-                ->groupBy('id_product')
-                ->orderBy('total_profit', 'desc')
-                ->get()
-                ->map(function ($item) {
-                    $marginPercent = $item->total_revenue > 0 ?
-                        (($item->total_profit / $item->total_revenue) * 100) : 0;
+                ->groupBy('inventories.product_id')
+                ->get();
 
-                    return [
-                        'product_code' => $item->product->code,
-                        'product_name' => $item->product->name,
-                        'total_sold' => $item->total_sold,
-                        'total_revenue' => $item->total_revenue,
-                        'total_cost' => $item->total_cost,
-                        'total_profit' => $item->total_profit,
-                        'profit_margin_percent' => round($marginPercent, 2),
-                    ];
-                });
+            $profitability = collect([]);
+
+            foreach ($salesByProduct as $sale) {
+                // Obtener inventario con lotes para calcular costo promedio
+                $inventory = Inventory::with('inventoryBatches.batch.purchaseItem')
+                    ->where('product_id', $sale->product_id)
+                    ->first();
+
+                if (!$inventory) continue;
+
+                // Calcular costo promedio ponderado desde lotes
+                $totalQuantityInBatches = 0;
+                $totalCostInBatches = 0;
+
+                foreach ($inventory->inventoryBatches as $inventoryBatch) {
+                    $batch = $inventoryBatch->batch;
+                    if ($batch && $batch->is_active && $batch->available_quantity > 0) {
+                        $batchPrice = $batch->purchaseItem->price ?? 0;
+                        $batchQuantity = $batch->available_quantity;
+                        $totalQuantityInBatches += $batchQuantity;
+                        $totalCostInBatches += ($batchQuantity * $batchPrice);
+                    }
+                }
+
+                $avgCostPrice = $totalQuantityInBatches > 0
+                    ? ($totalCostInBatches / $totalQuantityInBatches)
+                    : 0;
+
+                $totalCost = $sale->total_sold * $avgCostPrice;
+                $totalProfit = $sale->total_revenue - $totalCost;
+                $marginPercent = $sale->total_revenue > 0 ?
+                    (($totalProfit / $sale->total_revenue) * 100) : 0;
+
+                $product = $inventory->product;
+                if (!$product) continue;
+
+                $profitability->push([
+                    'product_code' => $product->code ?? 'N/A',
+                    'product_name' => $product->name ?? 'N/A',
+                    'total_sold' => $sale->total_sold,
+                    'total_revenue' => round($sale->total_revenue, 2),
+                    'avg_cost_price' => round($avgCostPrice, 2),
+                    'total_cost' => round($totalCost, 2),
+                    'total_profit' => round($totalProfit, 2),
+                    'profit_margin_percent' => round($marginPercent, 2),
+                ]);
+            }
+
+            $profitability = $profitability->sortByDesc('total_profit')->values();
 
             $summary = [
                 'total_products' => $profitability->count(),
@@ -667,26 +802,89 @@ class ReportsController extends Controller
     public function getProfitabilityByCategory(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
-            $profitabilityByCategory = SaleItem::select(
-                    'products.id_category',
+            // Obtener ventas agrupadas por categoría y producto
+            $salesByProduct = SaleItem::select(
+                    'products.category_id',
+                    'inventories.product_id',
                     DB::raw('SUM(sale_items.quantity) as total_sold'),
-                    DB::raw('SUM(sale_items.subtotal) as total_revenue'),
-                    DB::raw('SUM(sale_items.quantity * sale_items.cost_price) as total_cost'),
-                    DB::raw('SUM(sale_items.subtotal - (sale_items.quantity * sale_items.cost_price)) as total_profit')
+                    DB::raw('SUM(sale_items.total) as total_revenue')
                 )
-                ->join('products', 'sale_items.id_product', '=', 'products.id')
-                ->join('categories', 'products.id_category', '=', 'categories.id')
-                ->whereHas('salesHeader', function($query) use ($dateFrom, $dateTo) {
-                    $query->whereBetween('sale_date', [$dateFrom, $dateTo])
+                ->join('inventories', 'sale_items.inventory_id', '=', 'inventories.id')
+                ->join('products', 'inventories.product_id', '=', 'products.id')
+                ->whereHas('sale', function($query) use ($dateFromStart, $dateToEnd) {
+                    $query->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                           ->where('sale_status', '2');
                 })
-                ->with('product.category')
-                ->groupBy('products.id_category')
-                ->orderBy('total_profit', 'desc')
+                ->groupBy('products.category_id', 'inventories.product_id')
                 ->get();
+
+            // Agrupar por categoría y calcular costos desde lotes
+            $categoriesData = [];
+
+            foreach ($salesByProduct as $sale) {
+                $categoryId = $sale->category_id;
+
+                if (!isset($categoriesData[$categoryId])) {
+                    $categoriesData[$categoryId] = [
+                        'total_sold' => 0,
+                        'total_revenue' => 0,
+                        'total_cost' => 0,
+                    ];
+                }
+
+                // Obtener costo promedio desde lotes
+                $inventory = Inventory::with('inventoryBatches.batch.purchaseItem')
+                    ->where('product_id', $sale->product_id)
+                    ->first();
+
+                if ($inventory) {
+                    $totalQuantityInBatches = 0;
+                    $totalCostInBatches = 0;
+
+                    foreach ($inventory->inventoryBatches as $inventoryBatch) {
+                        $batch = $inventoryBatch->batch;
+                        if ($batch && $batch->is_active && $batch->available_quantity > 0) {
+                            $batchPrice = $batch->purchaseItem->price ?? 0;
+                            $batchQuantity = $batch->available_quantity;
+                            $totalQuantityInBatches += $batchQuantity;
+                            $totalCostInBatches += ($batchQuantity * $batchPrice);
+                        }
+                    }
+
+                    $avgCostPrice = $totalQuantityInBatches > 0
+                        ? ($totalCostInBatches / $totalQuantityInBatches)
+                        : 0;
+
+                    $categoriesData[$categoryId]['total_sold'] += $sale->total_sold;
+                    $categoriesData[$categoryId]['total_revenue'] += $sale->total_revenue;
+                    $categoriesData[$categoryId]['total_cost'] += ($sale->total_sold * $avgCostPrice);
+                }
+            }
+
+            // Formatear resultados
+            $profitabilityByCategory = collect([]);
+
+            foreach ($categoriesData as $categoryId => $data) {
+                $category = \App\Models\Category::find($categoryId);
+                if (!$category) continue;
+
+                $totalProfit = $data['total_revenue'] - $data['total_cost'];
+                $marginPercent = $data['total_revenue'] > 0 ?
+                    (($totalProfit / $data['total_revenue']) * 100) : 0;
+
+                $profitabilityByCategory->push([
+                    'category_name' => $category->name ?? 'N/A',
+                    'total_sold' => $data['total_sold'],
+                    'total_revenue' => round($data['total_revenue'], 2),
+                    'total_cost' => round($data['total_cost'], 2),
+                    'total_profit' => round($totalProfit, 2),
+                    'profit_margin_percent' => round($marginPercent, 2),
+                ]);
+            }
+
+            $profitabilityByCategory = $profitabilityByCategory->sortByDesc('total_profit')->values();
 
             $summary = [
                 'total_categories' => $profitabilityByCategory->count(),
@@ -711,18 +909,25 @@ class ReportsController extends Controller
     public function getProfitMargin(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
-            $sales = SalesHeader::with('saleDetails')
-                ->whereBetween('sale_date', [$dateFrom, $dateTo])
+            // Cargar relaciones necesarias para obtener el costo desde los lotes
+            // SaleItem → batch (Batch) → purchaseItem (PurchaseItem)
+            $sales = SalesHeader::with(['saleDetails.batch.purchaseItem', 'customer'])
+                ->whereBetween('sale_date', [$dateFromStart, $dateToEnd])
                 ->where('sale_status', '2')
                 ->get();
 
             $data = $sales->map(function ($sale) {
                 $totalCost = $sale->saleDetails->sum(function ($item) {
-                    return $item->quantity * $item->cost_price;
+                    // Obtener el costo desde el lote (batch → purchaseItem → price)
+                    $costPrice = 0;
+                    if ($item->batch && $item->batch->purchaseItem) {
+                        $costPrice = $item->batch->purchaseItem->price ?? 0;
+                    }
+                    return $item->quantity * $costPrice;
                 });
+
                 $totalRevenue = $sale->sale_total;
                 $profit = $totalRevenue - $totalCost;
                 $marginPercent = $totalRevenue > 0 ? (($profit / $totalRevenue) * 100) : 0;
@@ -731,19 +936,19 @@ class ReportsController extends Controller
                     'sale_id' => $sale->id,
                     'date' => $sale->sale_date,
                     'customer' => $sale->customer->name ?? 'N/A',
-                    'total_revenue' => $totalRevenue,
-                    'total_cost' => $totalCost,
-                    'profit' => $profit,
+                    'total_revenue' => round($totalRevenue, 2),
+                    'total_cost' => round($totalCost, 2),
+                    'profit' => round($profit, 2),
                     'margin_percent' => round($marginPercent, 2),
                 ];
             });
 
             $summary = [
                 'total_sales' => $data->count(),
-                'total_revenue' => $data->sum('total_revenue'),
-                'total_cost' => $data->sum('total_cost'),
-                'total_profit' => $data->sum('profit'),
-                'average_margin' => $data->avg('margin_percent'),
+                'total_revenue' => round($data->sum('total_revenue'), 2),
+                'total_cost' => round($data->sum('total_cost'), 2),
+                'total_profit' => round($data->sum('profit'), 2),
+                'average_margin' => round($data->avg('margin_percent') ?? 0, 2),
             ];
 
             return ApiResponse::success([
@@ -764,11 +969,10 @@ class ReportsController extends Controller
     public function getDTEsReport(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $dtes = HistoryDte::with('salesHeader.customer')
-                ->whereBetween('fecha_emision', [$dateFrom, $dateTo])
+                ->whereBetween('fecha_emision', [$dateFromStart, $dateToEnd])
                 ->orderBy('fecha_emision', 'desc')
                 ->get();
 
@@ -797,15 +1001,14 @@ class ReportsController extends Controller
     public function getDTEsByStatus(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $dtesByStatus = HistoryDte::select(
                     'status',
                     DB::raw('COUNT(*) as total'),
                     DB::raw('SUM(total_purchase) as total_amount')
                 )
-                ->whereBetween('fecha_emision', [$dateFrom, $dateTo])
+                ->whereBetween('fecha_emision', [$dateFromStart, $dateToEnd])
                 ->groupBy('status')
                 ->get();
 
@@ -824,11 +1027,10 @@ class ReportsController extends Controller
     public function getRejectedDTEs(Request $request): JsonResponse
     {
         try {
-            $dateFrom = $request->input('date_from', Carbon::now()->startOfMonth());
-            $dateTo = $request->input('date_to', Carbon::now());
+            [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $rejectedDTEs = HistoryDte::with('salesHeader.customer')
-                ->whereBetween('fecha_emision', [$dateFrom, $dateTo])
+                ->whereBetween('fecha_emision', [$dateFromStart, $dateToEnd])
                 ->where('status', 'RECHAZADO')
                 ->orderBy('fecha_emision', 'desc')
                 ->get();

@@ -55,7 +55,7 @@ class SaleItem extends Model
 
     public function batch(): BelongsTo
     {
-        return $this->belongsTo(InventoriesBatch::class);
+        return $this->belongsTo(Batch::class, 'batch_id', 'id');
     }
     public function inventory(): BelongsTo
     {

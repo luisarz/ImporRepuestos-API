@@ -189,4 +189,31 @@ class CustomerController extends Controller
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
+
+    /**
+     * Obtener todos los clientes activos para selectores (sin paginación)
+     */
+    public function all(Request $request): JsonResponse
+    {
+        try {
+            $customers = Customer::select('id', 'name', 'last_name', 'document_number', 'nit', 'email', 'phone')
+                ->where('is_active', 1)
+                ->orderBy('name', 'asc')
+                ->get()
+                ->map(function($customer) {
+                    return [
+                        'id' => $customer->id,
+                        'name' => trim($customer->name . ' ' . $customer->last_name),
+                        'document_number' => $customer->document_number,
+                        'nit' => $customer->nit,
+                        'email' => $customer->email,
+                        'phone' => $customer->phone,
+                    ];
+                });
+
+            return ApiResponse::success($customers, 'Clientes recuperados con éxito', 200);
+        } catch (\Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
+        }
+    }
 }

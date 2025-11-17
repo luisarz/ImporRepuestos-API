@@ -484,6 +484,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::apiResource('customer-types', CustomerTypeController::class);
 
     // Customers - rutas especiales antes del resource
+    Route::get('customers/all', [CustomerController::class, 'all']);
     Route::get('customers/stats/all', [CustomerController::class, 'stats']);
     Route::post('customers/bulk/get', [CustomerController::class, 'bulkGet']);
     Route::post('customers/bulk/activate', [CustomerController::class, 'bulkActivate']);
