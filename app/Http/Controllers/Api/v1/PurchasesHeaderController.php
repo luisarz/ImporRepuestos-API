@@ -27,13 +27,29 @@ class PurchasesHeaderController extends Controller
         try {
             $perPage = $request->input('per_page', 10);
 
-            $purchasesHeaders = PurchasesHeader::with(
+            $query = PurchasesHeader::with(
                 [
                     'warehouse:id,name,address,phone,email',
                     'quotePurchase',
                     'provider:id,comercial_name,document_number,payment_type_id'
                 ]
-            )->paginate($perPage);
+            );
+
+            // Filtro por rango de fechas
+            if ($request->has('date_from')) {
+                $query->whereDate('purchase_date', '>=', $request->input('date_from'));
+            }
+
+            if ($request->has('date_to')) {
+                $query->whereDate('purchase_date', '<=', $request->input('date_to'));
+            }
+
+            // Filtro por estado
+            if ($request->has('status_filter') && $request->input('status_filter') !== '') {
+                $query->where('status_purchase', $request->input('status_filter'));
+            }
+
+            $purchasesHeaders = $query->orderBy('purchase_date', 'desc')->paginate($perPage);
             return ApiResponse::success($purchasesHeaders, 'Compras cargadas', 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
