@@ -972,17 +972,37 @@ class ReportsController extends Controller
             [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $dtes = HistoryDte::with('salesHeader.customer')
-                ->whereBetween('fecha_emision', [$dateFromStart, $dateToEnd])
-                ->orderBy('fecha_emision', 'desc')
-                ->get();
+                ->whereBetween('created_at', [$dateFromStart, $dateToEnd])
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($dte) {
+                    return [
+                        'id' => $dte->id,
+                        'codigoGeneracion' => $dte->codigoGeneracion,
+                        'num_control' => $dte->num_control,
+                        'document_type' => $dte->document_type,
+                        'document_number' => $dte->document_number,
+                        'version' => $dte->version,
+                        'ambiente' => $dte->ambiente,
+                        'estado' => $dte->estado,
+                        'fhProcesamiento' => $dte->fhProcesamiento,
+                        'fecha_emision' => $dte->created_at,
+                        'descripcionMsg' => $dte->descripcionMsg,
+                        'observaciones' => $dte->observaciones,
+                        'customer' => $dte->salesHeader && $dte->salesHeader->customer
+                            ? $dte->salesHeader->customer->name
+                            : 'N/A',
+                        'sale_id' => $dte->salesHeader ? $dte->salesHeader->id : null,
+                        'sale_total' => $dte->salesHeader ? $dte->salesHeader->sale_total : 0,
+                    ];
+                });
 
             $summary = [
                 'total_dtes' => $dtes->count(),
-                'approved' => $dtes->where('status', 'APROBADO')->count(),
-                'rejected' => $dtes->where('status', 'RECHAZADO')->count(),
-                'observed' => $dtes->where('status', 'OBSERVADO')->count(),
-                'pending' => $dtes->where('status', 'PENDIENTE')->count(),
-                'total_amount' => $dtes->where('status', 'APROBADO')->sum('total_purchase'),
+                'procesado' => $dtes->where('estado', 'PROCESADO')->count(),
+                'rechazado' => $dtes->where('estado', 'RECHAZADO')->count(),
+                'observado' => $dtes->where('estado', 'OBSERVADO')->count(),
+                'total_amount' => round($dtes->whereIn('estado', ['PROCESADO', 'OBSERVADO'])->sum('sale_total'), 2),
             ];
 
             return ApiResponse::success([
@@ -1004,13 +1024,28 @@ class ReportsController extends Controller
             [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $dtesByStatus = HistoryDte::select(
-                    'status',
-                    DB::raw('COUNT(*) as total'),
-                    DB::raw('SUM(total_purchase) as total_amount')
+                    'estado',
+                    DB::raw('COUNT(*) as total')
                 )
-                ->whereBetween('fecha_emision', [$dateFromStart, $dateToEnd])
-                ->groupBy('status')
-                ->get();
+                ->whereBetween('created_at', [$dateFromStart, $dateToEnd])
+                ->groupBy('estado')
+                ->get()
+                ->map(function ($item) {
+                    // Obtener el total de ventas para este estado
+                    $dtes = HistoryDte::with('salesHeader')
+                        ->where('estado', $item->estado)
+                        ->get();
+
+                    $totalAmount = $dtes->sum(function ($dte) {
+                        return $dte->salesHeader ? $dte->salesHeader->sale_total : 0;
+                    });
+
+                    return [
+                        'estado' => $item->estado,
+                        'total' => $item->total,
+                        'total_amount' => round($totalAmount, 2),
+                    ];
+                });
 
             return ApiResponse::success([
                 'data' => $dtesByStatus
@@ -1030,14 +1065,36 @@ class ReportsController extends Controller
             [$dateFromStart, $dateToEnd] = $this->parseDateRange($request);
 
             $rejectedDTEs = HistoryDte::with('salesHeader.customer')
-                ->whereBetween('fecha_emision', [$dateFromStart, $dateToEnd])
-                ->where('status', 'RECHAZADO')
-                ->orderBy('fecha_emision', 'desc')
-                ->get();
+                ->whereBetween('created_at', [$dateFromStart, $dateToEnd])
+                ->where('estado', 'RECHAZADO')
+                ->orderBy('created_at', 'desc')
+                ->get()
+                ->map(function ($dte) {
+                    return [
+                        'id' => $dte->id,
+                        'codigoGeneracion' => $dte->codigoGeneracion,
+                        'num_control' => $dte->num_control,
+                        'document_type' => $dte->document_type,
+                        'document_number' => $dte->document_number,
+                        'version' => $dte->version,
+                        'ambiente' => $dte->ambiente,
+                        'estado' => $dte->estado,
+                        'fhProcesamiento' => $dte->fhProcesamiento,
+                        'fecha_emision' => $dte->created_at,
+                        'codigoMsg' => $dte->codigoMsg,
+                        'descripcionMsg' => $dte->descripcionMsg,
+                        'observaciones' => $dte->observaciones,
+                        'customer' => $dte->salesHeader && $dte->salesHeader->customer
+                            ? $dte->salesHeader->customer->name
+                            : 'N/A',
+                        'sale_id' => $dte->salesHeader ? $dte->salesHeader->id : null,
+                        'sale_total' => $dte->salesHeader ? $dte->salesHeader->sale_total : 0,
+                    ];
+                });
 
             $summary = [
                 'total_rejected' => $rejectedDTEs->count(),
-                'total_amount' => $rejectedDTEs->sum('total_purchase'),
+                'total_amount' => round($rejectedDTEs->sum('sale_total'), 2),
             ];
 
             return ApiResponse::success([

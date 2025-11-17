@@ -35,11 +35,14 @@ class HistoryDte extends Model
         'contingencia',
         'motivo_contingencia'
     ];
+
     protected $casts = [
         'dte' => 'array',
+        'fhProcesamiento' => 'datetime',
     ];
-    public function salesInvoice()
+
+    public function salesHeader(): BelongsTo
     {
-        return $this->belongsTo(Sale::class,'sales_invoice_id','id');
+        return $this->belongsTo(SalesHeader::class, 'sales_invoice_id', 'id');
     }
 }
