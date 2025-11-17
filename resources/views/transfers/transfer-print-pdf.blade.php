@@ -10,131 +10,195 @@
             box-sizing: border-box;
         }
         body {
-            font-family: Arial, sans-serif;
-            font-size: 11px;
-            padding: 20px;
-            color: #333;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-size: 10px;
+            padding: 0;
+            color: #1f2937;
+            background: #f9fafb;
+        }
+        .page {
+            background: white;
+            padding: 20px 30px;
+            max-width: 100%;
+            margin: 0 auto;
         }
         .header {
-            text-align: center;
-            margin-bottom: 25px;
-            border-bottom: 3px solid #2563eb;
-            padding-bottom: 15px;
+            background: #e12828;
+            color: white;
+            padding: 15px 20px;
+            margin: -20px -30px 15px -30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 300px;
+            height: 300px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+        .header-content {
+            position: relative;
+            z-index: 1;
         }
         .header h1 {
-            font-size: 22px;
-            color: #2563eb;
-            margin-bottom: 5px;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: -0.5px;
+        }
+        .header .company-name {
+            font-size: 9px;
+            opacity: 0.9;
+            font-weight: 300;
+            margin-bottom: 10px;
         }
         .header .transfer-number {
-            font-size: 16px;
-            color: #666;
-            font-weight: bold;
+            font-size: 14px;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 4px;
         }
         .status-badge {
             display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
+            padding: 6px 14px;
+            border-radius: 20px;
             font-size: 10px;
-            font-weight: bold;
-            margin-top: 5px;
+            font-weight: 600;
+            margin-left: 10px;
+            letter-spacing: 0.5px;
         }
         .status-PENDING {
             background-color: #fef3c7;
             color: #92400e;
+            border: 1px solid #fde68a;
         }
         .status-IN_TRANSIT {
             background-color: #dbeafe;
             color: #1e40af;
+            border: 1px solid #bfdbfe;
         }
         .status-RECEIVED {
             background-color: #d1fae5;
             color: #065f46;
+            border: 1px solid #a7f3d0;
         }
         .status-CANCELLED {
             background-color: #fee2e2;
             color: #991b1b;
+            border: 1px solid #fecaca;
         }
         .info-section {
-            margin-bottom: 20px;
+            margin-bottom: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid #e5e7eb;
         }
         .info-section h2 {
-            font-size: 13px;
-            color: #2563eb;
-            margin-bottom: 10px;
+            font-size: 11px;
+            color: #e12828;
+            margin-bottom: 8px;
             padding-bottom: 5px;
-            border-bottom: 2px solid #e5e7eb;
+            border-bottom: 2px solid #e12828;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 10px;
+            width: 100%;
+            margin-top: 8px;
+        }
+        .info-grid::after {
+            content: "";
+            display: table;
+            clear: both;
         }
         .info-item {
-            padding: 8px;
+            width: 48%;
+            float: left;
+            margin-right: 4%;
+            padding: 6px;
             background-color: #f9fafb;
-            border-left: 3px solid #2563eb;
+            border-left: 3px solid #e12828;
+            margin-bottom: 8px;
+        }
+        .info-item:nth-child(2n) {
+            margin-right: 0;
         }
         .info-item label {
-            font-size: 9px;
+            font-size: 8px;
             color: #6b7280;
             text-transform: uppercase;
             display: block;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             font-weight: bold;
         }
         .info-item .value {
-            font-size: 12px;
+            font-size: 11px;
             color: #111827;
             font-weight: 600;
         }
         .warehouse-box {
-            background-color: #eff6ff;
-            border: 2px solid #2563eb;
+            width: 48%;
+            float: left;
+            margin-right: 4%;
+            background: #fff5f5;
+            border: 2px solid #e12828;
             border-radius: 8px;
-            padding: 12px;
+            padding: 8px;
             text-align: center;
+            box-shadow: 0 2px 6px rgba(225, 40, 40, 0.1);
+        }
+        .warehouse-box:nth-child(2n) {
+            margin-right: 0;
         }
         .warehouse-box .label {
-            font-size: 10px;
-            color: #1e40af;
+            font-size: 8px;
+            color: #e12828;
             text-transform: uppercase;
-            font-weight: bold;
-            margin-bottom: 5px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
         }
         .warehouse-box .value {
-            font-size: 14px;
-            color: #1e3a8a;
-            font-weight: bold;
-        }
-        .arrow {
-            text-align: center;
-            font-size: 24px;
-            color: #2563eb;
-            padding: 10px 0;
+            font-size: 11px;
+            color: #c22020;
+            font-weight: 700;
+            line-height: 1.2;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 12px;
+            border: 1px solid #e5e7eb;
         }
         table thead {
-            background-color: #2563eb;
+            background: #e12828;
             color: white;
         }
         table th {
-            padding: 8px;
+            padding: 8px 6px;
             text-align: left;
             font-size: 9px;
-            font-weight: bold;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #e12828;
         }
         table td {
-            padding: 6px 8px;
-            font-size: 10px;
-            border-bottom: 1px solid #e5e7eb;
+            padding: 6px;
+            font-size: 9px;
+            border: 1px solid #e5e7eb;
+            background: white;
         }
-        table tbody tr:nth-child(even) {
+        table tbody tr:nth-child(even) td {
             background-color: #f9fafb;
         }
         .text-right {
@@ -144,116 +208,211 @@
             text-align: center;
         }
         .totals-section {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f3f4f6;
+            margin-top: 12px;
+            background: #f9fafb;
             border-radius: 8px;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
         }
         .totals-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 10px;
+            width: 100%;
+        }
+        .totals-grid::after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+        .total-left {
+            width: 60%;
+            float: left;
+        }
+        .total-right {
+            width: 38%;
+            float: right;
         }
         .total-item {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
+            padding: 4px 0;
             border-bottom: 1px solid #d1d5db;
+            font-size: 9px;
         }
         .total-item.grand-total {
-            font-size: 14px;
-            font-weight: bold;
-            color: #1e3a8a;
-            border-bottom: 2px solid #2563eb;
-            padding-top: 10px;
+            font-size: 12px;
+            font-weight: 700;
+            color: #e12828;
+            background: white;
+            padding: 8px;
+            border-radius: 6px;
+            margin-top: 4px;
+            border: 2px solid #e12828;
+            box-shadow: 0 2px 6px rgba(225, 40, 40, 0.1);
         }
         .observations-box {
-            background-color: #fef3c7;
-            border-left: 4px solid #f59e0b;
-            padding: 10px;
-            margin-top: 15px;
-            border-radius: 4px;
+            background: #fef3c7;
+            border-left: 5px solid #f59e0b;
+            padding: 8px;
+            margin-top: 12px;
+            border-radius: 6px;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.1);
         }
         .observations-box .label {
-            font-size: 9px;
+            font-size: 8px;
             color: #92400e;
-            font-weight: bold;
+            font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
+            letter-spacing: 0.5px;
         }
         .observations-box .value {
-            font-size: 10px;
+            font-size: 9px;
             color: #78350f;
+            line-height: 1.4;
         }
         .timeline {
-            margin-top: 20px;
-            padding: 15px;
-            background-color: #f9fafb;
+            margin-top: 12px;
+            background: white;
             border-radius: 8px;
+            padding: 10px;
+            border: 2px solid #e5e7eb;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+        .timeline h2 {
+            font-size: 11px;
+            color: #e12828;
+            margin-bottom: 8px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid #e12828;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .timeline-container {
+            position: relative;
+            padding-left: 42px;
         }
         .timeline-item {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 10px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #e5e7eb;
+            position: relative;
+            padding-bottom: 8px;
+            margin-bottom: 8px;
         }
-        .timeline-item:last-child {
-            border-bottom: none;
+        .timeline-item::after {
+            content: '';
+            position: absolute;
+            left: -31px;
+            top: 26px;
+            width: 2px;
+            height: calc(100% - 8px);
+            background: #e5e7eb;
+        }
+        .timeline-last {
             margin-bottom: 0;
             padding-bottom: 0;
         }
+        .timeline-last::after {
+            display: none !important;
+        }
         .timeline-icon {
-            width: 30px;
-            height: 30px;
-            background-color: #2563eb;
+            position: absolute;
+            left: -45px;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background: #e12828;
             color: white;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: bold;
-            flex-shrink: 0;
+            line-height: 28px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(225, 40, 40, 0.3);
+            border: 2px solid white;
         }
         .timeline-icon.pending {
-            background-color: #f59e0b;
+            background: #f59e0b;
+            box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
         }
         .timeline-icon.in-transit {
-            background-color: #3b82f6;
+            background: #e12828;
+            box-shadow: 0 2px 6px rgba(225, 40, 40, 0.3);
         }
         .timeline-icon.received {
-            background-color: #10b981;
+            background: #10b981;
+            box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+        }
+        .timeline-icon-disabled {
+            background: #9ca3af !important;
+            box-shadow: 0 2px 6px rgba(156, 163, 175, 0.2) !important;
         }
         .timeline-content {
-            flex: 1;
+            padding: 6px 10px;
+            background: #f9fafb;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
         }
         .timeline-title {
-            font-weight: bold;
-            font-size: 11px;
+            font-weight: 700;
+            font-size: 10px;
             color: #111827;
-            margin-bottom: 2px;
+            margin-bottom: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         .timeline-date {
             font-size: 9px;
             color: #6b7280;
+            line-height: 1.3;
+            margin-bottom: 2px;
+        }
+        .timeline-user {
+            font-size: 8px;
+            color: #4b5563;
+            line-height: 1.2;
+            background: #fff;
+            padding: 3px 6px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 3px;
+            border: 1px solid #e5e7eb;
+        }
+        .timeline-description {
+            font-size: 7px;
+            color: #6b7280;
+            line-height: 1.2;
+            margin-top: 3px;
+            font-style: italic;
+        }
+        .timeline-pending {
+            opacity: 0.6;
         }
         .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 2px solid #e5e7eb;
+            margin-top: 20px;
+            padding: 12px;
+            background: #e12828;
+            color: white;
             text-align: center;
+            border-radius: 6px;
+            font-size: 8px;
+        }
+        .footer p {
+            margin: 2px 0;
+            opacity: 0.95;
+        }
+        .footer strong {
+            font-weight: 700;
             font-size: 9px;
-            color: #6b7280;
         }
     </style>
 </head>
 <body>
+    <div class="page">
     <!-- Header -->
     <div class="header">
-        <h1>TRASLADO DE MERCADERÍA</h1>
-        <div class="transfer-number">{{ $transfer->transfer_number }}</div>
-        <div>
+        <div class="header-content">
+            <div class="company-name">ImporRepuestos - Sistema de Gestión de Inventario</div>
+            <h1>TRASLADO DE MERCADERÍA</h1>
+            <div class="transfer-number">{{ $transfer->transfer_number }}</div>
             <span class="status-badge status-{{ $transfer->status }}">
                 @if($transfer->status === 'PENDING')
                     PENDIENTE
@@ -285,18 +444,22 @@
 
     <!-- Warehouses -->
     <div class="info-section">
-        <h2>ALMACENES</h2>
-        <div class="info-grid">
-            <div class="warehouse-box">
-                <div class="label">Origen</div>
-                <div class="value">{{ $transfer->warehouseOrigin->name }}</div>
-            </div>
-            <div class="warehouse-box">
-                <div class="label">Destino</div>
-                <div class="value">{{ $transfer->warehouseDestination->name }}</div>
+        <h2>ALMACENES INVOLUCRADOS</h2>
+        <div class="warehouse-box">
+            <div class="label">ORIGEN</div>
+            <div class="value">{{ $transfer->warehouseOrigin->name }}</div>
+            <div style="font-size: 8px; color: #6b7280; margin-top: 3px;">
+                {{ $transfer->warehouseOrigin->code ?? '' }}
             </div>
         </div>
-        <div class="arrow">→</div>
+        <div class="warehouse-box">
+            <div class="label">DESTINO</div>
+            <div class="value">{{ $transfer->warehouseDestination->name }}</div>
+            <div style="font-size: 8px; color: #6b7280; margin-top: 3px;">
+                {{ $transfer->warehouseDestination->code ?? '' }}
+            </div>
+        </div>
+        <div style="clear: both;"></div>
     </div>
 
     <!-- Items Table -->
@@ -334,11 +497,11 @@
                     <td class="text-right">${{ number_format($subtotal, 2) }}</td>
                     <td class="text-center">
                         @if($item->status === 'PENDING')
-                            <span style="color: #f59e0b;">●</span>
+                            <span style="background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 4px; font-size: 8px; font-weight: 600;">PEND</span>
                         @elseif($item->status === 'SENT')
-                            <span style="color: #3b82f6;">●</span>
+                            <span style="background: #dbeafe; color: #1e40af; padding: 2px 8px; border-radius: 4px; font-size: 8px; font-weight: 600;">ENV</span>
                         @elseif($item->status === 'RECEIVED')
-                            <span style="color: #10b981;">✓</span>
+                            <span style="background: #d1fae5; color: #065f46; padding: 2px 8px; border-radius: 4px; font-size: 8px; font-weight: 600;">REC</span>
                         @endif
                     </td>
                 </tr>
@@ -350,7 +513,7 @@
     <!-- Totals -->
     <div class="totals-section">
         <div class="totals-grid">
-            <div>
+            <div class="total-left">
                 <div class="total-item">
                     <span>Total de Items:</span>
                     <strong>{{ $transfer->items->count() }}</strong>
@@ -360,60 +523,72 @@
                     <strong>{{ number_format($totalQuantity, 2) }}</strong>
                 </div>
             </div>
-            <div>
+            <div class="total-right">
                 <div class="total-item grand-total">
-                    <span>VALOR TOTAL:</span>
+                    <span>TOTAL:</span>
                     <span>${{ number_format($totalCost, 2) }}</span>
                 </div>
             </div>
+            <div style="clear: both;"></div>
         </div>
     </div>
 
     <!-- Timeline -->
     @if($transfer->status !== 'CANCELLED')
     <div class="timeline">
-        <h2 style="font-size: 13px; color: #2563eb; margin-bottom: 15px;">SEGUIMIENTO</h2>
-
-        <!-- Created -->
-        <div class="timeline-item">
-            <div class="timeline-icon pending">1</div>
-            <div class="timeline-content">
-                <div class="timeline-title">Traslado Creado</div>
-                <div class="timeline-date">{{ $transfer->created_at->format('d/m/Y H:i') }}</div>
+        <h2>SEGUIMIENTO</h2>
+        <div class="timeline-container">
+            <!-- Created -->
+            <div class="timeline-item">
+                <div class="timeline-icon pending">1</div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Creado</div>
+                    <div class="timeline-date">{{ $transfer->created_at->format('d/m/Y H:i') }}</div>
+                </div>
             </div>
-        </div>
 
-        <!-- Sent -->
-        @if($transfer->sent_at)
-        <div class="timeline-item">
-            <div class="timeline-icon in-transit">2</div>
-            <div class="timeline-content">
-                <div class="timeline-title">Enviado - En Tránsito</div>
-                <div class="timeline-date">
-                    {{ \Carbon\Carbon::parse($transfer->sent_at)->format('d/m/Y H:i') }}
-                    @if($transfer->sentBy)
-                        - Por: {{ $transfer->sentBy->name ?? 'Usuario #' . $transfer->sent_by }}
+            <!-- Sent -->
+            @if($transfer->sent_at)
+            <div class="timeline-item">
+                <div class="timeline-icon in-transit">2</div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Enviado</div>
+                    <div class="timeline-date">{{ \Carbon\Carbon::parse($transfer->sent_at)->format('d/m/Y H:i') }}</div>
+                    @if($transfer->sentByUser)
+                    <div class="timeline-user">{{ $transfer->sentByUser->name }}</div>
                     @endif
                 </div>
             </div>
-        </div>
-        @endif
+            @else
+            <div class="timeline-item timeline-pending">
+                <div class="timeline-icon timeline-icon-disabled">2</div>
+                <div class="timeline-content">
+                    <div class="timeline-title" style="color: #9ca3af;">Pendiente Envío</div>
+                </div>
+            </div>
+            @endif
 
-        <!-- Received -->
-        @if($transfer->received_at)
-        <div class="timeline-item">
-            <div class="timeline-icon received">3</div>
-            <div class="timeline-content">
-                <div class="timeline-title">Recibido</div>
-                <div class="timeline-date">
-                    {{ \Carbon\Carbon::parse($transfer->received_at)->format('d/m/Y H:i') }}
-                    @if($transfer->receivedBy)
-                        - Por: {{ $transfer->receivedBy->name ?? 'Usuario #' . $transfer->received_by }}
+            <!-- Received -->
+            @if($transfer->received_at)
+            <div class="timeline-item timeline-last">
+                <div class="timeline-icon received">3</div>
+                <div class="timeline-content">
+                    <div class="timeline-title">Recibido</div>
+                    <div class="timeline-date">{{ \Carbon\Carbon::parse($transfer->received_at)->format('d/m/Y H:i') }}</div>
+                    @if($transfer->receivedByUser)
+                    <div class="timeline-user">{{ $transfer->receivedByUser->name }}</div>
                     @endif
                 </div>
             </div>
+            @else
+            <div class="timeline-item timeline-pending timeline-last">
+                <div class="timeline-icon timeline-icon-disabled">3</div>
+                <div class="timeline-content">
+                    <div class="timeline-title" style="color: #9ca3af;">Pendiente Recibir</div>
+                </div>
+            </div>
+            @endif
         </div>
-        @endif
     </div>
     @endif
 
@@ -430,6 +605,7 @@
         <p><strong>Documento generado automáticamente por el sistema</strong></p>
         <p>Fecha de generación: {{ now()->format('d/m/Y H:i:s') }}</p>
         <p>ImporRepuestos - Sistema de Gestión de Traslados</p>
+    </div>
     </div>
 </body>
 </html>
