@@ -74,6 +74,7 @@ use App\Http\Controllers\Api\v1\CashRegisterController;
 use App\Http\Controllers\Api\v1\CashOpeningController;
 use App\Http\Controllers\Api\v1\CashMovementController;
 use App\Http\Controllers\Api\v1\CorrelativeController;
+use App\Http\Controllers\Api\v1\TransferController;
 
 
 
@@ -463,6 +464,14 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('inventories-batches/{id}/movements', [InventoriesBatchController::class, 'getMovements']);
     Route::apiResource('inventories-batches', InventoriesBatchController::class);
 
+    #Transfers - Traslados entre almacenes
+    // Transfers - rutas especiales antes del resource
+    Route::get('transfers/batches/available', [TransferController::class, 'getAvailableBatches']);
+    Route::get('transfers/products/common', [TransferController::class, 'getProductsInBothWarehouses']);
+    Route::post('transfers/{id}/send', [TransferController::class, 'send']);
+    Route::post('transfers/{id}/receive', [TransferController::class, 'receive']);
+    Route::post('transfers/{id}/cancel', [TransferController::class, 'cancel']);
+    Route::apiResource('transfers', TransferController::class);
 
     #Customer documents types, customer
     // Estadísticas y acciones grupales de customer-documents-types - DEBEN IR ANTES del apiResource
