@@ -47,6 +47,11 @@ class SalePaymentDetail extends Model
         return $this->belongsTo(SalesHeader::class);
     }
 
+    public function paymentMethod(): BelongsTo
+    {
+        return $this->belongsTo(PaymentMethod::class);
+    }
+
     public function casher(): BelongsTo
     {
         return $this->belongsTo(Employee::class);

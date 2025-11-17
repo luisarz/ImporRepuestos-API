@@ -135,6 +135,11 @@ Route::middleware(['jwt'])->group(function () {
         Route::get('/dtes', [ReportsController::class, 'getDTEsReport']);
         Route::get('/dtes-by-status', [ReportsController::class, 'getDTEsByStatus']);
         Route::get('/dtes-rejected', [ReportsController::class, 'getRejectedDTEs']);
+
+        // Exportación de Reportes
+        Route::get('/{reportType}/export/excel', [ReportsController::class, 'exportToExcel']);
+        Route::get('/{reportType}/export/pdf', [ReportsController::class, 'exportToPDF']);
+        Route::get('/{reportType}/print', [ReportsController::class, 'printReport']);
     });
 
     // ========== PERMISSIONS (NUEVO - Gestión de permisos Spatie) ==========
