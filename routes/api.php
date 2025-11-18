@@ -51,6 +51,7 @@ use App\Http\Controllers\Api\v1\ProviderController;
 use App\Http\Controllers\Api\v1\ProvidersTypeController;
 use App\Http\Controllers\Api\v1\PurchaseItemController;
 use App\Http\Controllers\Api\v1\PurchasesHeaderController;
+use App\Http\Controllers\Api\v1\PurchasePaymentDetailController;
 use App\Http\Controllers\Api\v1\QuotePurchaseController;
 use App\Http\Controllers\Api\v1\QuotePurchaseItemController;
 use App\Http\Controllers\Api\v1\SaleItemController;
@@ -439,6 +440,7 @@ Route::middleware(['jwt'])->group(function () {
 
     #Purchase Header, Items and batches,
     Route::get('purchases-headers/stats/all', [PurchasesHeaderController::class, 'stats']);
+    Route::get('purchases-headers/{id}/print', [PurchasesHeaderController::class, 'printPurchaseOrder']);
     Route::post('purchases-headers/{id}/receive', [PurchasesHeaderController::class, 'receive']);
     Route::post('purchases-headers/{id}/cancel', [PurchasesHeaderController::class, 'cancel']);
     Route::get('purchases-headers/{id}/kardex', [PurchasesHeaderController::class, 'kardexHistory']);
@@ -556,6 +558,15 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('sale-payment-details/register-payment', [SalePaymentDetailController::class, 'registerPayment']);
     Route::get('sale-payment-details/accounts-receivable', [SalePaymentDetailController::class, 'getAccountsReceivable']);
     Route::apiResource('sale-payment-details', SalePaymentDetailController::class);
+
+    // Purchase Payment Details - rutas especiales antes del resource
+    Route::get('purchase-payment-details/purchase/{purchaseId}', [PurchasePaymentDetailController::class, 'getPaymentHistory']);
+    Route::get('purchase-payment-details/print-pdf/{purchaseId}', [PurchasePaymentDetailController::class, 'printPaymentsPDF']);
+    Route::get('purchase-payment-details/print-payment-pdf/{paymentId}', [PurchasePaymentDetailController::class, 'printSinglePaymentPDF']);
+    Route::post('purchase-payment-details/register-payment', [PurchasePaymentDetailController::class, 'registerPayment']);
+    Route::get('purchase-payment-details/accounts-payable', [PurchasePaymentDetailController::class, 'getAccountsPayable']);
+    Route::get('purchase-payment-details/accounts-payable/stats', [PurchasePaymentDetailController::class, 'getAccountsPayableStats']);
+    Route::apiResource('purchase-payment-details', PurchasePaymentDetailController::class);
 
     // History DTEs - rutas especiales antes del resource
     Route::get('history-dtes/stats/all', [HistoryDteController::class, 'getStats']);

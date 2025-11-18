@@ -31,7 +31,8 @@ class PurchasesHeaderController extends Controller
                 [
                     'warehouse:id,name,address,phone,email',
                     'quotePurchase',
-                    'provider:id,comercial_name,document_number,payment_type_id'
+                    'provider:id,comercial_name,document_number,payment_type_id',
+                    'operationCondition:id,code,name'
                 ]
             );
 
@@ -198,6 +199,12 @@ class PurchasesHeaderController extends Controller
 
             // Actualizar estado a "Finalizada"
             $purchase->status_purchase = '2';
+
+            // Si es una compra a crédito, establecer pending_balance = total_purchase
+            if ($purchase->operation_condition_id == 2) {
+                $purchase->pending_balance = $purchase->total_purchase;
+            }
+
             $purchase->save();
 
             DB::commit();
@@ -454,6 +461,41 @@ class PurchasesHeaderController extends Controller
             ], "{$deleted} compras eliminadas exitosamente", 200);
         } catch (\Exception $e) {
             return ApiResponse::error($e->getMessage(), 'Error al eliminar compras', 500);
+        }
+    }
+
+    /**
+     * Generar PDF de orden de compra
+     */
+    public function printPurchaseOrder($id)
+    {
+        try {
+            $purchase = PurchasesHeader::with([
+                'provider:id,comercial_name,legal_name,document_number',
+                'warehouse:id,name',
+                'employee:id,name,last_name',
+                'operationCondition:id,name',
+                'purchaseItems.batches.inventory.product'
+            ])->findOrFail($id);
+
+            $data = [
+                'purchase' => $purchase,
+                'date' => now()->format('d/m/Y H:i:s')
+            ];
+
+            $pdf = \PDF::loadView('pdf.purchase-order', $data);
+            $pdf->setPaper('letter', 'portrait');
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isRemoteEnabled', true);
+
+            return $pdf->stream('Orden_Compra_' . $purchase->purchase_number . '.pdf');
+
+        } catch (\Exception $exception) {
+            \Log::error('Error al generar PDF de orden de compra', [
+                'purchase_id' => $id,
+                'error' => $exception->getMessage()
+            ]);
+            return response()->json(['error' => 'Error al generar el PDF'], 500);
         }
     }
 }
