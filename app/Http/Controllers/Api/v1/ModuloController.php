@@ -267,6 +267,46 @@ class ModuloController extends Controller
     }
 
     /**
+     * Reordenar módulos
+     * POST /api/v1/modulos/reorder
+     * Body: { "modules": [{"id": 1, "orden": 1}, {"id": 2, "orden": 2}] }
+     */
+    public function reorder(Request $request): JsonResponse
+    {
+        try {
+            $modules = $request->input('modules', []);
+
+            if (empty($modules)) {
+                return ApiResponse::error(null, 'No se proporcionaron módulos para reordenar', 400);
+            }
+
+            // Validar estructura
+            foreach ($modules as $module) {
+                if (!isset($module['id']) || !isset($module['orden'])) {
+                    return ApiResponse::error(null, 'Estructura de datos inválida. Cada módulo debe tener id y orden', 400);
+                }
+            }
+
+            // Actualizar orden y padre de cada módulo
+            foreach ($modules as $module) {
+                $updateData = ['orden' => $module['orden']];
+
+                // Si viene id_padre, también actualizarlo
+                if (isset($module['id_padre'])) {
+                    $updateData['id_padre'] = $module['id_padre'];
+                }
+
+                Modulo::where('id', $module['id'])->update($updateData);
+            }
+
+            return ApiResponse::success(null, 'Módulos reordenados exitosamente', 200);
+
+        } catch (\Exception $e) {
+            return ApiResponse::error(null, $e->getMessage(), 500);
+        }
+    }
+
+    /**
      * Determinar tipos de permisos según el tipo de módulo
      */
     private function getPermissionTypesForModule($module): array
