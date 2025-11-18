@@ -552,6 +552,7 @@ Route::middleware(['jwt'])->group(function () {
     // Sale Payment Details - rutas especiales antes del resource
     Route::get('sale-payment-details/sale/{saleId}', [SalePaymentDetailController::class, 'getBySale']);
     Route::get('sale-payment-details/payment-history/{saleId}', [SalePaymentDetailController::class, 'getPaymentHistory']);
+    Route::get('sale-payment-details/print-pdf/{saleId}', [SalePaymentDetailController::class, 'printPaymentsPDF']);
     Route::post('sale-payment-details/register-payment', [SalePaymentDetailController::class, 'registerPayment']);
     Route::get('sale-payment-details/accounts-receivable', [SalePaymentDetailController::class, 'getAccountsReceivable']);
     Route::apiResource('sale-payment-details', SalePaymentDetailController::class);

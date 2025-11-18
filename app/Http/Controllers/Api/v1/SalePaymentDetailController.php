@@ -269,4 +269,63 @@ class SalePaymentDetailController extends Controller
             return ApiResponse::error(null, $exception->getMessage(), 500);
         }
     }
+
+    /**
+     * Generar PDF de reporte de pagos por venta
+     */
+    public function printPaymentsPDF(Request $request, $saleId)
+    {
+        try {
+            // Obtener los pagos de la venta
+            $payments = SalePaymentDetail::with([
+                'sale' => function($query) {
+                    $query->with('customer:id,name,last_name');
+                },
+                'paymentMethod:id,name,code',
+                'casher:id,name,last_name'
+            ])
+            ->where('sale_id', $saleId)
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+            if ($payments->isEmpty()) {
+                return response()->json(['error' => 'No se encontraron pagos para esta venta'], 404);
+            }
+
+            $saleHeader = $payments->first()->sale;
+            $totalPaid = $payments->sum('payment_amount');
+            $saleTotal = $saleHeader->sale_total;
+            $balance = $saleTotal - $totalPaid;
+
+            // Preparar datos para la vista
+            $data = [
+                'sale' => $saleHeader,
+                'payments' => $payments,
+                'totalPaid' => $totalPaid,
+                'saleTotal' => $saleTotal,
+                'balance' => $balance,
+                'paymentsCount' => $payments->count(),
+                'date' => now()->format('d/m/Y H:i:s')
+            ];
+
+            // Generar PDF con configuración de márgenes
+            $pdf = \PDF::loadView('pdf.payment-report', $data);
+            $pdf->setPaper('letter', 'portrait');
+
+            // Configurar opciones de DomPDF
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isRemoteEnabled', true);
+
+            // Retornar el PDF para que se abra en el navegador (stream) en lugar de descargarlo
+            return $pdf->stream('Pagos_Venta_' . $saleHeader->document_internal_number . '.pdf');
+
+        } catch (\Exception $exception) {
+            \Log::error('Error al generar PDF de pagos', [
+                'sale_id' => $saleId,
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Error al generar el PDF: ' . $exception->getMessage()], 500);
+        }
+    }
 }

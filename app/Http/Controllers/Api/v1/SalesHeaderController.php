@@ -229,33 +229,40 @@ class SalesHeaderController extends Controller
             // Crear la venta
             $salesHeader = SalesHeader::create($validated);
 
-            // Guardar los detalles de pago si existen
-            if ($paymentDetails && is_array($paymentDetails) && count($paymentDetails) > 0) {
-                foreach ($paymentDetails as $payment) {
-                    \App\Models\SalePaymentDetail::create([
-                        'sale_id' => $salesHeader->id,
-                        'payment_method_id' => $payment['payment_method_id'],
-                        'payment_amount' => $payment['amount'],
-                        'casher_id' => $validated['seller_id'], // Usar el vendedor como cajero
-                        'bank_account_id' => $payment['bank_account_id'] ?? null,
-                        'reference' => $payment['reference'] ?? null,
-                        'actual_balance' => 0, // Se puede calcular después si hay pagos parciales
-                        'is_active' => true,
-                    ]);
-                }
-            } else {
-                // ===== PAGO ÚNICO: También guardar en sale_payment_details para consistencia =====
-                if (isset($validated['payment_method_id']) && $validated['payment_method_id']) {
-                    \App\Models\SalePaymentDetail::create([
-                        'sale_id' => $salesHeader->id,
-                        'payment_method_id' => $validated['payment_method_id'],
-                        'payment_amount' => $validated['sale_total'],
-                        'casher_id' => $validated['seller_id'],
-                        'bank_account_id' => null,
-                        'reference' => null,
-                        'actual_balance' => 0,
-                        'is_active' => true,
-                    ]);
+            // ===== IMPORTANTE: Solo registrar pagos si NO es venta a crédito =====
+            // operation_condition_id: 1=Contado, 2=A crédito, 3=Otro
+            // Si es crédito (operation_condition_id = 2), NO registrar ningún pago
+            $isCredit = isset($validated['operation_condition_id']) && $validated['operation_condition_id'] == 2;
+
+            if (!$isCredit) {
+                // Guardar los detalles de pago si existen
+                if ($paymentDetails && is_array($paymentDetails) && count($paymentDetails) > 0) {
+                    foreach ($paymentDetails as $payment) {
+                        \App\Models\SalePaymentDetail::create([
+                            'sale_id' => $salesHeader->id,
+                            'payment_method_id' => $payment['payment_method_id'],
+                            'payment_amount' => $payment['amount'],
+                            'casher_id' => $validated['seller_id'], // Usar el vendedor como cajero
+                            'bank_account_id' => $payment['bank_account_id'] ?? null,
+                            'reference' => $payment['reference'] ?? null,
+                            'actual_balance' => 0, // Saldo después de este pago
+                            'is_active' => true,
+                        ]);
+                    }
+                } else {
+                    // ===== PAGO ÚNICO: También guardar en sale_payment_details para consistencia =====
+                    if (isset($validated['payment_method_id']) && $validated['payment_method_id']) {
+                        \App\Models\SalePaymentDetail::create([
+                            'sale_id' => $salesHeader->id,
+                            'payment_method_id' => $validated['payment_method_id'],
+                            'payment_amount' => $validated['sale_total'],
+                            'casher_id' => $validated['seller_id'],
+                            'bank_account_id' => null,
+                            'reference' => null,
+                            'actual_balance' => 0,
+                            'is_active' => true,
+                        ]);
+                    }
                 }
             }
 
@@ -359,34 +366,47 @@ class SalesHeaderController extends Controller
                     'is_cash' => $cashPayment !== null
                 ]);
 
-                // Eliminar payment_details anteriores de esta venta
-                $deletedCount = \App\Models\SalePaymentDetail::where('sale_id', $salesHeader->id)->delete();
-                Log::info('🔵 Payment_details anteriores eliminados', ['count' => $deletedCount]);
+                // ===== IMPORTANTE: Solo registrar pagos si NO es venta a crédito =====
+                // operation_condition_id: 1=Contado, 2=A crédito, 3=Otro
+                $isCredit = isset($validated['operation_condition_id']) && $validated['operation_condition_id'] == 2;
 
-                // Guardar los nuevos detalles de pago
-                foreach ($paymentDetails as $index => $payment) {
-                    Log::info("🔵 Guardando payment_detail #{$index}", $payment);
-                    try {
-                        $paymentDetail = \App\Models\SalePaymentDetail::create([
-                            'sale_id' => $salesHeader->id,
-                            'payment_method_id' => $payment['payment_method_id'],
-                            'payment_amount' => $payment['amount'],
-                            'casher_id' => $validated['seller_id'] ?? $salesHeader->seller_id,
-                            'bank_account_id' => $payment['bank_account_id'] ?? null,
-                            'reference' => $payment['reference'] ?? null,
-                            'actual_balance' => 0,
-                            'is_active' => true,
-                        ]);
-                        Log::info("✅ Payment_detail #{$index} guardado", ['id' => $paymentDetail->id]);
-                    } catch (\Exception $e) {
-                        Log::error("❌ Error guardando payment_detail #{$index}", ['error' => $e->getMessage()]);
-                        throw $e;
+                if (!$isCredit) {
+                    // Eliminar payment_details anteriores de esta venta
+                    $deletedCount = \App\Models\SalePaymentDetail::where('sale_id', $salesHeader->id)->delete();
+                    Log::info('🔵 Payment_details anteriores eliminados', ['count' => $deletedCount]);
+
+                    // Guardar los nuevos detalles de pago
+                    foreach ($paymentDetails as $index => $payment) {
+                        Log::info("🔵 Guardando payment_detail #{$index}", $payment);
+                        try {
+                            $paymentDetail = \App\Models\SalePaymentDetail::create([
+                                'sale_id' => $salesHeader->id,
+                                'payment_method_id' => $payment['payment_method_id'],
+                                'payment_amount' => $payment['amount'],
+                                'casher_id' => $validated['seller_id'] ?? $salesHeader->seller_id,
+                                'bank_account_id' => $payment['bank_account_id'] ?? null,
+                                'reference' => $payment['reference'] ?? null,
+                                'actual_balance' => 0,
+                                'is_active' => true,
+                            ]);
+                            Log::info("✅ Payment_detail #{$index} guardado", ['id' => $paymentDetail->id]);
+                        } catch (\Exception $e) {
+                            Log::error("❌ Error guardando payment_detail #{$index}", ['error' => $e->getMessage()]);
+                            throw $e;
+                        }
                     }
+                } else {
+                    // Si es crédito, eliminar cualquier pago existente
+                    $deletedCount = \App\Models\SalePaymentDetail::where('sale_id', $salesHeader->id)->delete();
+                    Log::info('🔵 Venta a crédito - Payment_details eliminados', ['count' => $deletedCount]);
                 }
             } else {
                 // ===== PAGO ÚNICO: También guardar en sale_payment_details para consistencia =====
                 // Esto facilita el cierre de caja y reportes al tener TODOS los pagos en un solo lugar
-                if (isset($validated['payment_method_id']) && $validated['payment_method_id']) {
+                // operation_condition_id: 1=Contado, 2=A crédito, 3=Otro
+                $isCredit = isset($validated['operation_condition_id']) && $validated['operation_condition_id'] == 2;
+
+                if (!$isCredit && isset($validated['payment_method_id']) && $validated['payment_method_id']) {
                     Log::info('🔵 Pago único detectado, guardando en payment_details', [
                         'payment_method_id' => $validated['payment_method_id']
                     ]);
@@ -412,6 +432,10 @@ class SalesHeaderController extends Controller
                         Log::error('❌ Error guardando pago único', ['error' => $e->getMessage()]);
                         throw $e;
                     }
+                } else if ($isCredit) {
+                    // Si es crédito, eliminar cualquier pago existente
+                    $deletedCount = \App\Models\SalePaymentDetail::where('sale_id', $salesHeader->id)->delete();
+                    Log::info('🔵 Venta a crédito - Payment_details eliminados', ['count' => $deletedCount]);
                 }
             }
 
