@@ -19,7 +19,14 @@ class SalePaymentDetailController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $query = SalePaymentDetail::with(['sale', 'paymentMethod', 'casher']);
+            $query = SalePaymentDetail::with([
+                'sale' => function($query) {
+                    $query->select('id', 'document_internal_number', 'sale_total', 'sale_date', 'sale_status', 'payment_status', 'customer_id')
+                        ->with('customer:id,name,last_name');
+                },
+                'paymentMethod:id,name,code',
+                'casher:id,first_name,last_name'
+            ]);
 
             // Filtro por venta
             if ($request->has('sale_id')) {
@@ -27,8 +34,9 @@ class SalePaymentDetailController extends Controller
             }
 
             // Filtro por método de pago
-            if ($request->has('payment_method_id')) {
-                $query->where('payment_method_id', $request->input('payment_method_id'));
+            if ($request->has('payment_method') || $request->has('payment_method_id')) {
+                $methodId = $request->input('payment_method') ?? $request->input('payment_method_id');
+                $query->where('payment_method_id', $methodId);
             }
 
             // Filtro por rango de fechas
@@ -44,7 +52,31 @@ class SalePaymentDetailController extends Controller
                 });
             }
 
+            // Búsqueda por texto
+            if ($request->has('search') && $request->input('search')) {
+                $search = $request->input('search');
+                $query->where(function($q) use ($search) {
+                    $q->where('reference', 'like', "%{$search}%")
+                      ->orWhereHas('sale', function($sq) use ($search) {
+                          $sq->where('document_internal_number', 'like', "%{$search}%")
+                             ->orWhereHas('customer', function($cq) use ($search) {
+                                 $cq->where('name', 'like', "%{$search}%")
+                                    ->orWhere('last_name', 'like', "%{$search}%");
+                             });
+                      });
+                });
+            }
+
             $salePaymentDetails = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+            // Transformar la respuesta para incluir sale_header en lugar de sale
+            $salePaymentDetails->getCollection()->transform(function($payment) {
+                $payment->sale_header = $payment->sale;
+                $payment->amount = $payment->payment_amount;
+                unset($payment->sale);
+                return $payment;
+            });
+
             return ApiResponse::success($salePaymentDetails,'Detalles de pago recuperados', 200);
 
         }catch (\Exception $exception){
@@ -120,9 +152,26 @@ class SalePaymentDetailController extends Controller
         return new SalePaymentDetailResource($salePaymentDetail);
     }
 
-    public function show(Request $request, SalePaymentDetail $salePaymentDetail): Response
+    public function show(Request $request, SalePaymentDetail $salePaymentDetail): JsonResponse
     {
-        return new SalePaymentDetailResource($salePaymentDetail);
+        try {
+            $payment = SalePaymentDetail::with([
+                'sale' => function($query) {
+                    $query->with('customer:id,name,last_name');
+                },
+                'paymentMethod:id,name,code',
+                'casher:id,first_name,last_name'
+            ])->findOrFail($salePaymentDetail->id);
+
+            // Transformar sale a sale_header y payment_amount a amount
+            $payment->sale_header = $payment->sale;
+            $payment->amount = $payment->payment_amount;
+            unset($payment->sale);
+
+            return ApiResponse::success($payment, 'Detalle de pago recuperado', 200);
+        } catch (\Exception $exception) {
+            return ApiResponse::error(null, $exception->getMessage(), 500);
+        }
     }
 
     public function update(SalePaymentDetailUpdateRequest $request, SalePaymentDetail $salePaymentDetail): Response
