@@ -73,6 +73,7 @@ use App\Http\Controllers\Api\v1\SenEmailDTEController;
 use App\Http\Controllers\Api\v1\CashRegisterController;
 use App\Http\Controllers\Api\v1\CashOpeningController;
 use App\Http\Controllers\Api\v1\CashMovementController;
+use App\Http\Controllers\Api\v1\DailyClosureController;
 use App\Http\Controllers\Api\v1\CorrelativeController;
 use App\Http\Controllers\Api\v1\TransferController;
 
@@ -167,6 +168,7 @@ Route::middleware(['jwt'])->group(function () {
     Route::post('modulos/bulk/activate', [ModuloController::class, 'bulkActivate']);
     Route::post('modulos/bulk/deactivate', [ModuloController::class, 'bulkDeactivate']);
     Route::post('modulos/bulk/delete', [ModuloController::class, 'bulkDelete']);
+    Route::post('modulos/reorder', [ModuloController::class, 'reorder']);
     Route::apiResource('modulos', ModuloController::class);
     Route::get('modulos-all', [ModuloController::class, 'getAll']);
 
@@ -549,8 +551,9 @@ Route::middleware(['jwt'])->group(function () {
 
     // Sale Payment Details - rutas especiales antes del resource
     Route::get('sale-payment-details/sale/{saleId}', [SalePaymentDetailController::class, 'getBySale']);
-    Route::post('sale-payment-details/create-multiple', [SalePaymentDetailController::class, 'createMultiple']);
-    Route::post('sale-payment-details/validate-payments', [SalePaymentDetailController::class, 'validatePayments']);
+    Route::get('sale-payment-details/payment-history/{saleId}', [SalePaymentDetailController::class, 'getPaymentHistory']);
+    Route::post('sale-payment-details/register-payment', [SalePaymentDetailController::class, 'registerPayment']);
+    Route::get('sale-payment-details/accounts-receivable', [SalePaymentDetailController::class, 'getAccountsReceivable']);
     Route::apiResource('sale-payment-details', SalePaymentDetailController::class);
 
     // History DTEs - rutas especiales antes del resource
@@ -623,6 +626,12 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('cash-movements/stats/all', [CashMovementController::class, 'stats']);
     Route::get('cash-movements/by-opening/{openingId}', [CashMovementController::class, 'getByOpening']);
     Route::apiResource('cash-movements', CashMovementController::class);
+
+    // ========== DAILY CLOSURE (Cierre Diario de Caja) ==========
+    Route::get('daily-closure/supervisors', [DailyClosureController::class, 'getSupervisors']);
+    Route::get('daily-closure/{id}', [DailyClosureController::class, 'show']);
+    Route::post('daily-closure/{id}/close', [DailyClosureController::class, 'closeWithDenominations']);
+    Route::get('daily-closure/{id}/pdf', [DailyClosureController::class, 'generatePDF']);
 
     // ========== CORRELATIVES (Correlativos) ==========
     Route::get('correlatives/stats/all', [CorrelativeController::class, 'stats']);

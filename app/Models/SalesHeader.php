@@ -143,5 +143,10 @@ class SalesHeader extends Model
         return $this->belongsTo(\App\Models\CashRegister::class, 'cash_register_id');
     }
 
+    public function paymentDetails(): HasMany
+    {
+        return $this->hasMany(\App\Models\SalePaymentDetail::class, 'sale_id');
+    }
+
 
 }

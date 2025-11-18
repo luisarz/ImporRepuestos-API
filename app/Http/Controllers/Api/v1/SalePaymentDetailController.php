@@ -19,28 +19,28 @@ class SalePaymentDetailController extends Controller
     {
         try {
             $perPage = $request->input('per_page', 10);
-            $query = SalePaymentDetail::with(['salesHeader', 'paymentMethod']);
+            $query = SalePaymentDetail::with(['sale', 'paymentMethod', 'casher']);
 
             // Filtro por venta
             if ($request->has('sale_id')) {
-                $query->where('id_sale', $request->input('sale_id'));
+                $query->where('sale_id', $request->input('sale_id'));
             }
 
             // Filtro por método de pago
             if ($request->has('payment_method_id')) {
-                $query->where('id_payment_method', $request->input('payment_method_id'));
+                $query->where('payment_method_id', $request->input('payment_method_id'));
             }
 
             // Filtro por rango de fechas
             if ($request->has('date_from')) {
-                $query->whereHas('salesHeader', function($q) use ($request) {
-                    $q->whereDate('date', '>=', $request->input('date_from'));
+                $query->whereHas('sale', function($q) use ($request) {
+                    $q->whereDate('sale_date', '>=', $request->input('date_from'));
                 });
             }
 
             if ($request->has('date_to')) {
-                $query->whereHas('salesHeader', function($q) use ($request) {
-                    $q->whereDate('date', '<=', $request->input('date_to'));
+                $query->whereHas('sale', function($q) use ($request) {
+                    $q->whereDate('sale_date', '<=', $request->input('date_to'));
                 });
             }
 
@@ -58,8 +58,9 @@ class SalePaymentDetailController extends Controller
     public function getBySale(Request $request, $saleId): JsonResponse
     {
         try {
-            $payments = SalePaymentDetail::with(['paymentMethod'])
-                ->where('id_sale', $saleId)
+            $payments = SalePaymentDetail::with(['paymentMethod', 'casher'])
+                ->where('sale_id', $saleId)
+                ->orderBy('created_at', 'desc')
                 ->get();
 
             return ApiResponse::success($payments, 'Detalles de pago por venta', 200);
@@ -69,31 +70,27 @@ class SalePaymentDetailController extends Controller
     }
 
     /**
-     * Crear múltiples detalles de pago
+     * Registrar un pago/abono para una venta a crédito
      */
-    public function createMultiple(Request $request): JsonResponse
+    public function registerPayment(Request $request): JsonResponse
     {
         try {
             $request->validate([
-                'id_sale' => 'required|exists:sales_headers,id',
-                'payments' => 'required|array|min:1',
-                'payments.*.id_payment_method' => 'required|exists:payment_methods,id',
-                'payments.*.amount' => 'required|numeric|min:0.01',
-                'payments.*.reference' => 'nullable|string|max:255',
+                'sale_id' => 'required|exists:sales_headers,id',
+                'payment_method_id' => 'required|exists:payment_methods,id',
+                'payment_amount' => 'required|numeric|min:0.01',
+                'casher_id' => 'required|exists:employees,id',
+                'bank_account_id' => 'nullable|exists:bank_accounts,id',
+                'reference' => 'nullable|string|max:255',
             ]);
 
-            $payments = [];
-            foreach ($request->payments as $paymentData) {
-                $payment = SalePaymentDetail::create([
-                    'id_sale' => $request->id_sale,
-                    'id_payment_method' => $paymentData['id_payment_method'],
-                    'amount' => $paymentData['amount'],
-                    'reference' => $paymentData['reference'] ?? null,
-                ]);
-                $payments[] = $payment;
-            }
+            $salesService = new \App\Services\SalesService();
+            $payment = $salesService->registerPayment(
+                $request->sale_id,
+                $request->only(['payment_method_id', 'payment_amount', 'casher_id', 'bank_account_id', 'reference'])
+            );
 
-            return ApiResponse::success($payments, 'Detalles de pago creados exitosamente', 201);
+            return ApiResponse::success($payment, 'Pago registrado exitosamente', 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return ApiResponse::error($e->errors(), 'Error de validación', 422);
         } catch (\Exception $exception) {
@@ -102,36 +99,15 @@ class SalePaymentDetailController extends Controller
     }
 
     /**
-     * Validar que los pagos cubran el total de la venta
+     * Obtener historial de pagos de una venta
      */
-    public function validatePayments(Request $request): JsonResponse
+    public function getPaymentHistory(Request $request, $saleId): JsonResponse
     {
         try {
-            $request->validate([
-                'id_sale' => 'required|exists:sales_headers,id',
-                'payments' => 'required|array|min:1',
-                'payments.*.amount' => 'required|numeric|min:0.01',
-            ]);
+            $salesService = new \App\Services\SalesService();
+            $history = $salesService->getPaymentHistory($saleId);
 
-            // Obtener el total de la venta
-            $sale = \App\Models\SalesHeader::findOrFail($request->id_sale);
-            $saleTotal = $sale->total;
-
-            // Calcular el total de los pagos
-            $paymentsTotal = collect($request->payments)->sum('amount');
-
-            $validation = [
-                'sale_total' => $saleTotal,
-                'payments_total' => $paymentsTotal,
-                'difference' => $paymentsTotal - $saleTotal,
-                'is_valid' => abs($paymentsTotal - $saleTotal) < 0.01, // Tolerancia de 1 centavo
-                'is_complete' => $paymentsTotal >= $saleTotal,
-                'change' => max(0, $paymentsTotal - $saleTotal),
-            ];
-
-            return ApiResponse::success($validation, 'Validación de pagos', 200);
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return ApiResponse::error($e->errors(), 'Error de validación', 422);
+            return ApiResponse::success($history, 'Historial de pagos', 200);
         } catch (\Exception $exception) {
             return ApiResponse::error(null, $exception->getMessage(), 500);
         }
@@ -161,5 +137,21 @@ class SalePaymentDetailController extends Controller
         $salePaymentDetail->delete();
 
         return response()->noContent();
+    }
+
+    /**
+     * Obtener cuentas por cobrar (ventas pendientes de pago)
+     */
+    public function getAccountsReceivable(Request $request): JsonResponse
+    {
+        try {
+            $filters = $request->only(['customer_id', 'warehouse_id', 'overdue_only']);
+            $salesService = new \App\Services\SalesService();
+            $accountsReceivable = $salesService->getAccountsReceivable($filters);
+
+            return ApiResponse::success($accountsReceivable, 'Cuentas por cobrar', 200);
+        } catch (\Exception $exception) {
+            return ApiResponse::error(null, $exception->getMessage(), 500);
+        }
     }
 }
