@@ -36,8 +36,8 @@ class SalePaymentDetail extends Model
         'sale_id' => 'integer',
         'payment_method_id' => 'integer',
         'casher_id' => 'integer',
-        'payment_amount' => 'decimal',
-        'actual_balance' => 'decimal',
+        'payment_amount' => 'decimal:2',
+        'actual_balance' => 'decimal:2',
         'bank_account_id' => 'integer',
         'is_active' => 'boolean',
     ];

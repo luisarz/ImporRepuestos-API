@@ -25,7 +25,7 @@ class SalePaymentDetailController extends Controller
                         ->with('customer:id,name,last_name');
                 },
                 'paymentMethod:id,name,code',
-                'casher:id,first_name,last_name'
+                'casher:id,name,last_name'
             ]);
 
             // Filtro por venta
@@ -67,19 +67,85 @@ class SalePaymentDetailController extends Controller
                 });
             }
 
-            $salePaymentDetails = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            // Verificar si se solicita agrupación por venta
+            $grouped = $request->input('grouped', false);
 
-            // Transformar la respuesta para incluir sale_header en lugar de sale
-            $salePaymentDetails->getCollection()->transform(function($payment) {
-                $payment->sale_header = $payment->sale;
-                $payment->amount = $payment->payment_amount;
-                unset($payment->sale);
-                return $payment;
-            });
+            if ($grouped) {
+                // Obtener todos los pagos (sin paginación para agrupar)
+                $allPayments = $query->orderBy('created_at', 'desc')->get();
 
-            return ApiResponse::success($salePaymentDetails,'Detalles de pago recuperados', 200);
+                // Agrupar por sale_id
+                $groupedBySale = $allPayments->groupBy('sale_id')->map(function($payments, $saleId) {
+                    $firstPayment = $payments->first();
+
+                    return [
+                        'sale_id' => $saleId,
+                        'sale_header' => $firstPayment->sale,
+                        'payments' => $payments->map(function($payment) {
+                            return [
+                                'id' => $payment->id,
+                                'payment_method' => $payment->paymentMethod,
+                                'payment_method_id' => $payment->payment_method_id,
+                                'casher' => $payment->casher,
+                                'casher_id' => $payment->casher_id,
+                                'amount' => $payment->payment_amount,
+                                'payment_amount' => $payment->payment_amount,
+                                'reference' => $payment->reference,
+                                'bank_account_id' => $payment->bank_account_id,
+                                'actual_balance' => $payment->actual_balance,
+                                'created_at' => $payment->created_at,
+                                'updated_at' => $payment->updated_at,
+                            ];
+                        })->values(),
+                        'payments_count' => $payments->count(),
+                        'total_paid' => $payments->sum('payment_amount'),
+                        'first_payment_date' => $payments->min('created_at'),
+                        'last_payment_date' => $payments->max('created_at'),
+                    ];
+                })->values();
+
+                // Paginar los grupos manualmente
+                $currentPage = $request->input('page', 1);
+                $pagedData = $groupedBySale->slice(($currentPage - 1) * $perPage, $perPage)->values();
+
+                $paginator = new \Illuminate\Pagination\LengthAwarePaginator(
+                    $pagedData,
+                    $groupedBySale->count(),
+                    $perPage,
+                    $currentPage,
+                    ['path' => $request->url(), 'query' => $request->query()]
+                );
+
+                return ApiResponse::success($paginator, 'Pagos agrupados por venta', 200);
+            } else {
+                // Respuesta normal sin agrupar
+                $salePaymentDetails = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
+                // Transformar la respuesta para incluir sale_header en lugar de sale
+                $salePaymentDetails->getCollection()->transform(function($payment) {
+                    try {
+                        $payment->sale_header = $payment->sale;
+                        $payment->amount = $payment->payment_amount;
+                        unset($payment->sale);
+                        return $payment;
+                    } catch (\Exception $e) {
+                        \Log::error('Error transformando payment detail', [
+                            'payment_id' => $payment->id,
+                            'error' => $e->getMessage(),
+                            'trace' => $e->getTraceAsString()
+                        ]);
+                        return $payment;
+                    }
+                });
+
+                return ApiResponse::success($salePaymentDetails,'Detalles de pago recuperados', 200);
+            }
 
         }catch (\Exception $exception){
+            \Log::error('Error en SalePaymentDetailController@index', [
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString()
+            ]);
             return ApiResponse::error(null,$exception->getMessage(),500);
         }
     }
@@ -160,7 +226,7 @@ class SalePaymentDetailController extends Controller
                     $query->with('customer:id,name,last_name');
                 },
                 'paymentMethod:id,name,code',
-                'casher:id,first_name,last_name'
+                'casher:id,name,last_name'
             ])->findOrFail($salePaymentDetail->id);
 
             // Transformar sale a sale_header y payment_amount a amount
