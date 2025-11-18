@@ -19,6 +19,8 @@ class CashOpening extends Model
     protected $fillable = [
         'cash_register_id',
         'user_id',
+        'closing_user_id',
+        'authorized_by',
         'opened_at',
         'closed_at',
         'opening_amount',
@@ -27,6 +29,8 @@ class CashOpening extends Model
         'difference_amount',
         'opening_notes',
         'closing_notes',
+        'authorization_notes',
+        'closure_pdf_path',
         'status',
     ];
 
@@ -39,6 +43,8 @@ class CashOpening extends Model
         'id' => 'integer',
         'cash_register_id' => 'integer',
         'user_id' => 'integer',
+        'closing_user_id' => 'integer',
+        'authorized_by' => 'integer',
         'opened_at' => 'datetime',
         'closed_at' => 'datetime',
         'opening_amount' => 'decimal:2',
@@ -69,6 +75,30 @@ class CashOpening extends Model
     public function cashMovements(): HasMany
     {
         return $this->hasMany(CashMovement::class);
+    }
+
+    /**
+     * Relación con CashDenominationCounts (Conteo de Denominaciones)
+     */
+    public function denominationCounts(): HasMany
+    {
+        return $this->hasMany(CashDenominationCount::class);
+    }
+
+    /**
+     * Usuario que cerró la caja (puede ser diferente del que la abrió)
+     */
+    public function closingUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'closing_user_id');
+    }
+
+    /**
+     * Usuario que autorizó el cierre (en caso de diferencias)
+     */
+    public function authorizedByUser(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'authorized_by');
     }
 
     /**
