@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\v1;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Services\CashService;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -72,9 +73,31 @@ class DailyClosureController extends Controller
         try {
             $report = $this->cashService->getDetailedCashReport($id);
 
-            // TODO: Implementar generación de PDF
-            // Por ahora retornamos el reporte en JSON
-            return ApiResponse::success($report, 'Reporte generado (PDF pendiente de implementación)', 200);
+            // Verificar que la caja esté cerrada
+            if ($report['opening']->status !== 'closed') {
+                return ApiResponse::error(null, 'Solo se puede generar PDF de cajas cerradas', 400);
+            }
+
+            // Generar PDF con opciones específicas
+            $pdf = Pdf::loadView('pdfs.cash-closure', $report);
+
+            // Configurar opciones de dompdf
+            $pdf->setOptions([
+                'isHtml5ParserEnabled' => true,
+                'isRemoteEnabled' => false,
+                'defaultFont' => 'sans-serif',
+                'dpi' => 96,
+                'enable_php' => false,
+            ]);
+
+            // Configurar tamaño de papel (letter = 8.5" x 11")
+            $pdf->setPaper('letter', 'portrait');
+
+            $filename = 'cierre-caja-' . $report['opening']->id . '-' . date('Y-m-d') . '.pdf';
+
+            return $pdf->download($filename);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return ApiResponse::error(null, 'Cierre de caja no encontrado', 404);
         } catch (\Exception $e) {
             return ApiResponse::error(null, $e->getMessage(), 500);
         }

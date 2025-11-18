@@ -189,7 +189,7 @@ class CashService
         ])->findOrFail($openingId);
 
         // Obtener ventas durante esta apertura
-        $sales = SalesHeader::with(['paymentDetails.paymentMethod', 'paymentMethod'])
+        $sales = SalesHeader::with(['paymentDetails.paymentMethod', 'paymentMethod', 'documentType', 'dteProcesado'])
             ->whereBetween('created_at', [
                 $opening->opened_at,
                 $opening->closed_at ?? Carbon::now()
@@ -213,7 +213,8 @@ class CashService
                         $salesByPaymentMethod[$methodName] = [
                             'count' => 0,
                             'total' => 0,
-                            'method_id' => $payment->payment_method_id
+                            'method_id' => $payment->payment_method_id,
+                            'code' => $methodCode
                         ];
                     }
 
@@ -234,7 +235,8 @@ class CashService
                     $salesByPaymentMethod[$methodName] = [
                         'count' => 0,
                         'total' => 0,
-                        'method_id' => $sale->payment_method_id
+                        'method_id' => $sale->payment_method_id,
+                        'code' => $methodCode
                     ];
                 }
 
@@ -251,6 +253,9 @@ class CashService
         // Calcular efectivo esperado
         $expectedCash = $this->calculateExpectedCash($opening, $totalCashSales);
 
+        // Obtener documentos DTE vendidos agrupados por tipo
+        $dteDocuments = $this->getDteDocumentsSummary($sales);
+
         return [
             'opening' => $opening,
             'summary' => $opening->getMovementsSummary(),
@@ -265,6 +270,7 @@ class CashService
                 'counted_cash' => $opening->closing_amount ?? 0,
                 'denominations' => $opening->denominationCounts->groupBy('type')
             ],
+            'dte_documents' => $dteDocuments,
             'expected_amount' => $opening->calculateExpectedAmount(),
         ];
     }
@@ -381,5 +387,59 @@ class CashService
         }
 
         return $query->orderBy('movement_date', 'desc')->get();
+    }
+
+    /**
+     * Obtener resumen de documentos DTE vendidos
+     */
+    private function getDteDocumentsSummary($sales)
+    {
+        $dteDocuments = [];
+
+        // Filtrar solo ventas que son DTE y que tienen historial procesado
+        $dteSales = $sales->where('is_dte', true)->filter(function($sale) {
+            return $sale->dteProcesado !== null;
+        });
+
+        // Agrupar por tipo de documento
+        $groupedByType = $dteSales->groupBy('document_type_id');
+
+        foreach ($groupedByType as $documentTypeId => $salesGroup) {
+            // Obtener el tipo de documento
+            $documentType = $salesGroup->first()->documentType;
+
+            if (!$documentType) {
+                continue;
+            }
+
+            // Ordenar por número de control (num_control) para obtener el rango
+            $sortedSales = $salesGroup->sortBy(function($sale) {
+                return $sale->dteProcesado->num_control ?? '';
+            });
+
+            $firstSale = $sortedSales->first();
+            $lastSale = $sortedSales->last();
+
+            // Usar el número de control (num_control) del DTE procesado
+            $firstNumber = $firstSale->dteProcesado->num_control ?? 'N/A';
+            $lastNumber = $lastSale->dteProcesado->num_control ?? 'N/A';
+            $count = $salesGroup->count();
+
+            $dteDocuments[] = [
+                'code' => $documentType->code,
+                'name' => $documentType->name,
+                'count' => $count,
+                'first_number' => $firstNumber,
+                'last_number' => $lastNumber,
+                'total' => $salesGroup->sum('sale_total')
+            ];
+        }
+
+        // Ordenar por código de documento
+        usort($dteDocuments, function($a, $b) {
+            return strcmp($a['code'], $b['code']);
+        });
+
+        return $dteDocuments;
     }
 }
