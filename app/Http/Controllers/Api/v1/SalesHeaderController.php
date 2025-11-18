@@ -153,6 +153,8 @@ class SalesHeaderController extends Controller
     public function store(SalesHeaderStoreRequest $request): JsonResponse
     {
         try {
+            DB::beginTransaction();
+
             $validated = $request->validated();
 
             // Validar que exista una caja abierta en la sucursal
@@ -179,9 +181,89 @@ class SalesHeaderController extends Controller
             // Este número se asignará definitivamente cuando se envíe el DTE desde el correlativo
             $validated['document_internal_number'] = 0;
 
+            // ===== SISTEMA DE PAGOS DIVIDIDOS =====
+            // Si vienen payment_details, procesarlos
+            $paymentDetails = $validated['payment_details'] ?? null;
+            unset($validated['payment_details']); // Remover del array para no intentar insertarlo en sales_headers
+
+            // Si hay pagos divididos, determinar el método principal para el DTE
+            if ($paymentDetails && is_array($paymentDetails) && count($paymentDetails) > 0) {
+                // Validar que la suma de pagos coincida con el total de venta
+                $totalPayments = array_reduce($paymentDetails, function($carry, $payment) {
+                    return $carry + ($payment['amount'] ?? 0);
+                }, 0);
+
+                if (abs($totalPayments - $validated['sale_total']) > 0.01) {
+                    DB::rollBack();
+                    return ApiResponse::error(
+                        ['payment_mismatch' => "La suma de pagos ($" . number_format($totalPayments, 2) . ") no coincide con el total de venta ($" . number_format($validated['sale_total'], 2) . ")"],
+                        'La suma de los métodos de pago no coincide con el total de la venta',
+                        422
+                    );
+                }
+
+                // Determinar el método principal para DTE:
+                // Prioridad: 1) Efectivo si existe, 2) El de mayor monto
+                $mainPayment = null;
+                $cashPayment = null;
+
+                foreach ($paymentDetails as $payment) {
+                    // Buscar si hay efectivo (código 01 según catálogo MH)
+                    $paymentMethod = \App\Models\PaymentMethod::find($payment['payment_method_id']);
+                    if ($paymentMethod && $paymentMethod->code === '01') {
+                        $cashPayment = $payment;
+                        break;
+                    }
+
+                    // Encontrar el de mayor monto
+                    if (!$mainPayment || $payment['amount'] > $mainPayment['amount']) {
+                        $mainPayment = $payment;
+                    }
+                }
+
+                // Usar efectivo si existe, si no, el de mayor monto
+                $primaryPayment = $cashPayment ?? $mainPayment;
+                $validated['payment_method_id'] = $primaryPayment['payment_method_id'];
+            }
+
+            // Crear la venta
             $salesHeader = SalesHeader::create($validated);
-            return ApiResponse::success($salesHeader, 'Venta creada con éxito', 201);
+
+            // Guardar los detalles de pago si existen
+            if ($paymentDetails && is_array($paymentDetails) && count($paymentDetails) > 0) {
+                foreach ($paymentDetails as $payment) {
+                    \App\Models\SalePaymentDetail::create([
+                        'sale_id' => $salesHeader->id,
+                        'payment_method_id' => $payment['payment_method_id'],
+                        'payment_amount' => $payment['amount'],
+                        'casher_id' => $validated['seller_id'], // Usar el vendedor como cajero
+                        'bank_account_id' => $payment['bank_account_id'] ?? null,
+                        'reference' => $payment['reference'] ?? null,
+                        'actual_balance' => 0, // Se puede calcular después si hay pagos parciales
+                        'is_active' => true,
+                    ]);
+                }
+            } else {
+                // ===== PAGO ÚNICO: También guardar en sale_payment_details para consistencia =====
+                if (isset($validated['payment_method_id']) && $validated['payment_method_id']) {
+                    \App\Models\SalePaymentDetail::create([
+                        'sale_id' => $salesHeader->id,
+                        'payment_method_id' => $validated['payment_method_id'],
+                        'payment_amount' => $validated['sale_total'],
+                        'casher_id' => $validated['seller_id'],
+                        'bank_account_id' => null,
+                        'reference' => null,
+                        'actual_balance' => 0,
+                        'is_active' => true,
+                    ]);
+                }
+            }
+
+            DB::commit();
+            return ApiResponse::success($salesHeader->load('paymentDetails.paymentMethod'), 'Venta creada con éxito', 201);
+
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }
@@ -208,19 +290,152 @@ class SalesHeaderController extends Controller
     public function update(SalesHeaderUpdateRequest $request, $id): JsonResponse
     {
         try {
+            DB::beginTransaction();
+
             $salesHeader = SalesHeader::findOrFail($id);
 
             $validated = $request->validated();
+
+            // DEBUG: Ver qué está llegando
+            Log::info('💳 SalesHeaderController.update() - Request completo:', $request->all());
+            Log::info('💳 Validated payment_details:', ['payment_details' => $validated['payment_details'] ?? null]);
 
             // PROTECCIÓN: No permitir modificar document_internal_number desde el frontend
             // Solo el backend puede asignar este valor al generar el DTE
             unset($validated['document_internal_number']);
 
+            // ===== SISTEMA DE PAGOS DIVIDIDOS (para actualización) =====
+            $paymentDetails = $validated['payment_details'] ?? null;
+            unset($validated['payment_details']); // Remover del array para no intentar insertarlo en sales_headers
+
+            // Si hay pagos divididos, procesarlos
+            if ($paymentDetails && is_array($paymentDetails) && count($paymentDetails) > 0) {
+                Log::info('🔵 Iniciando procesamiento de pagos múltiples', ['count' => count($paymentDetails)]);
+
+                // Validar que la suma de pagos coincida con el total de venta
+                $totalPayments = array_reduce($paymentDetails, function($carry, $payment) {
+                    return $carry + ($payment['amount'] ?? 0);
+                }, 0);
+
+                Log::info('🔵 Suma de pagos calculada', [
+                    'totalPayments' => $totalPayments,
+                    'sale_total' => $validated['sale_total'],
+                    'difference' => abs($totalPayments - $validated['sale_total'])
+                ]);
+
+                if (abs($totalPayments - $validated['sale_total']) > 0.01) {
+                    DB::rollBack();
+                    Log::error('❌ Validación de suma falló');
+                    return ApiResponse::error(
+                        ['payment_mismatch' => "La suma de pagos ($" . number_format($totalPayments, 2) . ") no coincide con el total de venta ($" . number_format($validated['sale_total'], 2) . ")"],
+                        'La suma de los métodos de pago no coincide con el total de la venta',
+                        422
+                    );
+                }
+
+                Log::info('✅ Validación de suma pasó');
+
+                // Determinar el método principal para DTE
+                $mainPayment = null;
+                $cashPayment = null;
+
+                foreach ($paymentDetails as $payment) {
+                    $paymentMethod = \App\Models\PaymentMethod::find($payment['payment_method_id']);
+                    if ($paymentMethod && $paymentMethod->code === '01') {
+                        $cashPayment = $payment;
+                        break;
+                    }
+
+                    if (!$mainPayment || $payment['amount'] > $mainPayment['amount']) {
+                        $mainPayment = $payment;
+                    }
+                }
+
+                $primaryPayment = $cashPayment ?? $mainPayment;
+                $validated['payment_method_id'] = $primaryPayment['payment_method_id'];
+
+                Log::info('🔵 Método principal seleccionado para DTE', [
+                    'payment_method_id' => $primaryPayment['payment_method_id'],
+                    'is_cash' => $cashPayment !== null
+                ]);
+
+                // Eliminar payment_details anteriores de esta venta
+                $deletedCount = \App\Models\SalePaymentDetail::where('sale_id', $salesHeader->id)->delete();
+                Log::info('🔵 Payment_details anteriores eliminados', ['count' => $deletedCount]);
+
+                // Guardar los nuevos detalles de pago
+                foreach ($paymentDetails as $index => $payment) {
+                    Log::info("🔵 Guardando payment_detail #{$index}", $payment);
+                    try {
+                        $paymentDetail = \App\Models\SalePaymentDetail::create([
+                            'sale_id' => $salesHeader->id,
+                            'payment_method_id' => $payment['payment_method_id'],
+                            'payment_amount' => $payment['amount'],
+                            'casher_id' => $validated['seller_id'] ?? $salesHeader->seller_id,
+                            'bank_account_id' => $payment['bank_account_id'] ?? null,
+                            'reference' => $payment['reference'] ?? null,
+                            'actual_balance' => 0,
+                            'is_active' => true,
+                        ]);
+                        Log::info("✅ Payment_detail #{$index} guardado", ['id' => $paymentDetail->id]);
+                    } catch (\Exception $e) {
+                        Log::error("❌ Error guardando payment_detail #{$index}", ['error' => $e->getMessage()]);
+                        throw $e;
+                    }
+                }
+            } else {
+                // ===== PAGO ÚNICO: También guardar en sale_payment_details para consistencia =====
+                // Esto facilita el cierre de caja y reportes al tener TODOS los pagos en un solo lugar
+                if (isset($validated['payment_method_id']) && $validated['payment_method_id']) {
+                    Log::info('🔵 Pago único detectado, guardando en payment_details', [
+                        'payment_method_id' => $validated['payment_method_id']
+                    ]);
+
+                    // Eliminar payment_details anteriores de esta venta
+                    $deletedCount = \App\Models\SalePaymentDetail::where('sale_id', $salesHeader->id)->delete();
+                    Log::info('🔵 Payment_details anteriores eliminados', ['count' => $deletedCount]);
+
+                    // Guardar el pago único
+                    try {
+                        $paymentDetail = \App\Models\SalePaymentDetail::create([
+                            'sale_id' => $salesHeader->id,
+                            'payment_method_id' => $validated['payment_method_id'],
+                            'payment_amount' => $validated['sale_total'],
+                            'casher_id' => $validated['seller_id'] ?? $salesHeader->seller_id,
+                            'bank_account_id' => null,
+                            'reference' => null,
+                            'actual_balance' => 0,
+                            'is_active' => true,
+                        ]);
+                        Log::info('✅ Pago único guardado en payment_details', ['id' => $paymentDetail->id]);
+                    } catch (\Exception $e) {
+                        Log::error('❌ Error guardando pago único', ['error' => $e->getMessage()]);
+                        throw $e;
+                    }
+                }
+            }
+
+            // DEBUG: Ver qué se va a guardar
+            Log::info('📝 Datos a actualizar:', $validated);
+            Log::info('📝 payment_method_id final:', ['payment_method_id' => $validated['payment_method_id'] ?? 'NO EXISTE']);
+            Log::info('📝 operation_condition_id final:', ['operation_condition_id' => $validated['operation_condition_id'] ?? 'NO EXISTE']);
+
             $salesHeader->update($validated);
-            return ApiResponse::success($salesHeader, 'Venta actualizada con éxito', 200);
+
+            // DEBUG: Ver qué se guardó
+            $salesHeader->refresh();
+            Log::info('✅ Después de update:', [
+                'payment_method_id' => $salesHeader->payment_method_id,
+                'operation_condition_id' => $salesHeader->operation_condition_id
+            ]);
+
+            DB::commit();
+            return ApiResponse::success($salesHeader->load('paymentDetails.paymentMethod'), 'Venta actualizada con éxito', 200);
         } catch (ModelNotFoundException $exception) {
+            DB::rollBack();
             return ApiResponse::error($exception->getMessage(), 'Venta no encontrada', 404);
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse::error($e->getMessage(), 'Ocurrió un error', 500);
         }
     }

@@ -15,6 +15,19 @@ class SalesHeaderUpdateRequest extends FormRequest
     }
 
     /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation()
+    {
+        // Si payment_method_id es 0, tratarlo como null
+        if ($this->payment_method_id === 0 || $this->payment_method_id === '0') {
+            $this->merge([
+                'payment_method_id' => null,
+            ]);
+        }
+    }
+
+    /**
      * Get the validation rules that apply to the request.
      */
     public function rules(): array
@@ -35,7 +48,7 @@ class SalesHeaderUpdateRequest extends FormRequest
             'have_retention' => ['required'],
             'retention' => ['required', 'numeric'],
             'sale_total' => ['required', 'numeric'],
-            'payment_method_id' => ['nullable', 'integer'],
+            'payment_method_id' => ['nullable', 'integer', 'min:1', 'exists:payment_methods,id'],
             'payment_status' => ['required', 'integer'],
             'credit_days' => ['nullable', 'integer', 'min:1'],
             'due_date' => ['nullable', 'date'],
@@ -53,6 +66,12 @@ class SalesHeaderUpdateRequest extends FormRequest
             'generationCode' => ['nullable', 'string'],
             'jsonUrl' => ['nullable', 'string'],
             'is_active' => ['required'],
+
+            // Sistema de pagos: soporta ambos sistemas
+            'payment_details' => ['nullable', 'array'],
+            'payment_details.*.payment_method_id' => ['required_with:payment_details', 'integer', 'min:1', 'exists:payment_methods,id'],
+            'payment_details.*.amount' => ['required_with:payment_details', 'numeric', 'min:0.01'],
+            'payment_details.*.reference' => ['nullable', 'string', 'max:255'],
         ];
     }
 }
