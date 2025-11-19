@@ -15,8 +15,11 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
 
-
-
+        // ✅ AGREGAR: Middleware para extraer JWT de cookies
+        // Se ejecuta ANTES de JwtMiddleware para que funcione la autenticación
+        $middleware->api(prepend: [
+            \App\Http\Middleware\JwtFromCookie::class,
+        ]);
 
         $middleware->alias([
             'verified' => \App\Http\Middleware\EnsureEmailIsVerified::class,

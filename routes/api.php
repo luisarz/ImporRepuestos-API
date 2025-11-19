@@ -85,6 +85,7 @@ Route::post('login', [LoginController::class, 'login']);
 Route::middleware(['jwt'])->group(function () {
     Route::post('refresh', [LoginController::class, 'refresh']); // ✅ Acepta tokens expirados (ver JwtMiddleware)
     Route::post('logout', [LoginController::class, 'logout']);
+    Route::get('me', [LoginController::class, 'me']); // ✅ NUEVO: Verificar autenticación
 
     // ========== MENU (NUEVO - Basado en permisos de Spatie) ==========
     Route::prefix('menu')->group(function () {

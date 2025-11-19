@@ -98,19 +98,8 @@ class LoginController extends Controller
         $roles = $user->roles->pluck('name');
         $permissions = $user->getAllPermissions()->pluck('name');
 
-        // Crear cookie httpOnly con el token
-        // Para localhost, NO especificar dominio (null) permite compartir entre puertos del mismo host
-        $cookie = cookie(
-            'auth_token',           // nombre
-            $token,                 // valor
-            $expiresIn,            // tiempo en minutos
-            '/',                    // path
-            null,                   // domain null = permite compartir en localhost entre puertos
-            false,                  // secure (false en desarrollo, true en producción)
-            true,                   // httpOnly (no accesible desde JS)
-            false,                  // raw
-            'lax'                   // sameSite (lax para desarrollo local)
-        );
+        // ✅ Crear cookie httpOnly con el token (SEGURIDAD MEJORADA)
+        $cookie = $this->createAuthCookie($token, $expiresIn);
 
         return response()->json([
             'logged_status' => true,
@@ -155,11 +144,64 @@ class LoginController extends Controller
 
     public function refresh(): JsonResponse
     {
-        $token = auth()->refresh();
+        try {
+            $newToken = auth()->refresh();
+            $expiresIn = auth()->factory()->getTTL();
+
+            // ✅ NUEVO: Crear nueva cookie con token refrescado
+            $cookie = $this->createAuthCookie($newToken, $expiresIn);
+
+            return response()->json([
+                'token' => $newToken,  // ✅ Aún enviamos en JSON para compatibilidad
+                'token_type' => 'bearer',
+                'expires_in' => $expiresIn,
+                'message' => 'Token refrescado exitosamente'
+            ])->cookie($cookie);
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'No se pudo refrescar el token'
+            ], 401);
+        }
+    }
+
+    /**
+     * ✅ NUEVO: Obtener información del usuario autenticado
+     */
+    public function me(): JsonResponse
+    {
+        $user = auth()->user();
+
+        if (!$user) {
+            return response()->json(['error' => 'No autenticado'], 401);
+        }
+
         return response()->json([
-            'token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL()
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
+            'roles' => $user->roles->pluck('name'),
+            'permissions' => $user->getAllPermissions()->pluck('name')
         ]);
+    }
+
+    /**
+     * ✅ NUEVO: Crear cookie segura para el token
+     * Configuración dinámica según ambiente
+     */
+    private function createAuthCookie(string $token, int $expiresIn)
+    {
+        return cookie(
+            'auth_token',                           // nombre
+            $token,                                 // valor
+            $expiresIn,                            // duración en minutos
+            '/',                                    // path
+            null,                                   // domain (null = dominio actual, permite localhost)
+            config('app.env') === 'production',    // secure (solo HTTPS en producción)
+            true,                                   // httpOnly (NO accesible a JavaScript) ✅ SEGURIDAD
+            false,                                  // raw
+            config('app.env') === 'production' ? 'strict' : 'lax'  // sameSite: lax en dev, strict en prod
+        );
     }
 }

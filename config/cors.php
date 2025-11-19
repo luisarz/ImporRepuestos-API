@@ -15,22 +15,28 @@ return [
     |
     */
 
-    'paths' => ['*'],
+    'paths' => ['api/*', 'sanctum/csrf-cookie'],
 
     'allowed_methods' => ['*'],
 
-    'allowed_origins' => [
-        'http://localhost:5173',      // Desarrollo con Vite
-        'http://127.0.0.1:5173',      // Desarrollo con Vite (127.0.0.1)
-        'http://localhost:3000',      // Alternativo
-        'https://impor-front.com',    // Producción frontend
-        env('FRONTEND_URL', '*')      // Configurable desde .env
-    ],
-    // 'allowed_origins' => ['*'], // No se puede usar * con credentials
+    // ✅ ACTUALIZACIÓN: Solo dominios específicos según ambiente
+    'allowed_origins' => env('APP_ENV') === 'production'
+        ? [env('FRONTEND_URL')]  // Solo producción en prod
+        : [
+            'http://localhost:5173',
+            'http://127.0.0.1:5173',
+            'http://localhost:3000',
+            'http://127.0.0.1:3000',
+          ],
+
     'allowed_origins_patterns' => [],
+
     'allowed_headers' => ['*'],
+
     'exposed_headers' => ['Authorization'],
+
     'max_age' => 0,
+
     'supports_credentials' => true,
 
 ];
