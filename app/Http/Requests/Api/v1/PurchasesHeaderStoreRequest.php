@@ -28,14 +28,17 @@ class PurchasesHeaderStoreRequest extends FormRequest
             'purchase_number' => ['nullable', 'string'],
             'resolution' => ['nullable', 'string'],
             'purchase_type' => ['nullable', 'integer'],
-            'payment_method' => ['required', 'in:1,2'],
-            'payment_status' => ['nullable', 'in:1,2,3'],
+            'payment_status' => ['nullable', 'in:0,1,2'],
             'net_amount' => ['nullable', 'numeric'],
+            'pending_balance' => ['nullable', 'numeric'],
             'tax_amount' => ['nullable', 'numeric'],
             'retention_amount' => ['nullable', 'numeric'],
             'total_purchase' => ['nullable', 'numeric'],
             'employee_id' => ['nullable', 'integer'],
             'status_purchase' => ['nullable', 'in:1,2,3'],
+            'operation_condition_id' => ['nullable', 'integer', 'exists:operation_conditions,id'],
+            'days_credit' => ['nullable', 'integer', 'min:0'],
+            'due_date' => ['nullable', 'date', 'after_or_equal:purchase_date'],
         ];
 
         // Si el estado es "Finalizada" (2), entonces provider_id es obligatorio

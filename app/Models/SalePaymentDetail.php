@@ -17,6 +17,7 @@ class SalePaymentDetail extends Model
      */
     protected $fillable = [
         'sale_id',
+        'cash_opening_id',
         'payment_method_id',
         'casher_id',
         'payment_amount',
@@ -34,6 +35,7 @@ class SalePaymentDetail extends Model
     protected $casts = [
         'id' => 'integer',
         'sale_id' => 'integer',
+        'cash_opening_id' => 'integer',
         'payment_method_id' => 'integer',
         'casher_id' => 'integer',
         'payment_amount' => 'decimal:2',
@@ -55,5 +57,10 @@ class SalePaymentDetail extends Model
     public function casher(): BelongsTo
     {
         return $this->belongsTo(Employee::class);
+    }
+
+    public function cashOpening(): BelongsTo
+    {
+        return $this->belongsTo(CashOpening::class);
     }
 }

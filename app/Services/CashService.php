@@ -371,6 +371,20 @@ class CashService
     }
 
     /**
+     * Obtener cualquier caja abierta en una bodega específica
+     * (Compartida entre todos los usuarios con acceso)
+     */
+    public function getWarehouseOpenCash($warehouseId)
+    {
+        return CashOpening::where('status', 'open')
+            ->whereHas('cashRegister', function($query) use ($warehouseId) {
+                $query->where('warehouse_id', $warehouseId);
+            })
+            ->with(['cashRegister', 'user', 'cashMovements'])
+            ->first();
+    }
+
+    /**
      * Obtener movimientos de una apertura con filtros
      */
     public function getMovementsWithFilters(int $openingId, array $filters = [])

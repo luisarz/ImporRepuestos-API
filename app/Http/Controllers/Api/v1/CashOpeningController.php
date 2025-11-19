@@ -172,6 +172,31 @@ class CashOpeningController extends Controller
     }
 
     /**
+     * Obtener cualquier caja abierta en una bodega
+     * (Compartida entre todos los usuarios con acceso al módulo)
+     */
+    public function getCurrentByWarehouse(Request $request): JsonResponse
+    {
+        try {
+            $warehouseId = $request->input('warehouse_id');
+
+            if (!$warehouseId) {
+                return ApiResponse::error(null, 'El ID de bodega es requerido', 400);
+            }
+
+            $opening = $this->cashService->getWarehouseOpenCash($warehouseId);
+
+            if (!$opening) {
+                return ApiResponse::success(null, 'No hay caja abierta en esta bodega', 200);
+            }
+
+            return ApiResponse::success($opening, 'Caja abierta en la bodega', 200);
+        } catch (Exception $e) {
+            return ApiResponse::error($e->getMessage(), 'Error al obtener la apertura actual', 500);
+        }
+    }
+
+    /**
      * Obtener reporte de una apertura
      */
     public function report($id): JsonResponse

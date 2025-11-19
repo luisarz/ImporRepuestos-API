@@ -555,8 +555,10 @@ Route::middleware(['jwt'])->group(function () {
     Route::get('sale-payment-details/sale/{saleId}', [SalePaymentDetailController::class, 'getBySale']);
     Route::get('sale-payment-details/payment-history/{saleId}', [SalePaymentDetailController::class, 'getPaymentHistory']);
     Route::get('sale-payment-details/print-pdf/{saleId}', [SalePaymentDetailController::class, 'printPaymentsPDF']);
+    Route::get('sale-payment-details/print-payment-pdf/{paymentId}', [SalePaymentDetailController::class, 'printSinglePaymentPDF']);
     Route::post('sale-payment-details/register-payment', [SalePaymentDetailController::class, 'registerPayment']);
     Route::get('sale-payment-details/accounts-receivable', [SalePaymentDetailController::class, 'getAccountsReceivable']);
+    Route::get('sale-payment-details/accounts-receivable/print-pdf', [SalePaymentDetailController::class, 'printAccountsReceivablePDF']);
     Route::apiResource('sale-payment-details', SalePaymentDetailController::class);
 
     // Purchase Payment Details - rutas especiales antes del resource
@@ -629,6 +631,7 @@ Route::middleware(['jwt'])->group(function () {
     // ========== CASH OPENINGS (Aperturas de Caja) ==========
     Route::get('cash-openings/stats/all', [CashOpeningController::class, 'stats']);
     Route::get('cash-openings/current-by-user', [CashOpeningController::class, 'getCurrentByUser']);
+    Route::get('cash-openings/current-by-warehouse', [CashOpeningController::class, 'getCurrentByWarehouse']);
     Route::get('cash-openings/{id}/report', [CashOpeningController::class, 'report']);
     Route::post('cash-openings/{id}/close', [CashOpeningController::class, 'close']);
     Route::post('cash-openings/stats-by-date-range', [CashOpeningController::class, 'statsByDateRange']);

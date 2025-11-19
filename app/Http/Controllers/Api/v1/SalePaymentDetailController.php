@@ -175,9 +175,11 @@ class SalePaymentDetailController extends Controller
         try {
             $request->validate([
                 'sale_id' => 'required|exists:sales_headers,id',
+                'cash_opening_id' => 'required|exists:cash_openings,id',
                 'payment_method_id' => 'required|exists:payment_methods,id',
                 'payment_amount' => 'required|numeric|min:0.01',
                 'casher_id' => 'required|exists:employees,id',
+                'user_id' => 'required|exists:users,id',
                 'bank_account_id' => 'nullable|exists:bank_accounts,id',
                 'reference' => 'nullable|string|max:255',
             ]);
@@ -185,7 +187,7 @@ class SalePaymentDetailController extends Controller
             $salesService = new \App\Services\SalesService();
             $payment = $salesService->registerPayment(
                 $request->sale_id,
-                $request->only(['payment_method_id', 'payment_amount', 'casher_id', 'bank_account_id', 'reference'])
+                $request->only(['cash_opening_id', 'payment_method_id', 'payment_amount', 'casher_id', 'user_id', 'bank_account_id', 'reference'])
             );
 
             return ApiResponse::success($payment, 'Pago registrado exitosamente', 201);
@@ -271,6 +273,79 @@ class SalePaymentDetailController extends Controller
     }
 
     /**
+     * Generar PDF de reporte de cuentas por cobrar
+     */
+    public function printAccountsReceivablePDF(Request $request)
+    {
+        try {
+            $filters = $request->only(['customer_id', 'warehouse_id', 'overdue_only']);
+            $salesService = new \App\Services\SalesService();
+            $accountsReceivable = $salesService->getAccountsReceivable($filters);
+
+            if ($accountsReceivable->isEmpty()) {
+                return response()->json(['error' => 'No se encontraron cuentas por cobrar con los filtros aplicados'], 404);
+            }
+
+            // Calcular totales
+            $totalPending = $accountsReceivable->sum(function($sale) {
+                return $sale->current_balance ?? $sale->pending_balance ?? 0;
+            });
+
+            $totalSales = $accountsReceivable->sum('sale_total');
+            $totalPaid = $accountsReceivable->sum('total_paid');
+
+            // Contar ventas vencidas
+            $today = \Carbon\Carbon::now();
+            $overdueCount = $accountsReceivable->filter(function($sale) use ($today) {
+                return $sale->due_date && \Carbon\Carbon::parse($sale->due_date)->lt($today);
+            })->count();
+
+            // Obtener información de filtros aplicados
+            $filterInfo = [];
+            if (!empty($filters['customer_id'])) {
+                $customer = \App\Models\Customer::find($filters['customer_id']);
+                if ($customer) {
+                    $filterInfo[] = 'Cliente: ' . $customer->name . ' ' . $customer->last_name;
+                }
+            }
+            if (!empty($filters['warehouse_id'])) {
+                $warehouse = \App\Models\Warehouse::find($filters['warehouse_id']);
+                if ($warehouse) {
+                    $filterInfo[] = 'Bodega: ' . $warehouse->name;
+                }
+            }
+            if (!empty($filters['overdue_only'])) {
+                $filterInfo[] = 'Solo vencidas';
+            }
+
+            $data = [
+                'accountsReceivable' => $accountsReceivable,
+                'totalPending' => $totalPending,
+                'totalSales' => $totalSales,
+                'totalPaid' => $totalPaid,
+                'totalCount' => $accountsReceivable->count(),
+                'overdueCount' => $overdueCount,
+                'filterInfo' => $filterInfo,
+                'date' => now()->format('d/m/Y H:i:s')
+            ];
+
+            $pdf = \PDF::loadView('pdf.accounts-receivable-report', $data);
+            $pdf->setPaper('letter', 'portrait');
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isRemoteEnabled', true);
+
+            return $pdf->stream('Cuentas_Por_Cobrar_' . now()->format('Y-m-d_His') . '.pdf');
+
+        } catch (\Exception $exception) {
+            \Log::error('Error al generar PDF de cuentas por cobrar', [
+                'error' => $exception->getMessage(),
+                'trace' => $exception->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Error al generar el PDF: ' . $exception->getMessage()], 500);
+        }
+    }
+
+    /**
      * Generar PDF de reporte de pagos por venta
      */
     public function printPaymentsPDF(Request $request, $saleId)
@@ -326,6 +401,52 @@ class SalePaymentDetailController extends Controller
                 'trace' => $exception->getTraceAsString()
             ]);
             return response()->json(['error' => 'Error al generar el PDF: ' . $exception->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Generar PDF de un pago individual
+     */
+    public function printSinglePaymentPDF(Request $request, $paymentId)
+    {
+        try {
+            $payment = SalePaymentDetail::with([
+                'sale' => function($query) {
+                    $query->with('customer:id,name,last_name,document_number,nit,nrc,document_type_id');
+                },
+                'paymentMethod:id,name,code',
+                'casher:id,name,last_name'
+            ])->findOrFail($paymentId);
+
+            $sale = $payment->sale;
+
+            // Calcular el saldo anterior
+            $previousPayments = SalePaymentDetail::where('sale_id', $sale->id)
+                ->where('id', '<', $payment->id)
+                ->sum('payment_amount');
+
+            $previousBalance = $sale->sale_total - $previousPayments;
+
+            $data = [
+                'payment' => $payment,
+                'sale' => $sale,
+                'previousBalance' => $previousBalance,
+                'date' => now()->format('d/m/Y H:i:s')
+            ];
+
+            $pdf = \PDF::loadView('pdf.sale-single-payment', $data);
+            $pdf->setPaper('letter', 'portrait');
+            $pdf->setOption('isHtml5ParserEnabled', true);
+            $pdf->setOption('isRemoteEnabled', true);
+
+            return $pdf->stream('Pago_' . $payment->id . '_Venta_' . $sale->document_internal_number . '.pdf');
+
+        } catch (\Exception $exception) {
+            \Log::error('Error al generar PDF de pago individual', [
+                'payment_id' => $paymentId,
+                'error' => $exception->getMessage()
+            ]);
+            return response()->json(['error' => 'Error al generar el PDF'], 500);
         }
     }
 }

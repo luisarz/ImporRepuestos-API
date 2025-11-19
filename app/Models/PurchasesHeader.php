@@ -21,16 +21,19 @@ class PurchasesHeader extends Model
         'quote_purchase_id',
         'provider_id',
         'purchase_date',
+        'due_date',
+        'days_credit',
+        'operation_condition_id',
         'serie',
         'purchase_number',
         'resolution',
         'purchase_type',
-        'payment_method',
         'payment_status',
         'net_amount',
         'tax_amount',
         'retention_amount',
         'total_purchase',
+        'pending_balance',
         'employee_id',
         'status_purchase',
     ];
@@ -46,11 +49,15 @@ class PurchasesHeader extends Model
         'quote_purchase_id' => 'integer',
         'provider_id' => 'integer',
         'purchase_date' => 'date',
+        'due_date' => 'date',
+        'days_credit' => 'integer',
+        'operation_condition_id' => 'integer',
         'purchase_type' => 'integer',
         'net_amount' => 'float',
         'tax_amount' => 'float',
         'retention_amount' => 'float',
         'total_purchase' => 'float',
+        'pending_balance' => 'float',
         'employee_id' => 'integer',
     ];
 
@@ -71,5 +78,20 @@ class PurchasesHeader extends Model
     public function purchaseItems(): HasMany
     {
         return $this->hasMany(PurchaseItem::class, 'purchase_id', 'id');
+    }
+
+    public function paymentDetails(): HasMany
+    {
+        return $this->hasMany(PurchasePaymentDetail::class, 'purchase_id', 'id');
+    }
+
+    public function employee(): BelongsTo
+    {
+        return $this->belongsTo(Employee::class);
+    }
+
+    public function operationCondition(): BelongsTo
+    {
+        return $this->belongsTo(OperationCondition::class);
     }
 }

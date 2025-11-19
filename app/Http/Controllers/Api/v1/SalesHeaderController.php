@@ -187,52 +187,69 @@ class SalesHeaderController extends Controller
             unset($validated['payment_details']); // Remover del array para no intentar insertarlo en sales_headers
 
             // Si hay pagos divididos, determinar el método principal para el DTE
-            if ($paymentDetails && is_array($paymentDetails) && count($paymentDetails) > 0) {
-                // Validar que la suma de pagos coincida con el total de venta
-                $totalPayments = array_reduce($paymentDetails, function($carry, $payment) {
-                    return $carry + ($payment['amount'] ?? 0);
-                }, 0);
+            // ===== IMPORTANTE: Verificar si es venta a crédito PRIMERO =====
+            // operation_condition_id: 1=Contado, 2=A crédito, 3=Otro
+            $isCredit = isset($validated['operation_condition_id']) && $validated['operation_condition_id'] == 2;
 
-                if (abs($totalPayments - $validated['sale_total']) > 0.01) {
-                    DB::rollBack();
-                    return ApiResponse::error(
-                        ['payment_mismatch' => "La suma de pagos ($" . number_format($totalPayments, 2) . ") no coincide con el total de venta ($" . number_format($validated['sale_total'], 2) . ")"],
-                        'La suma de los métodos de pago no coincide con el total de la venta',
-                        422
-                    );
-                }
+            if ($isCredit) {
+                // ===== VENTA A CRÉDITO =====
+                // IMPORTANTE: Hacienda requiere payment_method_id incluso para crédito
+                // El payment_method_id indica cómo se pagará eventualmente
+                // Siempre payment_status = 0 (Sin Pago - porque no se paga de inmediato)
+                $validated['payment_status'] = 0;
 
-                // Determinar el método principal para DTE:
-                // Prioridad: 1) Efectivo si existe, 2) El de mayor monto
-                $mainPayment = null;
-                $cashPayment = null;
+                // No registrar pagos (no aplica para crédito inicial)
+                $paymentDetails = [];
+            } else {
+                // ===== VENTA DE CONTADO U OTRA =====
+                if ($paymentDetails && is_array($paymentDetails) && count($paymentDetails) > 0) {
+                    // Validar que la suma de pagos coincida con el total de venta
+                    $totalPayments = array_reduce($paymentDetails, function($carry, $payment) {
+                        return $carry + ($payment['amount'] ?? 0);
+                    }, 0);
 
-                foreach ($paymentDetails as $payment) {
-                    // Buscar si hay efectivo (código 01 según catálogo MH)
-                    $paymentMethod = \App\Models\PaymentMethod::find($payment['payment_method_id']);
-                    if ($paymentMethod && $paymentMethod->code === '01') {
-                        $cashPayment = $payment;
-                        break;
+                    if (abs($totalPayments - $validated['sale_total']) > 0.01) {
+                        DB::rollBack();
+                        return ApiResponse::error(
+                            ['payment_mismatch' => "La suma de pagos ($" . number_format($totalPayments, 2) . ") no coincide con el total de venta ($" . number_format($validated['sale_total'], 2) . ")"],
+                            'La suma de los métodos de pago no coincide con el total de la venta',
+                            422
+                        );
                     }
 
-                    // Encontrar el de mayor monto
-                    if (!$mainPayment || $payment['amount'] > $mainPayment['amount']) {
-                        $mainPayment = $payment;
-                    }
-                }
+                    // Determinar el método principal para DTE:
+                    // Prioridad: 1) Efectivo si existe, 2) El de mayor monto
+                    $mainPayment = null;
+                    $cashPayment = null;
 
-                // Usar efectivo si existe, si no, el de mayor monto
-                $primaryPayment = $cashPayment ?? $mainPayment;
-                $validated['payment_method_id'] = $primaryPayment['payment_method_id'];
+                    foreach ($paymentDetails as $payment) {
+                        // Buscar si hay efectivo (código 01 según catálogo MH)
+                        $paymentMethod = \App\Models\PaymentMethod::find($payment['payment_method_id']);
+                        if ($paymentMethod && $paymentMethod->code === '01') {
+                            $cashPayment = $payment;
+                            break;
+                        }
+
+                        // Encontrar el de mayor monto
+                        if (!$mainPayment || $payment['amount'] > $mainPayment['amount']) {
+                            $mainPayment = $payment;
+                        }
+                    }
+
+                    // Usar efectivo si existe, si no, el de mayor monto
+                    $primaryPayment = $cashPayment ?? $mainPayment;
+                    $validated['payment_method_id'] = $primaryPayment['payment_method_id'];
+
+                    // Payment status = 3 (Pagado) porque tiene pagos
+                    $validated['payment_status'] = 3;
+                } else {
+                    // No tiene pagos = 1 (Pendiente)
+                    $validated['payment_status'] = 1;
+                }
             }
 
             // Crear la venta
             $salesHeader = SalesHeader::create($validated);
-
-            // ===== IMPORTANTE: Solo registrar pagos si NO es venta a crédito =====
-            // operation_condition_id: 1=Contado, 2=A crédito, 3=Otro
-            // Si es crédito (operation_condition_id = 2), NO registrar ningún pago
-            $isCredit = isset($validated['operation_condition_id']) && $validated['operation_condition_id'] == 2;
 
             if (!$isCredit) {
                 // Guardar los detalles de pago si existen
